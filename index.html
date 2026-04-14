@@ -2135,7 +2135,7 @@ function renderPanel() {
       </div>
       <div class="card-actions">
         <button class="btn btn-outline edit-only" onclick="openEditStudent('${s.name}')">✎ 編輯資料</button>
-        <button class="btn btn-outline btn-red" onclick="removeStudent('${s.name}')">${s.group === '已離隊' ? '↩ 移回在籍' : '移至已離隊'}</button>
+        <button class="btn btn-outline btn-red edit-only" onclick="removeStudent('${s.name}')">${s.group === '已離隊' ? '↩ 移回在籍' : '移至已離隊'}</button>
       </div>
     </div>
 
