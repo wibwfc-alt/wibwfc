@@ -766,7 +766,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
 </div>
 
 <!-- TOPUP FORM MODAL -->
-<div id="topupModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:999;align-items:center;justify-content:center;">
+<div id="topupModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;">
   <div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:380px;max-width:90vw;max-height:90vh;overflow-y:auto;">
     <h3 style="font-size:1rem;font-weight:700;margin-bottom:12px;">💳 儲值回報</h3>
     <div id="topupStudentName" style="font-size:0.82rem;color:#fcc929;margin-bottom:16px;"></div>
@@ -1160,6 +1160,9 @@ function loadState() {
 }
 
 function showTopupForm(name) {
+  // Close any other open modals first
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+  document.getElementById('batchModal').style.display = 'none';
   const modal = document.getElementById('topupModal');
   modal.style.display = 'flex';
   document.getElementById('topupStudentName').textContent = '學員：' + name;
@@ -2224,7 +2227,7 @@ function renderPanel() {
     <div id="tab-preview" class="tab-content active">
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
         <button class="btn btn-outline edit-only" onclick="printCard()" style="font-size:0.78rem;">🖨 列印</button>
-        <button class="btn" onclick="showTopupForm('${s.name}')" style="font-size:0.78rem;background:var(--green);">💳 儲值回報</button>
+        <button class="btn" onclick="event.stopPropagation();showTopupForm('${s.name}')" style="font-size:0.78rem;background:var(--green);">💳 儲值回報</button>
       </div>
       <div class="preview-card" id="previewCard">
         <div class="preview-header">
