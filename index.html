@@ -1183,10 +1183,13 @@ function showTopupForm(name) {
 }
 
 function updateTopupHint() {
-  const method = document.querySelector('input[name=payMethod]:checked').value;
+  const checkedEl = document.querySelector('input[name=payMethod]:checked');
+  if (!checkedEl) return;
+  const method = checkedEl.value;
   const refGroup = document.getElementById('topupRefGroup');
   const refLabel = document.getElementById('topupRefLabel');
   const refInput = document.getElementById('topupRef');
+  if (!refGroup || !refLabel || !refInput) return;
   if (method === '轉帳') {
     refGroup.style.display = 'block';
     refLabel.textContent = '後五碼';
