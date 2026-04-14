@@ -57,8 +57,7 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
 @media(max-width:768px){ .main { grid-template-columns: 1fr; } }
 @media(max-width:600px){
   .sidebar { padding: 10px; }
-  .panel { padding: 14px; }
-  .balance-row { grid-template-columns: repeat(2, 1fr) !important; }
+    .balance-row { grid-template-columns: repeat(2, 1fr) !important; }
   .dates-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
 
@@ -574,7 +573,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('小六')">小六</button>
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('國中')">國中</button>
       <button class="btn btn-outline edit-only" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="filterGroup('已離隊')">離隊</button>
-      <button class="btn btn-outline" id="debtFilterBtn" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="toggleDebtFilter()">⚠️ 欠費</button>
+      <button class="btn btn-outline" id="debtFilterBtn" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="toggleDebtFilter()">欠費</button>
     </div>
     <div class="student-list" id="studentList"></div>
   </div>
@@ -755,7 +754,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <option value="小六">小六</option>
           <option value="國中">國中</option>
         </select>
-        <button class="btn btn-outline" onclick="filterBatchDebt()" id="batchDebtBtn" style="font-size:0.8rem;border-color:rgba(224,92,42,0.35);color:var(--red);">⚠️ 欠費</button>
+        <button class="btn btn-outline" onclick="filterBatchDebt()" id="batchDebtBtn" style="font-size:0.8rem;border-color:rgba(224,92,42,0.35);color:var(--red);">欠費</button>
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
       </div>
