@@ -358,7 +358,7 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
   display: none;
   position: fixed; bottom: 0; left: 0; right: 0;
   background: #0a0a0a; border-top: 1px solid rgba(252,201,41,0.15);
-  z-index: 50; padding: 8px 0;
+  z-index: 49; padding: 8px 0;
 }
 @media(max-width:768px) { .mobile-nav { display: flex; } }
 .mobile-nav-btn {
@@ -766,45 +766,42 @@ body.edit-mode .edit-only { display: inline-block !important; }
 </div>
 
 <!-- TOPUP FORM MODAL -->
-<div class="modal-overlay" id="topupModal">
-  <div class="modal" style="width:400px;">
-    <h3>💳 儲值回報</h3>
-    <div id="topupStudentName" style="font-size:0.82rem;color:var(--yellow);margin-bottom:16px;"></div>
-    <div class="form-group"><label>付款方式</label>
-      <div style="display:flex;gap:8px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:var(--white);">
-          <input type="radio" name="payMethod" value="轉帳" checked onchange="updateTopupHint()"> 轉帳
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:var(--white);">
-          <input type="radio" name="payMethod" value="LINE PAY" onchange="updateTopupHint()"> LINE PAY
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:var(--white);">
-          <input type="radio" name="payMethod" value="現金" onchange="updateTopupHint()"> 現金
-        </label>
+<div id="topupModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:380px;max-width:90vw;max-height:90vh;overflow-y:auto;">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:12px;">💳 儲值回報</h3>
+    <div id="topupStudentName" style="font-size:0.82rem;color:#fcc929;margin-bottom:16px;"></div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">付款方式</div>
+      <div style="display:flex;gap:12px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="轉帳" checked onchange="tpUpdateHint()"> 轉帳</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="LINE PAY" onchange="tpUpdateHint()"> LINE PAY</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="現金" onchange="tpUpdateHint()"> 現金</label>
       </div>
     </div>
-    <div class="form-group" id="topupRefGroup"><label id="topupRefLabel">後五碼</label>
-      <input type="text" id="topupRef" placeholder="請輸入後五碼" oninput="generateTopupPreview()">
+    <div id="tpRefGroup" style="margin-bottom:12px;">
+      <div id="tpRefLabel" style="font-size:0.72rem;color:#666;margin-bottom:5px;">後五碼</div>
+      <input id="tpRef" type="text" placeholder="請輸入轉帳後五碼" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
-    <div class="form-group"><label>堂數</label>
-      <input type="number" id="topupAmount" placeholder="例：10" min="1" oninput="generateTopupPreview()">
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">堂數</div>
+      <input id="tpAmount" type="number" placeholder="例：10" min="1" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
-    <div class="form-group">
-      <label>日期</label>
-      <input type="date" id="topupDate" onchange="generateTopupPreview()"
-        style="width:100%;background:var(--card);border:2px solid rgba(252,201,41,0.4);color:var(--white);padding:10px 12px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-size:0.9rem;cursor:pointer;">
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">日期</div>
+      <input id="tpDate" type="date" onchange="tpGenPreview()" style="width:100%;background:#0d0d0d;border:2px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
-    <div class="form-group"><label>備註（選填）</label>
-      <input type="text" id="topupNote" placeholder="例：四月份儲值" oninput="generateTopupPreview()">
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">備註（選填）</div>
+      <input id="tpNote" type="text" placeholder="例：四月份儲值" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
-    <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:12px;margin-top:8px;">
-      <div style="font-size:0.68rem;color:var(--gray);margin-bottom:6px;">預覽訊息</div>
-      <div id="topupPreview" style="font-size:0.82rem;color:var(--white);line-height:1.8;white-space:pre-wrap;"></div>
+    <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:0.68rem;color:#666;margin-bottom:6px;">預覽訊息</div>
+      <div id="tpPreview" style="font-size:0.82rem;color:#f5f5f0;line-height:1.8;white-space:pre-wrap;"></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal()">關閉</button>
-      <button class="btn btn-green" onclick="copyTopupMsg()">📋 複製訊息</button>
-    </div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="tpClose()" style="background:none;border:1px solid rgba(252,201,41,0.35);color:#fcc929;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-size:0.8rem;cursor:pointer;">關閉</button>
+      <button onclick="tpCopy()" style="background:#246e58;color:white;border:none;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;">📋 複製訊息</button>
+    </div>
   </div>
 </div>
 
@@ -1164,32 +1161,25 @@ function loadState() {
 
 function showTopupForm(name) {
   const modal = document.getElementById('topupModal');
-  if (!modal) return;
+  modal.style.display = 'flex';
   document.getElementById('topupStudentName').textContent = '學員：' + name;
-  modal._studentName = name;
-  const refEl = document.getElementById('topupRef');
-  if (refEl) refEl.value = '';
-  const amtEl = document.getElementById('topupAmount');
-  if (amtEl) amtEl.value = '';
-  const noteEl = document.getElementById('topupNote');
-  if (noteEl) noteEl.value = '';
-  const today = new Date();
-  const dateEl = document.getElementById('topupDate');
-  if (dateEl) dateEl.value = today.toISOString().split('T')[0];
-  const radioEl = document.querySelector('input[name=payMethod][value="轉帳"]');
-  if (radioEl) radioEl.checked = true;
-  updateTopupHint();
-  modal.classList.add('show');
+  document.getElementById('tpRef').value = '';
+  document.getElementById('tpAmount').value = '';
+  document.getElementById('tpNote').value = '';
+  document.getElementById('tpDate').value = new Date().toISOString().split('T')[0];
+  document.querySelector('input[name=tpMethod][value="轉帳"]').checked = true;
+  tpUpdateHint();
 }
 
-function updateTopupHint() {
-  const checkedEl = document.querySelector('input[name=payMethod]:checked');
-  if (!checkedEl) return;
-  const method = checkedEl.value;
-  const refGroup = document.getElementById('topupRefGroup');
-  const refLabel = document.getElementById('topupRefLabel');
-  const refInput = document.getElementById('topupRef');
-  if (!refGroup || !refLabel || !refInput) return;
+function tpClose() {
+  document.getElementById('topupModal').style.display = 'none';
+}
+
+function tpUpdateHint() {
+  const method = document.querySelector('input[name=tpMethod]:checked').value;
+  const refGroup = document.getElementById('tpRefGroup');
+  const refLabel = document.getElementById('tpRefLabel');
+  const refInput = document.getElementById('tpRef');
   if (method === '轉帳') {
     refGroup.style.display = 'block';
     refLabel.textContent = '後五碼';
@@ -1201,16 +1191,16 @@ function updateTopupHint() {
   } else {
     refGroup.style.display = 'none';
   }
-  generateTopupPreview();
+  tpGenPreview();
 }
 
-function generateTopupPreview() {
+function tpGenPreview() {
   const name = document.getElementById('topupStudentName').textContent.replace('學員：','');
-  const method = document.querySelector('input[name=payMethod]:checked').value;
-  const ref = document.getElementById('topupRef').value.trim();
-  const amount = document.getElementById('topupAmount').value;
-  const date = document.getElementById('topupDate').value;
-  const note = document.getElementById('topupNote').value.trim();
+  const method = document.querySelector('input[name=tpMethod]:checked').value;
+  const ref = document.getElementById('tpRef').value.trim();
+  const amount = document.getElementById('tpAmount').value;
+  const date = document.getElementById('tpDate').value;
+  const note = document.getElementById('tpNote').value.trim();
   let msg = '【儲值回報】\n';
   msg += '學員：' + name + '\n';
   msg += '方式：' + method;
@@ -1220,15 +1210,14 @@ function generateTopupPreview() {
   if (date) {
     const dt = new Date(date + 'T00:00:00');
     const days = ['日','一','二','三','四','五','六'];
-    const formatted = date.replace(/-/g, '/') + '（週' + days[dt.getDay()] + '）';
-    msg += '日期：' + formatted + '\n';
+    msg += '日期：' + date.replace(/-/g,'/') + '（週' + days[dt.getDay()] + '）\n';
   }
   if (note) msg += '備註：' + note + '\n';
-  document.getElementById('topupPreview').textContent = msg;
+  document.getElementById('tpPreview').textContent = msg;
 }
 
-function copyTopupMsg() {
-  const msg = document.getElementById('topupPreview').textContent;
+function tpCopy() {
+  const msg = document.getElementById('tpPreview').textContent;
   if (!msg.trim()) { alert('請先填寫儲值資料'); return; }
   navigator.clipboard.writeText(msg).then(() => alert('已複製！請傳送給教練確認 🙏'));
 }
