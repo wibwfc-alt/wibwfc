@@ -1165,6 +1165,8 @@ function showTopupForm(name) {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
   document.getElementById('batchModal').style.display = 'none';
   const modal = document.getElementById('topupModal');
+  // Move modal to body level to avoid z-index stacking issues
+  document.body.appendChild(modal);
   modal.style.display = 'flex';
   document.getElementById('topupStudentName').textContent = '學員：' + name;
   document.getElementById('tpRef').value = '';
