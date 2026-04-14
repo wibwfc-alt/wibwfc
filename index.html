@@ -573,7 +573,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('小五')">小五</button>
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('小六')">小六</button>
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('國中')">國中</button>
-      <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="filterGroup('已離隊')">離隊</button>
+      <button class="btn btn-outline edit-only" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="filterGroup('已離隊')">離隊</button>
       <button class="btn btn-outline" id="debtFilterBtn" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="toggleDebtFilter()">⚠️ 欠費</button>
     </div>
     <div class="student-list" id="studentList"></div>
@@ -2284,6 +2284,7 @@ function renderPanel() {
 // ── ACTIONS ───────────────────────────────────────────
 function toggleDate(studentName, date, type) {
   if (state.isReadOnly) return;
+  const currentTab = state._activeTab || 'attendance';
   const data = getCurrentMonthData();
   const s = data.students.find(x => x.name === studentName);
   if (!s) return;
@@ -2303,6 +2304,16 @@ function toggleDate(studentName, date, type) {
   saveState();
   renderSidebar();
   renderPanel();
+  // Restore tab after re-render
+  const tab = state._activeTab || 'attendance';
+  const tabBtn = document.querySelector(`.tab-btn[onclick*="${tab}"]`);
+  const tabContent = document.getElementById('tab-' + tab);
+  if (tabBtn && tabContent) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tabBtn.classList.add('active');
+    tabContent.classList.add('active');
+  }
 }
 
 function updateTopup(name, type, val) {
@@ -2556,6 +2567,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById('tab-' + tab).classList.add('active');
+  state._activeTab = tab;
 }
 
 // Close modal on overlay click
