@@ -1297,7 +1297,7 @@ function showOverview() {
   tableHtml += '</tbody></table>';
 
   document.getElementById('overviewContent').innerHTML = prevWarnHtml + tableHtml;
-  document.getElementById('overviewModal').classList.add('show');
+  const _moverviewModal = document.getElementById('overviewModal'); document.body.appendChild(_moverviewModal); _moverviewModal.classList.add('show');
 }
 
 function copyDebtList() {
@@ -2371,13 +2371,13 @@ function changeMonth() {
   renderPanel();
 }
 
-function showAddStudent() { document.getElementById('addStudentModal').classList.add('show'); }
+function showAddStudent() { const _maddStudentModal = document.getElementById('addStudentModal'); document.body.appendChild(_maddStudentModal); _maddStudentModal.classList.add('show'); }
 function showAddDate() {
   const [y, m] = state.currentMonth.split('-');
   document.getElementById('newDateY').value = y;
   document.getElementById('newDateM').value = m;
   document.getElementById('newDateD').value = '01';
-  document.getElementById('addDateModal').classList.add('show');
+  const _maddDateModal = document.getElementById('addDateModal'); document.body.appendChild(_maddDateModal); _maddDateModal.classList.add('show');
 }
 function closeModal() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
@@ -2437,7 +2437,7 @@ function openEditDate(date) {
   document.querySelectorAll('input[name=editCoachCheck]').forEach(c => {
     c.checked = coaches.includes(c.value);
   });
-  document.getElementById('editDateModal').classList.add('show');
+  const _meditDateModal = document.getElementById('editDateModal'); document.body.appendChild(_meditDateModal); _meditDateModal.classList.add('show');
 }
 
 function saveEditDate() {
@@ -2500,7 +2500,9 @@ function openEditStudent(name) {
   document.getElementById('editPrevBalance').value = s.prevBalance || 0;
   document.getElementById('editScPrevBal').value = s.scPrevBal || 0;
   document.getElementById('editNote').value = s.note || '';
-  document.getElementById('editStudentModal').classList.add('show');
+  const modal = document.getElementById('editStudentModal');
+  document.body.appendChild(modal);
+  modal.classList.add('show');
 }
 
 function deleteStudentFromEdit() {
