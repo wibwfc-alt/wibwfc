@@ -1163,18 +1163,23 @@ function loadState() {
 }
 
 function showTopupForm(name) {
+  const modal = document.getElementById('topupModal');
+  if (!modal) return;
   document.getElementById('topupStudentName').textContent = '學員：' + name;
-  document.getElementById('topupModal')._studentName = name;
-  document.getElementById('topupRef').value = '';
-  document.getElementById('topupAmount').value = '';
-  document.getElementById('topupNote').value = '';
-  // Set today's date
+  modal._studentName = name;
+  const refEl = document.getElementById('topupRef');
+  if (refEl) refEl.value = '';
+  const amtEl = document.getElementById('topupAmount');
+  if (amtEl) amtEl.value = '';
+  const noteEl = document.getElementById('topupNote');
+  if (noteEl) noteEl.value = '';
   const today = new Date();
-  document.getElementById('topupDate').value = today.toISOString().split('T')[0];
-  // Reset to 轉帳
-  document.querySelector('input[name=payMethod][value="轉帳"]').checked = true;
+  const dateEl = document.getElementById('topupDate');
+  if (dateEl) dateEl.value = today.toISOString().split('T')[0];
+  const radioEl = document.querySelector('input[name=payMethod][value="轉帳"]');
+  if (radioEl) radioEl.checked = true;
   updateTopupHint();
-  document.getElementById('topupModal').classList.add('show');
+  modal.classList.add('show');
 }
 
 function updateTopupHint() {
