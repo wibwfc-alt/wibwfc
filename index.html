@@ -2095,7 +2095,7 @@ function renderPanel() {
         <div class="date-header-row">
           <span class="date-num">${dateNum}</span>
           <span class="date-day-venue">週${dayName}・${d.venue}${d.coach ? '<br>' + d.coach : ''}</span>
-          <button class="date-del-btn" style="position:relative;opacity:1;top:auto;right:auto;" onclick="event.stopPropagation();openEditDate('${d.date}')" title="編輯課日">✎</button>
+          <button class="date-del-btn" class="edit-only" style="position:relative;opacity:1;top:auto;right:auto;" onclick="event.stopPropagation();openEditDate('${d.date}')" title="編輯課日">✎</button>
         </div>
         <div class="date-check-row">
           <div class="date-check-box ${isTeam ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${d.date}','team')">
@@ -2150,7 +2150,7 @@ function renderPanel() {
       <div class="balance-box">
         <div class="balance-box-label">月中儲值</div>
         <div class="balance-box-val val-green">+${s.midTopup}</div>
-        <div class="balance-box-input">
+        <div class="balance-box-input edit-only">
           <input type="number" value="${s.midTopup}" min="0" onchange="updateTopup('${s.name}','mid',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
           <span style="font-size:0.72rem;color:var(--gray);">堂</span>
         </div>
@@ -2158,7 +2158,7 @@ function renderPanel() {
       <div class="balance-box">
         <div class="balance-box-label">月底儲值</div>
         <div class="balance-box-val val-green">+${s.endTopup}</div>
-        <div class="balance-box-input">
+        <div class="balance-box-input edit-only">
           <input type="number" value="${s.endTopup}" min="0" onchange="updateTopup('${s.name}','end',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
           <span style="font-size:0.72rem;color:var(--gray);">堂</span>
         </div>
@@ -2166,7 +2166,7 @@ function renderPanel() {
       <div class="balance-box" style="border-color:rgba(252,201,41,0.2);">
         <div class="balance-box-label" style="color:var(--yellow);">🎁 贈送</div>
         <div class="balance-box-val val-yellow">+${s.giftTopup || 0}</div>
-        <div class="balance-box-input">
+        <div class="balance-box-input edit-only">
           <input type="number" value="${s.giftTopup || 0}" min="0" onchange="updateTopup('${s.name}','gift',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
           <span style="font-size:0.72rem;color:var(--gray);">堂</span>
         </div>
@@ -2186,7 +2186,7 @@ function renderPanel() {
       <div class="balance-box">
         <div class="balance-box-label">月中儲值</div>
         <div class="balance-box-val val-green">+${s.scMidTopup || 0}</div>
-        <div class="balance-box-input">
+        <div class="balance-box-input edit-only">
           <input type="number" value="${s.scMidTopup || 0}" min="0" onchange="updateTopup('${s.name}','scMid',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
           <span style="font-size:0.72rem;color:var(--gray);">堂</span>
         </div>
@@ -2194,7 +2194,7 @@ function renderPanel() {
       <div class="balance-box">
         <div class="balance-box-label">月底儲值</div>
         <div class="balance-box-val val-green">+${s.scTopup || 0}</div>
-        <div class="balance-box-input">
+        <div class="balance-box-input edit-only">
           <input type="number" value="${s.scTopup || 0}" min="0" onchange="updateTopup('${s.name}','scTopup',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
           <span style="font-size:0.72rem;color:var(--gray);">堂</span>
         </div>
@@ -2202,7 +2202,7 @@ function renderPanel() {
       <div class="balance-box" style="border-color:rgba(252,201,41,0.2);">
         <div class="balance-box-label" style="color:var(--yellow);">🎁 贈送</div>
         <div class="balance-box-val val-yellow">+${s.scGiftTopup || 0}</div>
-        <div class="balance-box-input">
+        <div class="balance-box-input edit-only">
           <input type="number" value="${s.scGiftTopup || 0}" min="0" onchange="updateTopup('${s.name}','scGift',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
           <span style="font-size:0.72rem;color:var(--gray);">堂</span>
         </div>
