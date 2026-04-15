@@ -942,7 +942,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
       </select>
     </div>
     <div class="form-group"><label>教練（可多選）</label>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+      <div id="editCoachCheckList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editCoachCheck" value="馬哥"> 馬哥</label>
         <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editCoachCheck" value="松育"> 松育</label>
         <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editCoachCheck" value="芃宜"> 芃宜</label>
@@ -1014,9 +1014,13 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
       </select>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewVenue()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
+      </div>
     </div>
     <div class="form-group"><label>教練（可多選）</label>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+      <div id="coachCheckList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;">
           <input type="checkbox" name="coachCheck" value="馬哥"> 馬哥
         </label>
@@ -1032,6 +1036,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;">
           <input type="checkbox" name="coachCheck" value="紹詠"> 紹詠
         </label>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <input type="text" id="newCoachInput" placeholder="新增教練名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoach()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
       </div>
     </div>
     <div class="modal-actions">
@@ -1231,6 +1239,86 @@ function tpCopy() {
   navigator.clipboard.writeText(msg).then(() => alert('已複製！請傳送給教練確認 🙏'));
 }
 
+function addNewCoach() {
+  const input = document.getElementById('newCoachInput');
+  const name = input.value.trim();
+  if (!name) return;
+  // Add to all coach lists
+  const lists = document.querySelectorAll('#coachCheckList, [id$="CoachList"]');
+  const newLabel = document.createElement('label');
+  newLabel.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:#f5f5f0;cursor:pointer;';
+  newLabel.innerHTML = '<input type="checkbox" name="coachCheck" value="' + name + '" checked> ' + name;
+  document.getElementById('coachCheckList').appendChild(newLabel);
+  // Also add to editDate modal coach list
+  const editList = document.getElementById('editCoachCheckList');
+  if (editList) {
+    const el = newLabel.cloneNode(true);
+    el.querySelector('input').name = 'editCoachCheck';
+    editList.appendChild(el);
+  }
+  // Save to localStorage for persistence
+  const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '["馬哥","松育","芃宜","子豪","紹詠"]');
+  if (!coaches.includes(name)) {
+    coaches.push(name);
+    localStorage.setItem('bw_coaches', JSON.stringify(coaches));
+  }
+  input.value = '';
+}
+
+function addNewVenue() {
+  const input = document.getElementById('newVenueInput');
+  const name = input.value.trim();
+  if (!name) return;
+  // Add to all venue selects
+  ['newVenue', 'editVenue'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+      sel.value = name;
+    }
+  });
+  // Save to localStorage
+  const venues = JSON.parse(localStorage.getItem('bw_venues') || '["黎光","朝馬","台體大"]');
+  if (!venues.includes(name)) {
+    venues.push(name);
+    localStorage.setItem('bw_venues', JSON.stringify(venues));
+  }
+  input.value = '';
+}
+
+function loadCustomCoachesVenues() {
+  // Load custom coaches
+  const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
+  const defaultCoaches = ['馬哥','松育','芃宜','子豪','紹詠'];
+  coaches.filter(c => !defaultCoaches.includes(c)).forEach(name => {
+    ['coachCheckList','editCoachCheckList'].forEach(listId => {
+      const list = document.getElementById(listId);
+      if (!list) return;
+      const inputName = listId === 'coachCheckList' ? 'coachCheck' : 'editCoachCheck';
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:#f5f5f0;cursor:pointer;';
+      lbl.innerHTML = '<input type="checkbox" name="' + inputName + '" value="' + name + '"> ' + name;
+      list.appendChild(lbl);
+    });
+  });
+  // Load custom venues
+  const venues = JSON.parse(localStorage.getItem('bw_venues') || '[]');
+  const defaultVenues = ['黎光','朝馬','台體大'];
+  venues.filter(v => !defaultVenues.includes(v)).forEach(name => {
+    ['newVenue','editVenue'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      if ([...sel.options].some(o => o.value === name)) return;
+      const opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  });
+}
+
 function overviewUpdateTopup(name, type, val) {
   if (state.isReadOnly) return;
   const data = getCurrentMonthData();
@@ -1396,9 +1484,11 @@ function renderBatch() {
 
   // Date totals
   const dateTotals = {};
-  dates.forEach(d => { dateTotals[d.date] = 0; });
+  const dateSmallTotals = {};
+  dates.forEach(d => { dateTotals[d.date] = 0; dateSmallTotals[d.date] = 0; });
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if (dateTotals[a] !== undefined) dateTotals[a]++; });
+    (s.scDates||[]).forEach(a => { if (dateSmallTotals[a] !== undefined) dateSmallTotals[a]++; });
   });
 
   const totalCols = dates.length + 5; // name + 上月 + 月中 + dates + 合計 + 月底 + 月底剩餘
@@ -1425,7 +1515,7 @@ function renderBatch() {
       // 上月結餘
       tbody += '<td class="batch-td">' +
         '<div style="color:var(--yellow);font-size:0.72rem;">' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' +
-        ((s.scPrevBal||0) !== 0 ? '<div style="color:#a08010;font-size:0.68rem;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') +
+        ((s.scPrevBal||0) !== 0 ? '<div style="color:#fcc929;font-size:0.68rem;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') +
         '</td>';
       // 月中儲值
       tbody += '<td class="batch-td">' +
@@ -1464,8 +1554,11 @@ function renderBatch() {
   });
 
   // 出席人數列
-  tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;">出席人數</td><td></td><td></td>';
-  dates.forEach(d => { tbody += '<td>' + (dateTotals[d.date]||0) + '</td>'; });
+  tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#3aab6e;">團課人數</td><td></td><td></td>';
+  dates.forEach(d => { tbody += '<td style="color:#3aab6e;">' + (dateTotals[d.date]||0) + '</td>'; });
+  tbody += '<td></td><td></td><td></td></tr>';
+  tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#fcc929;">小班人數</td><td></td><td></td>';
+  dates.forEach(d => { tbody += '<td style="color:#fcc929;">' + (dateSmallTotals[d.date]||0) + '</td>'; });
   tbody += '<td></td><td></td><td></td></tr>';
   tbody += '</tbody>';
 
@@ -1872,25 +1965,38 @@ function syncToGist() {
 }
 
 function loadFromGist() {
+  // Check local timestamp first
+  const localTs = getLocalTimestamp();
+  
   fetch('https://api.github.com/gists/' + GIST_ID)
   .then(r => r.json())
   .then(data => {
     const content = data.files['bwfc.json'].content;
     const parsed = JSON.parse(content);
+    const gistTs = parsed._savedAt || 0;
+    
+    // Use whichever is newer
     if (parsed.months && Object.keys(parsed.months).length > 0) {
       const hasStudents = Object.values(parsed.months).some(m => m.students && m.students.length > 0);
       if (hasStudents) {
-        const prevReadOnly = state.isReadOnly;
-        state = { ...state, ...parsed };
-        state.isReadOnly = prevReadOnly;
-        try { localStorage.setItem('bw_state', JSON.stringify(state)); } catch(e) {}
-        document.getElementById('monthSelect').value = state.currentMonth;
-        renderSidebar();
-        renderPanel();
+        if (localTs > gistTs) {
+          // Local is newer - use local
+          loadLocalState();
+          console.log('使用本機資料（較新）');
+        } else {
+          // Gist is newer - use gist
+          const prevReadOnly = state.isReadOnly;
+          state = { ...state, ...parsed };
+          state.isReadOnly = prevReadOnly;
+          try { localStorage.setItem('bw_state', JSON.stringify(state)); } catch(e) {}
+          document.getElementById('monthSelect').value = state.currentMonth;
+          renderSidebar();
+          renderPanel();
+          console.log('使用 Gist 資料（較新）');
+        }
         return;
       }
     }
-    // Gist empty - use local
     loadLocalState();
   })
   .catch(() => loadLocalState());
@@ -1915,6 +2021,14 @@ function loadLocalState() {
     students: JSON.parse(JSON.stringify(initialStudents))
   };
   saveState();
+}
+
+function getLocalTimestamp() {
+  try {
+    const saved = localStorage.getItem('bw_state');
+    if (saved) return JSON.parse(saved)._savedAt || 0;
+  } catch(e) {}
+  return 0;
 }
 
 function mobileNav(tab) {
@@ -1979,6 +2093,7 @@ function importData(input) {
 
 function saveState() {
   if (!state.isReadOnly) {
+    state._savedAt = Date.now();
     try { localStorage.setItem('bw_state', JSON.stringify(state)); } catch(e) {}
   }
 }
@@ -2148,7 +2263,7 @@ function renderPanel() {
 
     ${negWarn}
 
-    <div style="font-size:0.68rem;font-weight:700;color:var(--yellow);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">團課</div>
+    <div style="font-size:0.68rem;font-weight:700;color:#3aab6e;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">團課</div>
     <div class="balance-row">
       <div class="balance-box">
         <div class="balance-box-label">上月結餘</div>
@@ -2184,7 +2299,7 @@ function renderPanel() {
       </div>
     </div>
 
-    <div style="font-size:0.68rem;font-weight:700;color:#3aab6e;letter-spacing:2px;text-transform:uppercase;margin:16px 0 8px;">小班課</div>
+    <div style="font-size:0.68rem;font-weight:700;color:#fcc929;letter-spacing:2px;text-transform:uppercase;margin:16px 0 8px;">小班課</div>
     <div class="balance-row">
       <div class="balance-box">
         <div class="balance-box-label">上月結餘</div>
@@ -2192,7 +2307,7 @@ function renderPanel() {
       </div>
       <div class="balance-box">
         <div class="balance-box-label">月中儲值</div>
-        <div class="balance-box-val val-green">+${s.scMidTopup || 0}</div>
+        <div class="balance-box-val val-yellow">+${s.scMidTopup || 0}</div>
         <div class="balance-box-input edit-only">
           <input type="number" value="${s.scMidTopup || 0}" min="0" onchange="updateTopup('${s.name}','scMid',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
           <span style="font-size:0.72rem;color:var(--gray);">堂</span>
@@ -2200,7 +2315,7 @@ function renderPanel() {
       </div>
       <div class="balance-box">
         <div class="balance-box-label">月底儲值</div>
-        <div class="balance-box-val val-green">+${s.scTopup || 0}</div>
+        <div class="balance-box-val val-yellow">+${s.scTopup || 0}</div>
         <div class="balance-box-input edit-only">
           <input type="number" value="${s.scTopup || 0}" min="0" onchange="updateTopup('${s.name}','scTopup',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
           <span style="font-size:0.72rem;color:var(--gray);">堂</span>
@@ -2255,7 +2370,7 @@ function renderPanel() {
             <div class="preview-stat-label">上月結餘</div>
           </div>
           <div class="preview-stat">
-            <div class="preview-stat-val val-yellow">${s.attended.length}</div>
+            <div class="preview-stat-val" style="color:#3aab6e;">${s.attended.length}</div>
             <div class="preview-stat-label">本月上課</div>
           </div>
           <div class="preview-stat">
@@ -2271,11 +2386,11 @@ function renderPanel() {
           const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
           const scBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
           if ((s.scTopup||0) === 0 && (s.scAttended||0) === 0 && (s.scPrevBal||0) === 0) return '';
-          return '<div style=\"font-size:0.68rem;color:#3aab6e;letter-spacing:2px;margin:12px 0 6px;\">小班課</div>' +
+          return '<div style=\"font-size:0.68rem;color:#fcc929;letter-spacing:2px;margin:12px 0 6px;\">小班課</div>' +
             '<div class=\"preview-stats\">' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">' + ((s.scPrevBal||0)>=0?'+':'') + (s.scPrevBal||0) + '</div><div class=\"preview-stat-label\">上月結餘</div></div>' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">' + (s.scAttended||0) + '</div><div class=\"preview-stat-label\">本月上課</div></div>' +
-              '<div class=\"preview-stat\"><div class=\"preview-stat-val val-green\">+' + (s.scTopup||0) + '</div><div class=\"preview-stat-label\">本月儲值</div></div>' +
+              '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">+' + (s.scTopup||0) + '</div><div class=\"preview-stat-label\">本月儲值</div></div>' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val ' + (scBal<0?'val-red':'val-green') + '\">' + (scBal>=0?'+':'') + scBal + '</div><div class=\"preview-stat-label\">月底剩餘</div></div>' +
             '</div>';
         })()}
@@ -2593,6 +2708,7 @@ loadState();
 updateLockUI();
 renderSidebar();
 renderPanel();
+loadCustomCoachesVenues();
 </script>
 <!-- MOBILE BOTTOM NAV -->
 <div class="mobile-nav">
