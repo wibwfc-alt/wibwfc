@@ -2619,7 +2619,7 @@ function showDateManager() {
       content += '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px 12px;">' +
         '<span style="font-size:0.85rem;">' + label + '</span>' +
         '<div style="display:flex;gap:6px;">' +
-        '<button class="btn btn-outline" onclick="openEditDate(\'' + d.date + '\')" style="font-size:0.72rem;padding:4px 10px;">✎</button>' +
+        '<button class="btn btn-outline" onclick="openEditDate(\'' + d.date + '\', true)" style="font-size:0.72rem;padding:4px 10px;">✎</button>' +
         '<button class="btn btn-red" onclick="deleteDateDirect(\'' + d.date + '\')" style="font-size:0.72rem;padding:4px 10px;">✕</button>' +
         '</div></div>';
     });
@@ -2696,7 +2696,7 @@ function addDate() {
   renderPanel();
 }
 
-function openEditDate(date) {
+function openEditDate(date, fromManager) {
   if (state.isReadOnly) return;
   const data = getCurrentMonthData();
   const d = data.dates.find(x => x.date === date);
@@ -2714,7 +2714,9 @@ function openEditDate(date) {
   document.querySelectorAll('input[name=editCoachCheck]').forEach(c => {
     c.checked = coaches.includes(c.value);
   });
-  const _meditDateModal = document.getElementById('editDateModal'); document.body.appendChild(_meditDateModal); _meditDateModal.classList.add('show');
+  const _meditDateModal = document.getElementById('editDateModal');
+  _meditDateModal._fromManager = fromManager || false;
+  document.body.appendChild(_meditDateModal); _meditDateModal.classList.add('show');
 }
 
 function saveEditDate() {
@@ -2726,22 +2728,32 @@ function saveEditDate() {
   const newDate = y + '-' + m + '-' + d;
   const venue = document.getElementById('editVenue').value;
   const coach = Array.from(document.querySelectorAll('input[name=editCoachCheck]:checked')).map(x=>x.value).join('、');
+  const note = (document.getElementById('editDateNote').value || '').trim();
+  const isTeam = document.getElementById('editIsTeam').checked;
+  const isSmall = document.getElementById('editIsSmall').checked;
   const data = getCurrentMonthData();
   const idx = data.dates.findIndex(x => x.date === orig);
   if (idx === -1) return;
-  // Update date in students attended if date changed
   if (orig !== newDate) {
     data.students.forEach(s => {
-      const ai = s.attended.indexOf(orig);
+      const ai = (s.attended||[]).indexOf(orig);
       if (ai !== -1) s.attended[ai] = newDate;
+      const si = (s.scDates||[]).indexOf(orig);
+      if (si !== -1) s.scDates[si] = newDate;
     });
   }
-  data.dates[idx] = { date: newDate, venue, coach };
+  data.dates[idx] = { date: newDate, venue, coach, note, isTeam, isSmall };
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
-  closeModal();
+  // If opened from dateManager, go back to it
+  const fromManager = document.getElementById('editDateModal')._fromManager;
+  document.getElementById('editDateModal').classList.remove('show');
+  if (fromManager) {
+    showDateManager();
+  } else {
+    renderPanel();
+  }
   renderSidebar();
-  renderPanel();
 }
 
 function deleteDateFromEdit() {
@@ -2751,7 +2763,9 @@ function deleteDateFromEdit() {
   const data = getCurrentMonthData();
   data.dates = data.dates.filter(d => d.date !== orig);
   saveState();
-  closeModal();
+  const fromManager = document.getElementById('editDateModal')._fromManager;
+  document.getElementById('editDateModal').classList.remove('show');
+  if (fromManager) showDateManager();
   renderSidebar();
   renderPanel();
 }
