@@ -950,6 +950,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editCoachCheck" value="紹詠"> 紹詠</label>
       </div>
     </div>
+    <div class="form-group"><label>備註（選填）</label>
+      <input type="text" id="editDateNote" placeholder="例：移訓、比賽、特訓…">
+    </div>
     <div class="modal-actions">
       <button class="btn btn-red" onclick="deleteDateFromEdit()">刪除課日</button>
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
@@ -1718,6 +1721,20 @@ ${card.outerHTML}
     setTimeout(function() { window.print(); }, 500);
   };
 <\/script>
+<!-- DATE MANAGER MODAL -->
+<div class="modal-overlay" id="dateManagerModal">
+  <div class="modal" style="width:480px;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h3>📅 本月課日</h3>
+      <button class="btn btn-outline" onclick="closeModal()" style="font-size:0.78rem;">關閉</button>
+    </div>
+    <div id="dateManagerContent"></div>
+    <div style="margin-top:16px;text-align:right;">
+      <button class="btn" onclick="closeModal();showAddDate()" style="font-size:0.78rem;">＋ 新增課日</button>
+    </div>
+  </div>
+</div>
+
 <!-- MOBILE BOTTOM NAV -->
 <div class="mobile-nav">
   <button class="mobile-nav-btn active" id="nav-list" onclick="mobileNav('list')">
@@ -2491,6 +2508,45 @@ function changeMonth() {
 }
 
 function showAddStudent() { const _maddStudentModal = document.getElementById('addStudentModal'); document.body.appendChild(_maddStudentModal); _maddStudentModal.classList.add('show'); }
+function showDateManager() {
+  const data = getCurrentMonthData();
+  const dates = data.dates || [];
+  const days = ['日','一','二','三','四','五','六'];
+  let content = '<div style="display:flex;flex-direction:column;gap:8px;">';
+  if (dates.length === 0) {
+    content += '<div style="color:var(--gray);text-align:center;padding:20px;">本月尚無課日</div>';
+  } else {
+    dates.sort((a,b) => a.date.localeCompare(b.date)).forEach(d => {
+      const dt = new Date(d.date + 'T00:00:00');
+      const label = d.date.replace(/-/g,'/') + ' 週' + days[dt.getDay()] + (d.venue ? ' · ' + d.venue : '') + (d.coach ? ' · ' + d.coach : '') + (d.note ? ' · ' + d.note : '');
+      content += '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px 12px;">' +
+        '<span style="font-size:0.85rem;">' + label + '</span>' +
+        '<div style="display:flex;gap:6px;">' +
+        '<button class="btn btn-outline" onclick="openEditDate(\'' + d.date + '\')" style="font-size:0.72rem;padding:4px 10px;">✎</button>' +
+        '<button class="btn btn-red" onclick="deleteDateDirect(\'' + d.date + '\')" style="font-size:0.72rem;padding:4px 10px;">✕</button>' +
+        '</div></div>';
+    });
+  }
+  content += '</div>';
+  document.getElementById('dateManagerContent').innerHTML = content;
+  const modal = document.getElementById('dateManagerModal');
+  document.body.appendChild(modal);
+  modal.classList.add('show');
+}
+
+function deleteDateDirect(date) {
+  if (!confirm('確定刪除 ' + date + '？')) return;
+  const data = getCurrentMonthData();
+  data.dates = data.dates.filter(d => d.date !== date);
+  data.students.forEach(s => {
+    s.attended = (s.attended||[]).filter(a => a !== date);
+    s.scDates = (s.scDates||[]).filter(a => a !== date);
+  });
+  saveState();
+  showDateManager();
+  renderSidebar();
+}
+
 function showAddDate() {
   const [y, m] = state.currentMonth.split('-');
   document.getElementById('newDateY').value = y;
@@ -2552,6 +2608,7 @@ function openEditDate(date) {
   document.getElementById('editDateM').value = parts[1];
   document.getElementById('editDateD').value = parts[2];
   document.getElementById('editVenue').value = d.venue || '';
+  document.getElementById('editDateNote').value = d.note || '';
   const coaches = (d.coach || '').split('、').filter(Boolean);
   document.querySelectorAll('input[name=editCoachCheck]').forEach(c => {
     c.checked = coaches.includes(c.value);
@@ -2710,6 +2767,20 @@ renderSidebar();
 renderPanel();
 loadCustomCoachesVenues();
 </script>
+<!-- DATE MANAGER MODAL -->
+<div class="modal-overlay" id="dateManagerModal">
+  <div class="modal" style="width:480px;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h3>📅 本月課日</h3>
+      <button class="btn btn-outline" onclick="closeModal()" style="font-size:0.78rem;">關閉</button>
+    </div>
+    <div id="dateManagerContent"></div>
+    <div style="margin-top:16px;text-align:right;">
+      <button class="btn" onclick="closeModal();showAddDate()" style="font-size:0.78rem;">＋ 新增課日</button>
+    </div>
+  </div>
+</div>
+
 <!-- MOBILE BOTTOM NAV -->
 <div class="mobile-nav">
   <button class="mobile-nav-btn active" id="nav-list" onclick="mobileNav('list')">
