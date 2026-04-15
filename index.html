@@ -871,7 +871,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>課程類型</label>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsTeam" checked> <span style="color:#3aab6e;">● 團課</span>
+          <input type="checkbox" id="editIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
           <input type="checkbox" id="editIsSmall"> <span style="color:#fcc929;">◆ 小班課</span>
@@ -988,7 +988,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>課程類型</label>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsTeam" checked> <span style="color:#3aab6e;">● 團課</span>
+          <input type="checkbox" id="newIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
           <input type="checkbox" id="newIsSmall"> <span style="color:#fcc929;">◆ 小班課</span>
@@ -1626,7 +1626,7 @@ function renderBatch() {
       dates.forEach(d => {
         const isTeam = (s.attended||[]).includes(d.date);
         const isSmall = (s.scDates||[]).includes(d.date);
-        const dateIsTeam = d.isTeam !== false;
+        const dateIsTeam = d.isTeam === true;
         const dateIsSmall = d.isSmall === true;
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
         if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + d.date + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
@@ -2649,7 +2649,7 @@ function showAddDate() {
   document.getElementById('newDateY').value = y;
   document.getElementById('newDateM').value = m;
   document.getElementById('newDateD').value = '01';
-  document.getElementById('newIsTeam').checked = true;
+  document.getElementById('newIsTeam').checked = false;
   document.getElementById('newIsSmall').checked = false;
   const _maddDateModal = document.getElementById('addDateModal'); document.body.appendChild(_maddDateModal); _maddDateModal.classList.add('show');
 }
@@ -2708,7 +2708,7 @@ function openEditDate(date) {
   document.getElementById('editDateD').value = parts[2];
   document.getElementById('editVenue').value = d.venue || '';
   document.getElementById('editDateNote').value = d.note || '';
-  document.getElementById('editIsTeam').checked = d.isTeam !== false;
+  document.getElementById('editIsTeam').checked = d.isTeam === true;
   document.getElementById('editIsSmall').checked = d.isSmall === true;
   const coaches = (d.coach || '').split('、').filter(Boolean);
   document.querySelectorAll('input[name=editCoachCheck]').forEach(c => {
