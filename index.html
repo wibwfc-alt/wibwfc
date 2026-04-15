@@ -954,6 +954,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <div style="display:flex;gap:6px;margin-top:6px;">
         <input type="text" id="editNewVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewVenueEdit()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
+        <button type="button" onclick="deleteVenueFromSelect('editVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
       </div>
     </div>
     <div class="form-group"><label>教練（可多選）</label>
@@ -1049,6 +1050,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <div style="display:flex;gap:6px;margin-top:6px;">
         <input type="text" id="newVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewVenue()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
+        <button type="button" onclick="deleteVenueFromSelect('newVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
       </div>
     </div>
     <div class="form-group"><label>教練（可多選）</label>
@@ -1275,24 +1277,21 @@ function addNewCoachEdit() {
   const input = document.getElementById('editNewCoachInput');
   const name = input.value.trim();
   if (!name) return;
-  const list = document.getElementById('editCoachCheckList');
-  if (list) {
-    const lbl = document.createElement('label');
-    lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:#f5f5f0;cursor:pointer;';
-    lbl.innerHTML = '<input type="checkbox" name="editCoachCheck" value="' + name + '" checked> ' + name;
-    list.appendChild(lbl);
-  }
-  // Also add to addDate modal
+  const editList = document.getElementById('editCoachCheckList');
+  if (editList) editList.appendChild(makeCoachLabel(name, 'editCoachCheck'));
   const addList = document.getElementById('coachCheckList');
-  if (addList && !addList.querySelector('[value="' + name + '"]')) {
-    const lbl2 = document.createElement('label');
-    lbl2.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:#f5f5f0;cursor:pointer;';
-    lbl2.innerHTML = '<input type="checkbox" name="coachCheck" value="' + name + '"> ' + name;
-    addList.appendChild(lbl2);
-  }
+  if (addList && !addList.querySelector('[data-coach="' + name + '"]')) addList.appendChild(makeCoachLabel(name, 'coachCheck'));
   const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '["馬哥","松育","芃宜","子豪","紹詠"]');
   if (!coaches.includes(name)) { coaches.push(name); localStorage.setItem('bw_coaches', JSON.stringify(coaches)); }
   input.value = '';
+}
+
+function deleteVenueFromSelect(selId) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const name = sel.value;
+  if (!name) { alert('請先選擇要刪除的場地'); return; }
+  deleteVenue(name);
 }
 
 function addNewVenueEdit() {
@@ -1313,29 +1312,52 @@ function addNewVenueEdit() {
   input.value = '';
 }
 
+function makeCoachLabel(name, inputName) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
+  wrap.dataset.coach = name;
+  const lbl = document.createElement('label');
+  lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:#f5f5f0;cursor:pointer;';
+  lbl.innerHTML = '<input type="checkbox" name="' + inputName + '" value="' + name + '"> ' + name;
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.textContent = '✕';
+  del.style.cssText = 'background:none;border:none;color:var(--red);cursor:pointer;font-size:0.7rem;padding:0 2px;line-height:1;';
+  del.onclick = () => deleteCoach(name);
+  wrap.appendChild(lbl);
+  wrap.appendChild(del);
+  return wrap;
+}
+
+function deleteCoach(name) {
+  const defaultCoaches = ['馬哥','松育','芃宜','子豪','紹詠'];
+  if (defaultCoaches.includes(name)) { alert('預設教練不能刪除'); return; }
+  document.querySelectorAll('[data-coach="' + name + '"]').forEach(el => el.remove());
+  const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
+  localStorage.setItem('bw_coaches', JSON.stringify(coaches.filter(c => c !== name)));
+}
+
+function deleteVenue(name) {
+  const defaultVenues = ['黎光','朝馬','台體大'];
+  if (defaultVenues.includes(name)) { alert('預設場地不能刪除'); return; }
+  ['newVenue','editVenue'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) [...sel.options].filter(o => o.value === name).forEach(o => o.remove());
+  });
+  const venues = JSON.parse(localStorage.getItem('bw_venues') || '[]');
+  localStorage.setItem('bw_venues', JSON.stringify(venues.filter(v => v !== name)));
+}
+
 function addNewCoach() {
   const input = document.getElementById('newCoachInput');
   const name = input.value.trim();
   if (!name) return;
-  // Add to all coach lists
-  const lists = document.querySelectorAll('#coachCheckList, [id$="CoachList"]');
-  const newLabel = document.createElement('label');
-  newLabel.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:#f5f5f0;cursor:pointer;';
-  newLabel.innerHTML = '<input type="checkbox" name="coachCheck" value="' + name + '" checked> ' + name;
-  document.getElementById('coachCheckList').appendChild(newLabel);
-  // Also add to editDate modal coach list
+  const addList = document.getElementById('coachCheckList');
+  if (addList) addList.appendChild(makeCoachLabel(name, 'coachCheck'));
   const editList = document.getElementById('editCoachCheckList');
-  if (editList) {
-    const el = newLabel.cloneNode(true);
-    el.querySelector('input').name = 'editCoachCheck';
-    editList.appendChild(el);
-  }
-  // Save to localStorage for persistence
+  if (editList) editList.appendChild(makeCoachLabel(name, 'editCoachCheck'));
   const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '["馬哥","松育","芃宜","子豪","紹詠"]');
-  if (!coaches.includes(name)) {
-    coaches.push(name);
-    localStorage.setItem('bw_coaches', JSON.stringify(coaches));
-  }
+  if (!coaches.includes(name)) { coaches.push(name); localStorage.setItem('bw_coaches', JSON.stringify(coaches)); }
   input.value = '';
 }
 
@@ -1343,24 +1365,24 @@ function addNewVenue() {
   const input = document.getElementById('newVenueInput');
   const name = input.value.trim();
   if (!name) return;
-  // Add to all venue selects
   ['newVenue', 'editVenue'].forEach(id => {
     const sel = document.getElementById(id);
-    if (sel) {
+    if (sel && ![...sel.options].some(o => o.value === name)) {
       const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
+      opt.value = name; opt.textContent = name;
       sel.appendChild(opt);
-      sel.value = name;
     }
+    if (sel) sel.value = name;
   });
-  // Save to localStorage
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '["黎光","朝馬","台體大"]');
-  if (!venues.includes(name)) {
-    venues.push(name);
-    localStorage.setItem('bw_venues', JSON.stringify(venues));
-  }
+  if (!venues.includes(name)) { venues.push(name); localStorage.setItem('bw_venues', JSON.stringify(venues)); }
   input.value = '';
+  // Show delete button next to new venue input
+  updateVenueDeleteBtn('newVenueInput', name);
+}
+
+function updateVenueDeleteBtn(inputId, name) {
+  // Add delete button hint after adding custom venue
 }
 
 function loadCustomCoachesVenues() {
@@ -1600,14 +1622,18 @@ function renderBatch() {
         'style="width:48px;background:rgba(252,201,41,0.05);border:1px solid rgba(252,201,41,0.15);color:#a08010;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;" ' +
         'data-name="' + s.name + '" data-type="scMid" onchange="batchUpdateTopup(this)">' +
         '</td>';
-      // 課日勾選
+      // 課日勾選 - 只顯示課程有的類型
       dates.forEach(d => {
         const isTeam = (s.attended||[]).includes(d.date);
         const isSmall = (s.scDates||[]).includes(d.date);
-        tbody += '<td class="batch-td" style="padding:2px;min-width:36px;">' +
-          '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + d.date + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'\u2713':'') + '</div>' +
-          '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + d.date + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'\u25c6':'') + '</div>' +
-          '</td>';
+        const dateIsTeam = d.isTeam !== false;
+        const dateIsSmall = d.isSmall === true;
+        let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
+        if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + d.date + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
+        if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + d.date + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
+        if (!dateIsTeam && !dateIsSmall) cell += '<div style="color:var(--gray);font-size:0.65rem;text-align:center;">—</div>';
+        cell += '</td>';
+        tbody += cell;
       });
       // 合計
       const monthCount = (s.attended||[]).filter(a => dates.find(d => d.date===a)).length;
