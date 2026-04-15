@@ -550,6 +550,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
   </select>
     <button class="btn btn-outline edit-only" onclick="showAddStudent()">＋ 學員</button>
     <button class="btn btn-outline edit-only" onclick="showAddDate()">＋ 課日</button>
+    <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.72rem;">📅 本月課日</button>
     <button class="btn btn-outline edit-only" onclick="exportData()" style="border-color:rgba(45,138,110,0.4);color:#3aab6e;">↓ 備份</button>
     <button class="btn btn-outline edit-only" onclick="document.getElementById('importFile').click()" style="border-color:rgba(45,138,110,0.4);color:#3aab6e;">↑ 匯入</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
