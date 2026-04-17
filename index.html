@@ -2375,8 +2375,9 @@ function renderPanel() {
   // Date grid
   let datesHtml = '';
   data.dates.forEach(d => {
-    const isTeam = (s.attended||[]).includes(d.date);
-    const isSmall = (s.scDates||[]).includes(d.date);
+    const dKey = d.uid || d.date;
+    const isTeam = (s.attended||[]).includes(dKey);
+    const isSmall = (s.scDates||[]).includes(dKey);
     const dt = new Date(d.date + 'T00:00:00');
     const days = ['日','一','二','三','四','五','六'];
     const dayName = days[dt.getDay()];
