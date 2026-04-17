@@ -2186,7 +2186,8 @@ function syncToGist() {
   const btn = document.getElementById('syncBtn');
   btn.textContent = '☁ 同步中...';
   btn.disabled = true;
-  const data = JSON.stringify(state);
+  const syncState = { ...state, selectedStudent: null };
+  const data = JSON.stringify(syncState);
   fetch('https://api.github.com/gists/' + GIST_ID, {
     method: 'PATCH',
     headers: {
