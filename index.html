@@ -2639,6 +2639,7 @@ function renderPanel() {
     </div>
 
     <div id="tab-preview" class="tab-content active">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--yellow);letter-spacing:2px;margin-bottom:12px;">本月總結</div>
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
         <button class="btn btn-outline edit-only" onclick="printCard()" style="font-size:0.78rem;">🖨 列印</button>
       </div>
@@ -2666,7 +2667,7 @@ function renderPanel() {
             <div class="preview-stat-label">本月上課</div>
           </div>
           <div class="preview-stat">
-            <div class="preview-stat-val val-green">+${(s.midTopup||0) + (s.endTopup||0) + (s.giftTopup||0)}</div>
+            <div class="preview-stat-val val-green">+${(s.midTopup||0) + (s.endTopup||0)}${(s.giftTopup||0) > 0 ? '+' + (s.giftTopup||0) : ''}</div>
             <div class="preview-stat-label">本月儲值</div>
           </div>
           <div class="preview-stat">
@@ -2682,7 +2683,7 @@ function renderPanel() {
             '<div class=\"preview-stats\">' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">' + ((s.scPrevBal||0)>=0?'+':'') + (s.scPrevBal||0) + '</div><div class=\"preview-stat-label\">上月結餘</div></div>' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">' + (s.scAttended||0) + '</div><div class=\"preview-stat-label\">本月上課</div></div>' +
-              '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">+' + (s.scTopup||0) + '</div><div class=\"preview-stat-label\">本月儲值</div></div>' +
+              '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">+' + ((s.scMidTopup||0)+(s.scTopup||0)) + ((s.scGiftTopup||0) > 0 ? '+' + (s.scGiftTopup||0) : '') + '</div><div class=\"preview-stat-label\">本月儲值</div></div>' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val ' + (scBal<0?'val-red':'val-green') + '\">' + (scBal>=0?'+':'') + scBal + '</div><div class=\"preview-stat-label\">月底剩餘</div></div>' +
             '</div>';
         })()}
