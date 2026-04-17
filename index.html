@@ -2360,7 +2360,6 @@ function selectStudent(name) {
 }
 
 function renderPanel() {
-  try {
   const data = getCurrentMonthData();
   if (!data || !data.students) { 
     document.getElementById('mainPanel').innerHTML = '<div class="panel-empty"><div class="icon">⚽</div><div>選擇左側學員查看紀錄</div></div>';
@@ -2573,7 +2572,6 @@ function renderPanel() {
 }
 
 // ── ACTIONS ───────────────────────────────────────────
-  } catch(e) { alert('renderPanel 錯誤: ' + e.message + ' | ' + (e.stack||'').split('\n')[1]); }
 
 function toggleDate(studentName, date, type) {
   if (state.isReadOnly) return;
