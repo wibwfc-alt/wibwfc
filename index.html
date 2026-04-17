@@ -2942,17 +2942,6 @@ const _ym = _now.getFullYear() + '-' + String(_now.getMonth()+1).padStart(2,'0')
 if (!state.months[_ym]) state.currentMonth = _ym;
 const _sel = document.getElementById('monthSelect');
 if (_sel) _sel.value = state.currentMonth;
-];
-  const data = getCurrentMonthData();
-  if (!data) return;
-  missing.forEach(d => {
-    if (!data.dates.find(x => x.uid === d.uid)) {
-      data.dates.push(d);
-    }
-  });
-  data.dates.sort((a, b) => a.date.localeCompare(b.date));
-  saveState();
-}
 
 loadState();
 updateLockUI();
