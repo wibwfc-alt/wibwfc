@@ -1594,10 +1594,11 @@ function renderBatch() {
 
   // Header: 學員 | 上月結餘 | 月中儲值 | [課日...] | 合計 | 月底儲值 | 月底剩餘
   const days = ['日','一','二','三','四','五','六'];
+  const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   let thead = '<thead><tr>';
   thead += '<th class="batch-name-th" style="min-width:120px;">學員</th>';
-  thead += '<th class="batch-th" style="min-width:64px;color:#fcc929;">上月結餘</th>';
-  thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月中儲值</th>';
+  if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#fcc929;">上月結餘</th>';
+  if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月中儲值</th>';
   const filteredDates = dates.filter(d => {
     if (courseFilter === 'team') return d.isTeam === true;
     if (courseFilter === 'small') return d.isSmall === true;
