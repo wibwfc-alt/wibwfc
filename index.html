@@ -2744,7 +2744,6 @@ function addDate() {
   const coach = Array.from(document.querySelectorAll('input[name=coachCheck]:checked')).map(x=>x.value).join('、');
   const data = getCurrentMonthData();
   if (!data) { alert('找不到月份資料'); return; }
-  alert('準備新增: ' + date + ' 場地:' + venue);
   const noteVal2 = (document.getElementById('newDateNote').value || '').trim();
   const isTeam2 = document.getElementById('newIsTeam').checked;
   const isSmall2 = document.getElementById('newIsSmall').checked;
