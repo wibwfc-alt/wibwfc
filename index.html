@@ -1723,8 +1723,14 @@ function renderBatch() {
         tbody += cell;
       });
       // 合計
-      const monthCount = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
-      tbody += '<td class="batch-td" style="font-weight:700;color:var(--yellow);">' + monthCount + '</td>';
+      const teamCount2 = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
+      const scCount2 = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
+      let monthCount;
+      if (courseFilter === 'team') monthCount = teamCount2;
+      else if (courseFilter === 'small') monthCount = scCount2;
+      else monthCount = teamCount2 + scCount2;
+      const monthCountColor = courseFilter === 'small' ? '#fcc929' : courseFilter === 'team' ? '#3aab6e' : 'var(--yellow)';
+      tbody += '<td class="batch-td" style="font-weight:700;color:' + monthCountColor + ';">' + monthCount + '</td>';
       // 月底儲值
       if (!simpleMode) {
         if (state.isReadOnly) {
