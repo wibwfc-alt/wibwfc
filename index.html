@@ -2412,6 +2412,7 @@ function renderSidebar() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   let students = data.students;
   if (state.groupFilter !== 'all') students = students.filter(s => s.group === state.groupFilter);
+  else students = students.filter(s => s.group !== '已離隊');
   if (search) students = students.filter(s => s.name.includes(search));
   if (state.debtFilter) students = students.filter(s => calcEndBalance(s) < 0 && s.group !== '已離隊');
 
