@@ -1711,10 +1711,11 @@ function renderBatch() {
       // 課日勾選 - 只顯示課程有的類型
       filteredDates.forEach(d => {
         const dKey = d.uid || d.date;
-        const isTeam = (s.attended||[]).includes(dKey);
-        const isSmall = (s.scDates||[]).includes(dKey);
-        const dateIsTeam = d.isTeam === true;
-        const dateIsSmall = d.isSmall === true;
+        const isTeam = (s.attended||[]).includes(dKey) || (s.attended||[]).includes(d.date);
+        const isSmall = (s.scDates||[]).includes(dKey) || (s.scDates||[]).includes(d.date);
+        const hasTypeSet = d.isTeam !== undefined || d.isSmall !== undefined;
+        const dateIsTeam = hasTypeSet ? d.isTeam === true : true;
+        const dateIsSmall = hasTypeSet ? d.isSmall === true : true;
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
         if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
         if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
@@ -2029,8 +2030,8 @@ function exportBatchPDF() {
       // 課日
       filteredDates.forEach(d => {
         const dKey = d.uid || d.date;
-        const isTeam = (s.attended||[]).includes(dKey);
-        const isSmall = (s.scDates||[]).includes(dKey);
+        const isTeam = (s.attended||[]).includes(dKey) || (s.attended||[]).includes(d.date);
+        const isSmall = (s.scDates||[]).includes(dKey) || (s.scDates||[]).includes(d.date);
         let cell = '';
         if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
         else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
