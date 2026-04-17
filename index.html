@@ -2230,7 +2230,7 @@ function loadFromGist() {
     if (parsed.months && Object.keys(parsed.months).length > 0) {
       const hasStudents = Object.values(parsed.months).some(m => m.students && m.students.length > 0);
       if (hasStudents) {
-        if (localTs > gistTs) {
+        if (localTs > 0 && localTs > gistTs) {
           // Local is newer - use local
           loadLocalState();
           console.log('使用本機資料（較新）');
@@ -2551,8 +2551,7 @@ function renderPanel() {
 
     ${negWarn}
 
-    <div class="edit-only">
-    <div style="font-size:0.68rem;font-weight:700;color:#3aab6e;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">團課</div>
+    <div class="edit-only" style="font-size:0.68rem;font-weight:700;color:#3aab6e;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">團課</div>
     <div class="balance-row">
       <div class="balance-box">
         <div class="balance-box-label">上月結餘</div>
@@ -2624,7 +2623,6 @@ function renderPanel() {
       </div>
     </div>
 
-    </div>
     </div>
 
     <div class="tabs edit-only">
