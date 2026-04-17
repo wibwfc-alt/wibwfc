@@ -2730,30 +2730,37 @@ function addStudent() {
 }
 
 function addDate() {
-  if (state.isReadOnly) { alert('請先解鎖編輯模式'); return; }
-  const y = document.getElementById('newDateY').value;
-  const m = document.getElementById('newDateM').value;
-  const d = document.getElementById('newDateD').value;
-  if (!y || !m || !d) { alert('請填寫日期: y=' + y + ' m=' + m + ' d=' + d); return; }
-  const date = y + '-' + m + '-' + d;
-  const venue = document.getElementById('newVenue').value;
-  const coach = Array.from(document.querySelectorAll('input[name=coachCheck]:checked')).map(x=>x.value).join('、');
-  const data = getCurrentMonthData();
-  if (!data) { alert('找不到月份資料'); return; }
-  const noteVal2 = (document.getElementById('newDateNote').value || '').trim();
-  const isTeam2 = document.getElementById('newIsTeam').checked;
-  const isSmall2 = document.getElementById('newIsSmall').checked;
-  const uid = date + '_' + Date.now();
-  data.dates.push({ date, venue, coach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
-  data.dates.sort((a, b) => a.date.localeCompare(b.date));
-  saveState();
-  closeModal();
-  document.getElementById('newDateY').value = '2026';
-  document.getElementById('newDateM').value = '01';
-  document.getElementById('newDateD').value = '01';
-  document.getElementById('newVenue').value = '';
-  document.querySelectorAll('input[name=coachCheck]').forEach(c => c.checked = false);
-  renderPanel();
+  try {
+    if (state.isReadOnly) { alert('請先解鎖編輯模式'); return; }
+    const y = document.getElementById('newDateY').value;
+    const m = document.getElementById('newDateM').value;
+    const d = document.getElementById('newDateD').value;
+    if (!y || !m || !d) { alert('請填寫日期'); return; }
+    const date = y + '-' + m + '-' + d;
+    const venue = document.getElementById('newVenue').value;
+    const coach = Array.from(document.querySelectorAll('input[name=coachCheck]:checked')).map(x=>x.value).join('、');
+    const data = getCurrentMonthData();
+    if (!data) { alert('找不到月份資料'); return; }
+    const noteEl = document.getElementById('newDateNote');
+    const noteVal2 = noteEl ? noteEl.value.trim() : '';
+    const isTeamEl = document.getElementById('newIsTeam');
+    const isSmallEl = document.getElementById('newIsSmall');
+    const isTeam2 = isTeamEl ? isTeamEl.checked : false;
+    const isSmall2 = isSmallEl ? isSmallEl.checked : false;
+    const uid = date + '_' + Date.now();
+    data.dates.push({ date, venue, coach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
+    data.dates.sort((a, b) => a.date.localeCompare(b.date));
+    saveState();
+    closeModal();
+    document.getElementById('newDateY').value = '2026';
+    document.getElementById('newDateM').value = '01';
+    document.getElementById('newDateD').value = '01';
+    document.getElementById('newVenue').value = '';
+    document.querySelectorAll('input[name=coachCheck]').forEach(c => c.checked = false);
+    renderPanel();
+  } catch(e) {
+    alert('新增課日錯誤: ' + e.message);
+  }
 }
 
 function openEditDate(dateOrUid, fromManager) {
