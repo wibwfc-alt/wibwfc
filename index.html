@@ -2240,6 +2240,7 @@ function loadFromGist() {
           state.isReadOnly = true;
           state.groupFilter = 'all';
           state.debtFilter = false;
+          state.selectedStudent = null;
           try { localStorage.setItem('bw_state', JSON.stringify(state)); } catch(e) {}
           document.getElementById('monthSelect').value = state.currentMonth;
           renderSidebar();
@@ -2274,6 +2275,7 @@ function loadLocalState() {
           state.groupFilter = 'all';
           state.debtFilter = false;
           state.isReadOnly = true;
+          state.selectedStudent = null;
           ensureDateUids(state);
           updateLockUI();
           renderSidebar();
