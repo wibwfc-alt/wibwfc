@@ -744,17 +744,17 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <option value="2036-12">2036年12月</option>
         </select>
         <input type="text" id="batchSearch" oninput="renderBatch()" placeholder="🔍 搜尋學員…" style="background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.8rem;width:120px;">
-        <select id="batchGroupFilter" onchange="renderBatch()" style="background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.8rem;">
-          <option value="all">全年齡</option>
-          <option value="幼兒">幼兒</option>
-          <option value="小一">小一</option>
-          <option value="小二">小二</option>
-          <option value="小三">小三</option>
-          <option value="小四">小四</option>
-          <option value="小五">小五</option>
-          <option value="小六">小六</option>
-          <option value="國中">國中</option>
-        </select>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+          <button class="btn btn-outline" id="batchGroupAll" onclick="toggleGroupFilter('all')" style="font-size:0.75rem;padding:4px 8px;background:rgba(252,201,41,0.2);border-color:rgba(252,201,41,0.5);color:#fcc929;">全年齡</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="幼兒" onclick="toggleGroupFilter('幼兒')" style="font-size:0.75rem;padding:4px 8px;">幼兒</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="小一" onclick="toggleGroupFilter('小一')" style="font-size:0.75rem;padding:4px 8px;">小一</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="小二" onclick="toggleGroupFilter('小二')" style="font-size:0.75rem;padding:4px 8px;">小二</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="小三" onclick="toggleGroupFilter('小三')" style="font-size:0.75rem;padding:4px 8px;">小三</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="小四" onclick="toggleGroupFilter('小四')" style="font-size:0.75rem;padding:4px 8px;">小四</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="小五" onclick="toggleGroupFilter('小五')" style="font-size:0.75rem;padding:4px 8px;">小五</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="小六" onclick="toggleGroupFilter('小六')" style="font-size:0.75rem;padding:4px 8px;">小六</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="國中" onclick="toggleGroupFilter('國中')" style="font-size:0.75rem;padding:4px 8px;">國中</button>
+        </div>
         <select id="batchCourseFilter" onchange="renderBatch()" style="background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.8rem;">
           <option value="all">團課＋小班</option>
           <option value="team">僅團課</option>
@@ -1538,6 +1538,41 @@ function changeBatchMonth(val) {
   renderSidebar();
 }
 
+function toggleGroupFilter(group) {
+  if (group === 'all') {
+    // Clear all selections
+    document.querySelectorAll('.batchGroupBtn').forEach(b => {
+      b.style.background = 'none';
+      b.style.borderColor = '';
+      b.style.color = '';
+      b.classList.remove('active');
+    });
+    const allBtn = document.getElementById('batchGroupAll');
+    allBtn.style.background = 'rgba(252,201,41,0.2)';
+    allBtn.style.borderColor = 'rgba(252,201,41,0.5)';
+    allBtn.style.color = '#fcc929';
+  } else {
+    const btn = document.querySelector('.batchGroupBtn[data-group="' + group + '"]');
+    btn.classList.toggle('active');
+    btn.style.background = btn.classList.contains('active') ? 'rgba(58,171,110,0.2)' : 'none';
+    btn.style.borderColor = btn.classList.contains('active') ? 'rgba(58,171,110,0.5)' : '';
+    btn.style.color = btn.classList.contains('active') ? '#3aab6e' : '';
+    // Update 全年齡 button
+    const anyActive = document.querySelectorAll('.batchGroupBtn.active').length > 0;
+    const allBtn = document.getElementById('batchGroupAll');
+    allBtn.style.background = anyActive ? 'none' : 'rgba(252,201,41,0.2)';
+    allBtn.style.borderColor = anyActive ? '' : 'rgba(252,201,41,0.5)';
+    allBtn.style.color = anyActive ? '' : '#fcc929';
+  }
+  renderBatch();
+}
+
+function getSelectedGroups() {
+  const active = document.querySelectorAll('.batchGroupBtn.active');
+  if (active.length === 0) return null; // null = all
+  return Array.from(active).map(b => b.dataset.group);
+}
+
 function toggleBatchSimple() {
   const btn = document.getElementById('batchSimpleBtn');
   btn.classList.toggle('active');
@@ -1571,7 +1606,7 @@ function renderBatch() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   document.getElementById('batchMonthLabel').textContent = monthLabel;
-  const groupFilter = document.getElementById('batchGroupFilter').value;
+  const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
   const courseFilter = document.getElementById('batchCourseFilter') ? document.getElementById('batchCourseFilter').value : 'all';
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
@@ -1579,7 +1614,7 @@ function renderBatch() {
   const searchVal = batchSearchEl ? batchSearchEl.value.toLowerCase() : '';
   const debtOnly = document.getElementById('batchDebtBtn') && document.getElementById('batchDebtBtn').classList.contains('active');
   let students = data.students.filter(s => s.group !== '已離隊');
-  if (groupFilter !== 'all') students = students.filter(s => s.group === groupFilter);
+  if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
   if (searchVal) students = students.filter(s => s.name.includes(searchVal) || (s.bib||'').includes(searchVal));
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
   if (attendedOnly) {
@@ -1914,7 +1949,7 @@ ${card.outerHTML}
 function exportBatchPDF() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
-  const groupFilter = document.getElementById('batchGroupFilter').value;
+  const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
   const dates = data.dates;
   const days = ['日','一','二','三','四','五','六'];
 
@@ -1922,7 +1957,7 @@ function exportBatchPDF() {
   const searchVal = batchSearchEl ? batchSearchEl.value.toLowerCase() : '';
   const debtOnly = document.getElementById('batchDebtBtn') && document.getElementById('batchDebtBtn').classList.contains('active');
   let students = data.students.filter(s => s.group !== '已離隊');
-  if (groupFilter !== 'all') students = students.filter(s => s.group === groupFilter);
+  if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
   if (searchVal) students = students.filter(s => s.name.includes(searchVal) || (s.bib||'').includes(searchVal));
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
 
@@ -2002,7 +2037,7 @@ function exportBatchPDF() {
   dates.forEach(d => { tbodyHtml += '<td>' + (dateTotals[d.date]||0) + '</td>'; });
   tbodyHtml += '<td colspan="3"></td></tr>';
 
-  const groupTitle = groupFilter === 'all' ? '全部梯隊' : groupFilter;
+  const groupTitle = selectedGroups ? selectedGroups.join('、') : '全部梯隊';
   const printWin = window.open('', '_blank');
   printWin.document.write(`<!DOCTYPE html>
 <html>
