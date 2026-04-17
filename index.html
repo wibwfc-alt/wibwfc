@@ -755,6 +755,13 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <option value="小六">小六</option>
           <option value="國中">國中</option>
         </select>
+        <select id="batchCourseFilter" onchange="renderBatch()" style="background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.8rem;">
+          <option value="all">團課＋小班</option>
+          <option value="team">僅團課</option>
+          <option value="small">僅小班課</option>
+        </select>
+        <button class="btn btn-outline" id="batchAttendedBtn" onclick="toggleBatchAttended()" style="font-size:0.8rem;">有上課</button>
+        <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
@@ -1531,6 +1538,24 @@ function changeBatchMonth(val) {
   renderSidebar();
 }
 
+function toggleBatchSimple() {
+  const btn = document.getElementById('batchSimpleBtn');
+  btn.classList.toggle('active');
+  btn.style.background = btn.classList.contains('active') ? 'rgba(252,201,41,0.15)' : 'none';
+  btn.style.color = btn.classList.contains('active') ? '#fcc929' : '';
+  btn.style.borderColor = btn.classList.contains('active') ? 'rgba(252,201,41,0.5)' : '';
+  renderBatch();
+}
+
+function toggleBatchAttended() {
+  const btn = document.getElementById('batchAttendedBtn');
+  btn.classList.toggle('active');
+  btn.style.background = btn.classList.contains('active') ? 'rgba(36,110,88,0.2)' : 'none';
+  btn.style.color = btn.classList.contains('active') ? '#3aab6e' : '';
+  btn.style.borderColor = btn.classList.contains('active') ? 'rgba(36,110,88,0.5)' : '';
+  renderBatch();
+}
+
 function filterBatchDebt() {
   const btn = document.getElementById('batchDebtBtn');
   btn.classList.toggle('active');
@@ -1547,6 +1572,8 @@ function renderBatch() {
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   document.getElementById('batchMonthLabel').textContent = monthLabel;
   const groupFilter = document.getElementById('batchGroupFilter').value;
+  const courseFilter = document.getElementById('batchCourseFilter') ? document.getElementById('batchCourseFilter').value : 'all';
+  const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
   const batchSearchEl = document.getElementById('batchSearch');
   const searchVal = batchSearchEl ? batchSearchEl.value.toLowerCase() : '';
@@ -1555,6 +1582,15 @@ function renderBatch() {
   if (groupFilter !== 'all') students = students.filter(s => s.group === groupFilter);
   if (searchVal) students = students.filter(s => s.name.includes(searchVal) || (s.bib||'').includes(searchVal));
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
+  if (attendedOnly) {
+    students = students.filter(s => {
+      const teamCount = (s.attended||[]).filter(a => dates.find(d => d.date === a)).length;
+      const scCount = (s.scDates||[]).filter(a => dates.find(d => d.date === a)).length;
+      if (courseFilter === 'team') return teamCount > 0;
+      if (courseFilter === 'small') return scCount > 0;
+      return teamCount > 0 || scCount > 0;
+    });
+  }
 
   // Header: 學員 | 上月結餘 | 月中儲值 | [課日...] | 合計 | 月底儲值 | 月底剩餘
   const days = ['日','一','二','三','四','五','六'];
@@ -1562,7 +1598,12 @@ function renderBatch() {
   thead += '<th class="batch-name-th" style="min-width:120px;">學員</th>';
   thead += '<th class="batch-th" style="min-width:64px;color:#fcc929;">上月結餘</th>';
   thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月中儲值</th>';
-  dates.forEach(d => {
+  const filteredDates = dates.filter(d => {
+    if (courseFilter === 'team') return d.isTeam === true;
+    if (courseFilter === 'small') return d.isSmall === true;
+    return true;
+  });
+  filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
     thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + (d.venue||'') + '</span></th>';
   });
@@ -1581,13 +1622,13 @@ function renderBatch() {
   // Date totals
   const dateTotals = {};
   const dateSmallTotals = {};
-  dates.forEach(d => { dateTotals[d.date] = 0; dateSmallTotals[d.date] = 0; });
+  filteredDates.forEach(d => { dateTotals[d.date] = 0; dateSmallTotals[d.date] = 0; });
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if (dateTotals[a] !== undefined) dateTotals[a]++; });
     (s.scDates||[]).forEach(a => { if (dateSmallTotals[a] !== undefined) dateSmallTotals[a]++; });
   });
 
-  const totalCols = dates.length + 5; // name + 上月 + 月中 + dates + 合計 + 月底 + 月底剩餘
+  const totalCols = filteredDates.length + 5; // name + 上月 + 月中 + dates + 合計 + 月底 + 月底剩餘
 
   let tbody = '<tbody>';
   Object.entries(groups).forEach(([g, list]) => {
@@ -1609,12 +1650,12 @@ function renderBatch() {
       }
       tbody += '</td>';
       // 上月結餘
-      tbody += '<td class="batch-td">' +
+      if (!simpleMode) tbody += '<td class="batch-td">' +
         '<div style="color:var(--yellow);font-size:0.72rem;">' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' +
         ((s.scPrevBal||0) !== 0 ? '<div style="color:#fcc929;font-size:0.68rem;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') +
         '</td>';
       // 月中儲值
-      tbody += '<td class="batch-td">' +
+      if (!simpleMode) tbody += '<td class="batch-td">' +
         '<input type="number" value="' + (s.midTopup||0) + '" min="0" placeholder="團" ' +
         'style="width:48px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;margin-bottom:2px;" ' +
         'data-name="' + s.name + '" data-type="mid" onchange="batchUpdateTopup(this)">' +
@@ -1623,7 +1664,7 @@ function renderBatch() {
         'data-name="' + s.name + '" data-type="scMid" onchange="batchUpdateTopup(this)">' +
         '</td>';
       // 課日勾選 - 只顯示課程有的類型
-      dates.forEach(d => {
+      filteredDates.forEach(d => {
         const isTeam = (s.attended||[]).includes(d.date);
         const isSmall = (s.scDates||[]).includes(d.date);
         const dateIsTeam = d.isTeam === true;
@@ -1636,10 +1677,10 @@ function renderBatch() {
         tbody += cell;
       });
       // 合計
-      const monthCount = (s.attended||[]).filter(a => dates.find(d => d.date===a)).length;
+      const monthCount = (s.attended||[]).filter(a => filteredDates.find(d => d.date===a)).length;
       tbody += '<td class="batch-td" style="font-weight:700;color:var(--yellow);">' + monthCount + '</td>';
       // 月底儲值
-      tbody += '<td class="batch-td">' +
+      if (!simpleMode) tbody += '<td class="batch-td">' +
         '<input type="number" value="' + (s.endTopup||0) + '" min="0" placeholder="團" ' +
         'style="width:48px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;margin-bottom:2px;" ' +
         'data-name="' + s.name + '" data-type="end" onchange="batchUpdateTopup(this)">' +
@@ -1648,18 +1689,18 @@ function renderBatch() {
         'data-name="' + s.name + '" data-type="scTopup" onchange="batchUpdateTopup(this)">' +
         '</td>';
       // 月底剩餘
-      tbody += '<td class="batch-td" style="' + balColor + '">' + (endBal>=0?'+':'') + endBal + '</td>';
+      if (!simpleMode) tbody += '<td class="batch-td" style="' + balColor + '">' + (endBal>=0?'+':'') + endBal + '</td>';
       tbody += '</tr>';
     });
   });
 
   // 出席人數列
-  tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#3aab6e;">團課人數</td><td></td><td></td>';
-  dates.forEach(d => { tbody += '<td style="color:#3aab6e;">' + (dateTotals[d.date]||0) + '</td>'; });
-  tbody += '<td></td><td></td><td></td></tr>';
-  tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#fcc929;">小班人數</td><td></td><td></td>';
-  dates.forEach(d => { tbody += '<td style="color:#fcc929;">' + (dateSmallTotals[d.date]||0) + '</td>'; });
-  tbody += '<td></td><td></td><td></td></tr>';
+  tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#3aab6e;">團課人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
+  filteredDates.forEach(d => { tbody += '<td style="color:#3aab6e;">' + (dateTotals[d.date]||0) + '</td>'; });
+  tbody += '<td></td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
+  tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#fcc929;">小班人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
+  filteredDates.forEach(d => { tbody += '<td style="color:#fcc929;">' + (dateSmallTotals[d.date]||0) + '</td>'; });
+  tbody += '<td></td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   tbody += '</tbody>';
 
   document.getElementById('batchTable').innerHTML = thead + tbody;
