@@ -2671,8 +2671,8 @@ function showDateManager() {
       content += '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px 12px;">' +
         '<span style="font-size:0.85rem;">' + label + '</span>' +
         '<div style="display:flex;gap:6px;">' +
-        '<button class="btn btn-outline" onclick="openEditDate(\'' + d.date + '\', true)" style="font-size:0.72rem;padding:4px 10px;">✎</button>' +
-        '<button class="btn btn-red" onclick="deleteDateDirect(\'' + d.date + '\')" style="font-size:0.72rem;padding:4px 10px;">✕</button>' +
+        '<button class="btn btn-outline" onclick="openEditDate(\'' + (d.uid||d.date) + '\', true)" style="font-size:0.72rem;padding:4px 10px;">✎</button>' +
+        '<button class="btn btn-red" onclick="deleteDateDirect(\'' + (d.uid||d.date) + '\')" style="font-size:0.72rem;padding:4px 10px;">✕</button>' +
         '</div></div>';
     });
   }
@@ -2686,10 +2686,11 @@ function showDateManager() {
 function deleteDateDirect(date) {
   if (!confirm('確定刪除 ' + date + '？')) return;
   const data = getCurrentMonthData();
-  data.dates = data.dates.filter(d => d.date !== date);
+  const delKey = data.dates.find(d => (d.uid||d.date) === date)?.uid || date;
+  data.dates = data.dates.filter(d => (d.uid||d.date) !== date);
   data.students.forEach(s => {
-    s.attended = (s.attended||[]).filter(a => a !== date);
-    s.scDates = (s.scDates||[]).filter(a => a !== date);
+    s.attended = (s.attended||[]).filter(a => a !== delKey && a !== date);
+    s.scDates = (s.scDates||[]).filter(a => a !== delKey && a !== date);
   });
   saveState();
   showDateManager();
@@ -2751,12 +2752,13 @@ function addDate() {
   renderPanel();
 }
 
-function openEditDate(date, fromManager) {
+function openEditDate(dateOrUid, fromManager) {
   if (state.isReadOnly) return;
   const data = getCurrentMonthData();
-  const d = data.dates.find(x => x.date === date);
+  const d = data.dates.find(x => (x.uid||x.date) === dateOrUid || x.date === dateOrUid);
   if (!d) return;
-  document.getElementById('editDateOrig').value = date;
+  const date = d.date;
+  document.getElementById('editDateOrig').value = d.uid || d.date;
   const parts = date.split('-');
   document.getElementById('editDateY').value = parts[0];
   document.getElementById('editDateM').value = parts[1];
@@ -2787,7 +2789,7 @@ function saveEditDate() {
   const isTeam = document.getElementById('editIsTeam').checked;
   const isSmall = document.getElementById('editIsSmall').checked;
   const data = getCurrentMonthData();
-  const idx = data.dates.findIndex(x => x.date === orig);
+  const idx = data.dates.findIndex(x => (x.uid||x.date) === orig);
   if (idx === -1) return;
   if (orig !== newDate) {
     data.students.forEach(s => {
@@ -2816,7 +2818,7 @@ function deleteDateFromEdit() {
   const orig = document.getElementById('editDateOrig').value;
   if (!confirm('確定刪除 ' + orig + ' 這個課日？')) return;
   const data = getCurrentMonthData();
-  data.dates = data.dates.filter(d => d.date !== orig);
+  data.dates = data.dates.filter(d => (d.uid||d.date) !== orig);
   saveState();
   const fromManager = document.getElementById('editDateModal')._fromManager;
   document.getElementById('editDateModal').classList.remove('show');
@@ -2931,6 +2933,18 @@ const _ym = _now.getFullYear() + '-' + String(_now.getMonth()+1).padStart(2,'0')
 if (!state.months[_ym]) state.currentMonth = _ym;
 const _sel = document.getElementById('monthSelect');
 if (_sel) _sel.value = state.currentMonth;
+];
+  const data = getCurrentMonthData();
+  if (!data) return;
+  missing.forEach(d => {
+    if (!data.dates.find(x => x.uid === d.uid)) {
+      data.dates.push(d);
+    }
+  });
+  data.dates.sort((a, b) => a.date.localeCompare(b.date));
+  saveState();
+}
+
 loadState();
 updateLockUI();
 renderSidebar();
