@@ -1584,8 +1584,8 @@ function renderBatch() {
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
   if (attendedOnly) {
     students = students.filter(s => {
-      const teamCount = (s.attended||[]).filter(a => dates.find(d => d.date === a)).length;
-      const scCount = (s.scDates||[]).filter(a => dates.find(d => d.date === a)).length;
+      const teamCount = (s.attended||[]).filter(a => dates.find(d => (d.uid||d.date) === a)).length;
+      const scCount = (s.scDates||[]).filter(a => dates.find(d => (d.uid||d.date) === a)).length;
       if (courseFilter === 'team') return teamCount > 0;
       if (courseFilter === 'small') return scCount > 0;
       return teamCount > 0 || scCount > 0;
@@ -1623,7 +1623,7 @@ function renderBatch() {
   // Date totals
   const dateTotals = {};
   const dateSmallTotals = {};
-  filteredDates.forEach(d => { dateTotals[d.date] = 0; dateSmallTotals[d.date] = 0; });
+  filteredDates.forEach(d => { const k = d.uid||d.date; dateTotals[k] = 0; dateSmallTotals[k] = 0; });
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if (dateTotals[a] !== undefined) dateTotals[a]++; });
     (s.scDates||[]).forEach(a => { if (dateSmallTotals[a] !== undefined) dateSmallTotals[a]++; });
@@ -1666,19 +1666,20 @@ function renderBatch() {
         '</td>';
       // 課日勾選 - 只顯示課程有的類型
       filteredDates.forEach(d => {
-        const isTeam = (s.attended||[]).includes(d.date);
-        const isSmall = (s.scDates||[]).includes(d.date);
+        const dKey = d.uid || d.date;
+        const isTeam = (s.attended||[]).includes(dKey);
+        const isSmall = (s.scDates||[]).includes(dKey);
         const dateIsTeam = d.isTeam === true;
         const dateIsSmall = d.isSmall === true;
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
-        if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + d.date + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
-        if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + d.date + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
+        if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
+        if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
         if (!dateIsTeam && !dateIsSmall) cell += '<div style="color:var(--gray);font-size:0.65rem;text-align:center;">—</div>';
         cell += '</td>';
         tbody += cell;
       });
       // 合計
-      const monthCount = (s.attended||[]).filter(a => filteredDates.find(d => d.date===a)).length;
+      const monthCount = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
       tbody += '<td class="batch-td" style="font-weight:700;color:var(--yellow);">' + monthCount + '</td>';
       // 月底儲值
       if (!simpleMode) tbody += '<td class="batch-td">' +
@@ -1697,10 +1698,10 @@ function renderBatch() {
 
   // 出席人數列
   tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#3aab6e;">團課人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
-  filteredDates.forEach(d => { tbody += '<td style="color:#3aab6e;">' + (dateTotals[d.date]||0) + '</td>'; });
+  filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#3aab6e;">' + (dateTotals[k]||0) + '</td>'; });
   tbody += '<td></td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#fcc929;">小班人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
-  filteredDates.forEach(d => { tbody += '<td style="color:#fcc929;">' + (dateSmallTotals[d.date]||0) + '</td>'; });
+  filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#fcc929;">' + (dateSmallTotals[k]||0) + '</td>'; });
   tbody += '<td></td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   tbody += '</tbody>';
 
@@ -1950,8 +1951,9 @@ function exportBatchPDF() {
         '</td>';
       // 課日
       dates.forEach(d => {
-        const isTeam = (s.attended||[]).includes(d.date);
-        const isSmall = (s.scDates||[]).includes(d.date);
+        const dKey = d.uid || d.date;
+        const isTeam = (s.attended||[]).includes(dKey);
+        const isSmall = (s.scDates||[]).includes(dKey);
         let cell = '';
         if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
         else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
@@ -2156,6 +2158,14 @@ function loadFromGist() {
     loadLocalState();
   })
   .catch(() => loadLocalState());
+}
+
+function ensureDateUids(state) {
+  Object.values(state.months||{}).forEach(m => {
+    (m.dates||[]).forEach((d, i) => {
+      if (!d.uid) d.uid = d.date + '_legacy_' + i;
+    });
+  });
 }
 
 function loadLocalState() {
@@ -2376,11 +2386,11 @@ function renderPanel() {
           <button class="date-del-btn" class="edit-only" style="position:relative;opacity:1;top:auto;right:auto;" onclick="event.stopPropagation();openEditDate('${d.date}')" title="編輯課日">✎</button>
         </div>
         <div class="date-check-row">
-          <div class="date-check-box ${isTeam ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${d.date}','team')">
+          <div class="date-check-box ${isTeam ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${dKey}','team')">
             <span class="check-label">團課</span>
             ${isTeam ? '<span>✓</span>' : ''}
           </div>
-          <div class="date-check-box ${isSmall ? 'checked-small' : ''}" onclick="toggleDate('${s.name}','${d.date}','small')">
+          <div class="date-check-box ${isSmall ? 'checked-small' : ''}" onclick="toggleDate('${s.name}','${dKey}','small')">
             <span class="check-label">小班</span>
             ${isSmall ? '<span>✓</span>' : ''}
           </div>
@@ -2725,8 +2735,12 @@ function addDate() {
   const coach = Array.from(document.querySelectorAll('input[name=coachCheck]:checked')).map(x=>x.value).join('、');
   if (!y || !m || !d) return;
   const data = getCurrentMonthData();
-  data.dates.push({ date, venue, coach });
-  data.dates.sort((a, b) => a.date.localeCompare(b.date));
+  const noteVal2 = (document.getElementById('newDateNote').value || '').trim();
+  const isTeam2 = document.getElementById('newIsTeam').checked;
+  const isSmall2 = document.getElementById('newIsSmall').checked;
+  const uid = date + '_' + Date.now();
+  data.dates.push({ date, venue, coach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
+  data.dates.sort((a, b) => (a.uid||a.date).localeCompare(b.uid||b.date) || a.date.localeCompare(b.date));
   saveState();
   closeModal();
   document.getElementById('newDateY').value = '2026';
@@ -2784,7 +2798,7 @@ function saveEditDate() {
     });
   }
   data.dates[idx] = { date: newDate, venue, coach, note, isTeam, isSmall };
-  data.dates.sort((a, b) => a.date.localeCompare(b.date));
+  data.dates.sort((a, b) => (a.uid||a.date).localeCompare(b.uid||b.date) || a.date.localeCompare(b.date));
   saveState();
   // If opened from dateManager, go back to it
   const fromManager = document.getElementById('editDateModal')._fromManager;
