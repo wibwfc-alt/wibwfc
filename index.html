@@ -1726,6 +1726,7 @@ function batchUpdateTopup(input) {
 }
 
 function toggleBatchCell(el) {
+  if (state.isReadOnly) return;
   const name = el.dataset.name;
   const date = el.dataset.date;
   const type = el.dataset.type;
@@ -1750,6 +1751,7 @@ function toggleBatchCell(el) {
 }
 
 function toggleBatchCell(el) {
+  if (state.isReadOnly) return;
   const name = el.dataset.name;
   const date = el.dataset.date;
   const type = el.dataset.type;
@@ -1854,11 +1856,11 @@ function printCard() {
 </head>
 <body>
 ${card.outerHTML}
-<script>
+<scr' + 'ipt>
   window.onload = function() {
     setTimeout(function() { window.print(); }, 500);
   };
-<\/script>
+</scr' + 'ipt>
 <!-- DATE MANAGER MODAL -->
 <div class="modal-overlay" id="dateManagerModal">
   <div class="modal" style="width:480px;max-height:80vh;overflow-y:auto;">
