@@ -2146,6 +2146,8 @@ function loadFromGist() {
           const prevReadOnly = state.isReadOnly;
           state = { ...state, ...parsed };
           state.isReadOnly = prevReadOnly;
+          state.groupFilter = 'all';
+          state.debtFilter = false;
           try { localStorage.setItem('bw_state', JSON.stringify(state)); } catch(e) {}
           document.getElementById('monthSelect').value = state.currentMonth;
           renderSidebar();
@@ -2177,6 +2179,9 @@ function loadLocalState() {
         const hasStudents = Object.values(parsed.months).some(m => m.students && m.students.length > 0);
         if (hasStudents) {
           state = { ...state, ...parsed };
+          state.groupFilter = 'all';
+          state.debtFilter = false;
+          ensureDateUids(state);
           return;
         }
       }
@@ -2244,6 +2249,8 @@ function importData(input) {
       if (!parsed.months) { alert('檔案格式不正確'); return; }
       if (!confirm('匯入後會覆蓋現有資料，確定繼續？')) return;
       state = { ...state, ...parsed };
+      state.groupFilter = 'all';
+      state.debtFilter = false;
       saveState();
       document.getElementById('currentMonth').value = state.currentMonth;
       renderSidebar();
@@ -2800,8 +2807,9 @@ function saveEditDate() {
       if (si !== -1) s.scDates[si] = newDate;
     });
   }
-  data.dates[idx] = { date: newDate, venue, coach, note, isTeam, isSmall };
-  data.dates.sort((a, b) => (a.uid||a.date).localeCompare(b.uid||b.date) || a.date.localeCompare(b.date));
+  const oldUid = data.dates[idx].uid;
+  data.dates[idx] = { date: newDate, venue, coach, note, isTeam, isSmall, uid: oldUid || (newDate + '_' + Date.now()) };
+  data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   // If opened from dateManager, go back to it
   const fromManager = document.getElementById('editDateModal')._fromManager;
