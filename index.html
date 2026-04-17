@@ -2141,7 +2141,7 @@ function loadFromGist() {
           // Gist is newer - use gist
           const prevReadOnly = state.isReadOnly;
           state = { ...state, ...parsed };
-          state.isReadOnly = prevReadOnly;
+          state.isReadOnly = true;
           state.groupFilter = 'all';
           state.debtFilter = false;
           try { localStorage.setItem('bw_state', JSON.stringify(state)); } catch(e) {}
@@ -2177,6 +2177,7 @@ function loadLocalState() {
           state = { ...state, ...parsed };
           state.groupFilter = 'all';
           state.debtFilter = false;
+          state.isReadOnly = true;
           ensureDateUids(state);
           updateLockUI();
           renderSidebar();
