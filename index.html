@@ -2551,6 +2551,7 @@ function renderPanel() {
 
     ${negWarn}
 
+    <div class="edit-only">
     <div style="font-size:0.68rem;font-weight:700;color:#3aab6e;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">團課</div>
     <div class="balance-row">
       <div class="balance-box">
@@ -2623,9 +2624,12 @@ function renderPanel() {
       </div>
     </div>
 
-    <div class="tabs">
+    </div>
+    </div>
+
+    <div class="tabs edit-only">
       <button class="tab-btn active" onclick="switchTab('preview')">本月總結</button>
-      <button class="tab-btn edit-only" onclick="switchTab('attendance')">出席勾選</button>
+      <button class="tab-btn" onclick="switchTab('attendance')">出席勾選</button>
     </div>
 
     <div id="tab-attendance" class="tab-content">
