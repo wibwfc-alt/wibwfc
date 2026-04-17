@@ -2472,7 +2472,7 @@ function renderPanel() {
     return; 
   }
   const s = data.students.find(x => x.name === state.selectedStudent);
-  if (!s) { document.getElementById('mainPanel').innerHTML = `<div class="panel-empty"><div class="icon">⚽</div><div>選擇左側學員查看紀錄</div></div>`; return; }
+  if (!s || s.group === '已離隊') { document.getElementById('mainPanel').innerHTML = `<div class="panel-empty"><div class="icon">⚽</div><div>選擇左側學員查看紀錄</div></div>`; return; }
 
   const bal = calcEndBalance(s);
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
