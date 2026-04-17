@@ -2731,17 +2731,18 @@ function addDate() {
   const y = document.getElementById('newDateY').value;
   const m = document.getElementById('newDateM').value;
   const d = document.getElementById('newDateD').value;
+  if (!y || !m || !d) { alert('請填寫日期'); return; }
   const date = y + '-' + m + '-' + d;
   const venue = document.getElementById('newVenue').value;
   const coach = Array.from(document.querySelectorAll('input[name=coachCheck]:checked')).map(x=>x.value).join('、');
-  if (!y || !m || !d) return;
   const data = getCurrentMonthData();
+  if (!data) { alert('找不到月份資料'); return; }
   const noteVal2 = (document.getElementById('newDateNote').value || '').trim();
   const isTeam2 = document.getElementById('newIsTeam').checked;
   const isSmall2 = document.getElementById('newIsSmall').checked;
   const uid = date + '_' + Date.now();
   data.dates.push({ date, venue, coach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
-  data.dates.sort((a, b) => (a.uid||a.date).localeCompare(b.uid||b.date) || a.date.localeCompare(b.date));
+  data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   closeModal();
   document.getElementById('newDateY').value = '2026';
