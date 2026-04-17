@@ -1807,30 +1807,6 @@ function toggleBatchCell(el) {
   renderBatch();
 }
 
-function toggleBatchCell(el) {
-  if (state.isReadOnly) return;
-  const name = el.dataset.name;
-  const date = el.dataset.date;
-  const type = el.dataset.type;
-  const data = getCurrentMonthData();
-  const s = data.students.find(x => x.name === name);
-  if (!s) return;
-  if (type === 'small') {
-    if (!s.scDates) s.scDates = [];
-    const idx = s.scDates.indexOf(date);
-    if (idx === -1) s.scDates.push(date);
-    else s.scDates.splice(idx, 1);
-    s.scAttended = s.scDates.length;
-  } else {
-    if (!s.attended) s.attended = [];
-    const idx = s.attended.indexOf(date);
-    if (idx === -1) s.attended.push(date);
-    else s.attended.splice(idx, 1);
-  }
-  saveState();
-  renderSidebar();
-  renderBatch();
-}
 
 function toggleBatch(name, date) {
   const data = getCurrentMonthData();
@@ -2353,6 +2329,9 @@ function importData(input) {
       state = { ...state, ...parsed };
       state.groupFilter = 'all';
       state.debtFilter = false;
+      state.isReadOnly = true;
+      state.selectedStudent = null;
+      ensureDateUids(state);
       saveState();
       document.getElementById('currentMonth').value = state.currentMonth;
       renderSidebar();
