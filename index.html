@@ -1856,11 +1856,7 @@ function printCard() {
 </head>
 <body>
 ${card.outerHTML}
-<scr' + 'ipt>
-  window.onload = function() {
-    setTimeout(function() { window.print(); }, 500);
-  };
-</scr' + 'ipt>
+<scr"+"ipt>\n  window.onload = function() {\n    setTimeout(function() { window.print(); }, 500);\n  };\n</scr"+"ipt>
 <!-- DATE MANAGER MODAL -->
 <div class="modal-overlay" id="dateManagerModal">
   <div class="modal" style="width:480px;max-height:80vh;overflow-y:auto;">
@@ -2137,24 +2133,22 @@ function loadFromGist() {
     if (parsed.months && Object.keys(parsed.months).length > 0) {
       const hasStudents = Object.values(parsed.months).some(m => m.students && m.students.length > 0);
       if (hasStudents) {
-        // Always prefer local if it exists and has data
-        // Only use Gist if local is empty or Gist is more than 5 minutes newer
-        const GIST_PRIORITY_THRESHOLD = 5 * 60 * 1000;
-        if (localTs > 0 && (localTs >= gistTs || gistTs - localTs < GIST_PRIORITY_THRESHOLD)) {
+        if (localTs > gistTs) {
+          // Local is newer - use local
           loadLocalState();
-          console.log('使用本機資料');
+          console.log('使用本機資料（較新）');
         } else {
+          // Gist is newer - use gist
           const prevReadOnly = state.isReadOnly;
           state = { ...state, ...parsed };
           state.isReadOnly = prevReadOnly;
           state.groupFilter = 'all';
           state.debtFilter = false;
-          ensureDateUids(state);
           try { localStorage.setItem('bw_state', JSON.stringify(state)); } catch(e) {}
           document.getElementById('monthSelect').value = state.currentMonth;
           renderSidebar();
           renderPanel();
-          console.log('使用 Gist 資料');
+          console.log('使用 Gist 資料（較新）');
         }
         return;
       }
