@@ -1606,7 +1606,7 @@ function renderBatch() {
   });
   filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
-    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + (d.venue||'') + '</span></th>';
+    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + (d.venue||'') + '</span>' + (d.coach ? '<br><span style="color:#fcc929;font-size:0.6rem;">' + d.coach + '</span>' : '') + '</th>';
   });
   thead += '<th class="batch-th" style="min-width:50px;">合計</th>';
   thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月底儲值</th>';
@@ -2657,7 +2657,7 @@ function showDateManager() {
   } else {
     dates.sort((a,b) => a.date.localeCompare(b.date)).forEach(d => {
       const dt = new Date(d.date + 'T00:00:00');
-      const label = d.date.replace(/-/g,'/') + ' 週' + days[dt.getDay()] + (d.venue ? ' · ' + d.venue : '') + (d.coach ? ' · ' + d.coach : '') + (d.note ? ' · ' + d.note : '');
+      const label = d.date.replace(/-/g,'/') + ' 週' + days[dt.getDay()] + (d.venue ? ' · ' + d.venue : '') + (d.coach ? ' 【' + d.coach + '】' : '') + (d.note ? ' · ' + d.note : '');
       content += '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px 12px;">' +
         '<span style="font-size:0.85rem;">' + label + '</span>' +
         '<div style="display:flex;gap:6px;">' +
@@ -2725,7 +2725,6 @@ function addDate() {
   const coach = Array.from(document.querySelectorAll('input[name=coachCheck]:checked')).map(x=>x.value).join('、');
   if (!y || !m || !d) return;
   const data = getCurrentMonthData();
-  if (data.dates.find(d => d.date === date)) { alert('此日期已存在'); return; }
   data.dates.push({ date, venue, coach });
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
