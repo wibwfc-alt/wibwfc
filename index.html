@@ -1950,7 +1950,15 @@ function exportBatchPDF() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const dates = data.dates;
+  const courseFilter = document.getElementById('batchCourseFilter') ? document.getElementById('batchCourseFilter').value : 'all';
+  const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
+  const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
+  const allDates = data.dates;
+  const filteredDates = allDates.filter(d => {
+    if (courseFilter === 'team') return d.isTeam === true;
+    if (courseFilter === 'small') return d.isSmall === true;
+    return true;
+  });
   const days = ['日','一','二','三','四','五','六'];
 
   const batchSearchEl = document.getElementById('batchSearch');
@@ -1960,6 +1968,15 @@ function exportBatchPDF() {
   if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
   if (searchVal) students = students.filter(s => s.name.includes(searchVal) || (s.bib||'').includes(searchVal));
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
+  if (attendedOnly) {
+    students = students.filter(s => {
+      const tc = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
+      const sc = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
+      if (courseFilter === 'team') return tc > 0;
+      if (courseFilter === 'small') return sc > 0;
+      return tc > 0 || sc > 0;
+    });
+  }
 
   const groups = {};
   students.forEach(s => {
@@ -1967,16 +1984,19 @@ function exportBatchPDF() {
     groups[s.group].push(s);
   });
 
-  let theadHtml = '<tr><th>學員</th><th>上月結餘<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
-  dates.forEach(d => {
+  let theadHtml = '<tr><th>學員</th>';
+  if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
+  filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
     theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + (d.venue||'') + '</span></th>';
   });
-  theadHtml += '<th>合計<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月底儲值<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月底剩餘<br><span style="color:#888;font-weight:400;">團/小</span></th></tr>';
+  theadHtml += '<th>合計</th>';
+  if (!simpleMode) theadHtml += '<th>月底儲值<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月底剩餘<br><span style="color:#888;font-weight:400;">團/小</span></th>';
+  theadHtml += '</tr>';
 
   let tbodyHtml = '';
   Object.entries(groups).forEach(([g, list]) => {
-    tbodyHtml += '<tr class="group-row"><td colspan="' + (dates.length + 7) + '">' + g + '</td></tr>';
+    tbodyHtml += '<tr class="group-row"><td colspan="' + (filteredDates.length + (simpleMode ? 2 : 6)) + '">' + g + '</td></tr>';
     list.forEach(s => {
       const endBal = calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
@@ -1989,32 +2009,38 @@ function exportBatchPDF() {
       // 學員
       tbodyHtml += '<td class="name-cell">' + s.name + (s.bib ? ' <span style="color:#888;font-size:9px;">#'+s.bib+'</span>' : '') + '</td>';
       // 上月結餘
+      if (!simpleMode) {
       tbodyHtml += '<td style="text-align:center;">' +
         '<div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' +
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') +
         '</td>';
+      }
+      if (!simpleMode) {
       // 月中儲值
       tbodyHtml += '<td style="text-align:center;">' +
         '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' +
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scMidTopup||0) + '</div>' : '') +
         '</td>';
+      }
       // 課日
-      dates.forEach(d => {
+      filteredDates.forEach(d => {
         const dKey = d.uid || d.date;
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
         let cell = '';
         if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
         else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
-        else if (isSmall) cell = '<span style="color:#1a7a50;">◆</span>';
+        else if (isSmall) cell = '<span style="color:#c8a000;">◆</span>';
         tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
       });
       // 合計
-      const monthCount = (s.attended||[]).filter(a => dates.find(d=>d.date===a)).length;
+      const pdfTeamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
+      const pdfScCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
       tbodyHtml += '<td style="text-align:center;">' +
-        '<div style="font-weight:700;color:#1a7a50;font-size:9px;">團' + monthCount + '</div>' +
-        (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + scActual + '</div>' : '') +
+        (courseFilter !== 'small' ? '<div style="font-weight:700;color:#1a7a50;font-size:9px;">團' + pdfTeamCount + '</div>' : '') +
+        (courseFilter !== 'team' && hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + pdfScCount + '</div>' : '') +
         '</td>';
+      if (!simpleMode) {
       // 月底儲值
       tbodyHtml += '<td style="text-align:center;">' +
         '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' +
@@ -2025,17 +2051,30 @@ function exportBatchPDF() {
         '<div style="' + balStyle + 'font-weight:700;font-size:9px;">團' + (endBal>=0?'+':'') + endBal + '</div>' +
         (hasSmall ? '<div style="' + scBalStyle + 'font-size:9px;font-weight:700;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>' : '') +
         '</td>';
+      } // end !simpleMode
       tbodyHtml += '</tr>';
     });
   });
 
   // 出席人數列
   const dateTotals = {};
-  dates.forEach(d => { dateTotals[d.date] = 0; });
-  students.forEach(s => { (s.attended||[]).forEach(a => { if (dateTotals[a]!==undefined) dateTotals[a]++; }); });
-  tbodyHtml += '<tr class="total-row"><td colspan="3">出席人數（團課）</td>';
-  dates.forEach(d => { tbodyHtml += '<td>' + (dateTotals[d.date]||0) + '</td>'; });
-  tbodyHtml += '<td colspan="3"></td></tr>';
+  const dateSmallTotals2 = {};
+  filteredDates.forEach(d => { const k=d.uid||d.date; dateTotals[k]=0; dateSmallTotals2[k]=0; });
+  students.forEach(s => {
+    (s.attended||[]).forEach(a => { if(dateTotals[a]!==undefined) dateTotals[a]++; });
+    (s.scDates||[]).forEach(a => { if(dateSmallTotals2[a]!==undefined) dateSmallTotals2[a]++; });
+  });
+  const extraCols = simpleMode ? 1 : 3;
+  if (courseFilter !== 'small') {
+    tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">團課人數</td>';
+    filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateTotals[k]||0) + '</td>'; });
+    tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
+  }
+  if (courseFilter !== 'team') {
+    tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">小班人數</td>';
+    filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateSmallTotals2[k]||0) + '</td>'; });
+    tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
+  }
 
   const groupTitle = selectedGroups ? selectedGroups.join('、') : '全部梯隊';
   const printWin = window.open('', '_blank');
@@ -2070,7 +2109,7 @@ function exportBatchPDF() {
 <div class="header">
   <div>
     <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
-    <div class="header-sub">${groupTitle} · 共 ${students.length} 人 · ${dates.length} 個課日</div>
+    <div class="header-sub">${groupTitle} · 共 ${students.length} 人 · ${filteredDates.length} 個課日</div>
   </div>
   <div style="font-size:11px;color:#888;">列印日期：${new Date().toLocaleDateString('zh-TW')}</div>
 </div>
