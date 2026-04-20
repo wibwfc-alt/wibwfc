@@ -2172,7 +2172,10 @@ function syncToGist() {
     },
     body: JSON.stringify({ files: { 'bwfc.json': { content: data } } })
   })
-  .then(r => r.json())
+  .then(r => {
+    if (!r.ok) return r.json().then(e => { throw new Error('HTTP ' + r.status + ': ' + (e.message||'')); });
+    return r.json();
+  })
   .then(() => {
     btn.textContent = '✓ 已同步';
     const now = new Date();
@@ -2185,8 +2188,8 @@ function syncToGist() {
     }, 2000);
   })
   .catch(e => {
-    alert('同步失敗：' + e.message);
-    btn.textContent = '☁ 同步給教練';
+    alert('同步失敗：' + e.message + '\n\n請確認 GitHub Token 是否正確。');
+    btn.textContent = '☁ 同步';
     btn.disabled = false;
   });
 }
@@ -2241,43 +2244,12 @@ function ensureDateUids(state) {
 }
 
 function loadLocalState() {
-  try {
-    const saved = localStorage.getItem('bw_state');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.months && Object.keys(parsed.months).length > 0) {
-        const hasStudents = Object.values(parsed.months).some(m => m.students && m.students.length > 0);
-        if (hasStudents) {
-          state = { ...state, ...parsed };
-          state.groupFilter = 'all';
-          state.debtFilter = false;
-          state.isReadOnly = true;
-          state.selectedStudent = null;
-          ensureDateUids(state);
-          updateLockUI();
-          renderSidebar();
-          renderPanel();
-          return;
-        }
-      }
-    }
-  } catch(e) {}
-  state.months['2026-04'] = {
-    dates: generateFixedDates('2026-04'),
-    students: JSON.parse(JSON.stringify(initialStudents))
-  };
-  saveState();
-  updateLockUI();
-  renderSidebar();
-  renderPanel();
+  // Legacy function - now just calls initEmptyState
+  initEmptyState();
 }
 
 function getLocalTimestamp() {
-  try {
-    const saved = localStorage.getItem('bw_state');
-    if (saved) return JSON.parse(saved)._savedAt || 0;
-  } catch(e) {}
-  return 0;
+  return 0; // 不再使用 localStorage 儲存資料
 }
 
 function mobileNav(tab) {
