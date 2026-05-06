@@ -1713,8 +1713,8 @@ function renderBatch() {
         const dKey = d.uid || d.date;
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
-        const dateIsTeam = d.isTeam === true;
-        const dateIsSmall = d.isSmall === true;
+        const dateIsTeam = d.isTeam === true && courseFilter !== 'small';
+        const dateIsSmall = d.isSmall === true && courseFilter !== 'team';
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
         if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
         if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
