@@ -573,9 +573,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('小五')">小五</button>
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('小六')">小六</button>
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('國中')">國中</button>
-      <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('爸媽組')">爸媽組</button>
+      <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('爸媽')">爸媽</button>
       <button class="btn btn-outline edit-only" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="filterGroup('已離隊')">離隊</button>
-      <button class="btn btn-outline" id="debtFilterBtn" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="toggleDebtFilter()">欠費</button>
+      <button class="btn btn-outline edit-only" id="debtFilterBtn" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="toggleDebtFilter()">欠費</button>
     </div>
     <div class="student-list" id="studentList"></div>
   </div>
@@ -755,7 +755,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <button class="btn btn-outline batchGroupBtn" data-group="小五" onclick="toggleGroupFilter('小五')" style="font-size:0.75rem;padding:4px 8px;">小五</button>
           <button class="btn btn-outline batchGroupBtn" data-group="小六" onclick="toggleGroupFilter('小六')" style="font-size:0.75rem;padding:4px 8px;">小六</button>
           <button class="btn btn-outline batchGroupBtn" data-group="國中" onclick="toggleGroupFilter('國中')" style="font-size:0.75rem;padding:4px 8px;">國中</button>
-          <button class="btn btn-outline batchGroupBtn" data-group="爸媽組" onclick="toggleGroupFilter('爸媽組')" style="font-size:0.75rem;padding:4px 8px;">爸媽組</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="爸媽" onclick="toggleGroupFilter('爸媽')" style="font-size:0.75rem;padding:4px 8px;">爸媽</button>
         </div>
         <select id="batchCourseFilter" onchange="renderBatch()" style="background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.8rem;">
           <option value="all">團課＋小班</option>
@@ -831,7 +831,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <option value="小五">小五</option>
         <option value="小六">小六</option>
         <option value="國中">國中</option>
-        <option value="爸媽組">爸媽組</option>
+        <option value="爸媽">爸媽</option>
         <option value="已離隊">離隊</option>
       </select>
     </div>
@@ -862,7 +862,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <option value="小五">小五</option>
         <option value="小六">小六</option>
         <option value="國中">國中</option>
-        <option value="爸媽組">爸媽組</option>
+        <option value="爸媽">爸媽</option>
       </select>
     </div>
     <div class="form-group"><label>背號</label><input type="text" id="newBib" placeholder="背號（選填）"></div>
