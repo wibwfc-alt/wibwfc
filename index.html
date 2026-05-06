@@ -1822,20 +1822,8 @@ function toggleBatch(name, date) {
 }
 
 function generateFixedDates(ym) {
-  // Fixed schedule: Tue=黎光, Wed=黎光, Fri=黎光, Sat=朝馬, Sun=台體大
-  const schedule = { 2:'黎光', 3:'黎光', 5:'黎光', 6:'朝馬', 0:'台體大' };
-  const [year, month] = ym.split('-').map(Number);
-  const dates = [];
-  const daysInMonth = new Date(year, month, 0).getDate();
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dt = new Date(year, month - 1, day);
-    const dow = dt.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
-    if (schedule[dow] !== undefined) {
-      const dateStr = year + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
-      dates.push({ date: dateStr, venue: schedule[dow], coach: '' });
-    }
-  }
-  return dates;
+  // 課日請手動新增（＋課日按鈕）
+  return [];
 }
 
 function showTopupPanel(name) {
