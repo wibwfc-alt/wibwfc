@@ -2335,9 +2335,9 @@ function getCurrentMonthData() {
     const dates = generateFixedDates(state.currentMonth);
     state.months[state.currentMonth] = { dates, students };
     saveState();
-  } else if (!state.months[state.currentMonth].dates || state.months[state.currentMonth].dates.length === 0) {
-    // Month exists but has no dates - regenerate
-    state.months[state.currentMonth].dates = generateFixedDates(state.currentMonth);
+  } else if (!state.months[state.currentMonth].dates) {
+    // Month exists but dates array is missing - init as empty (do NOT reset students)
+    state.months[state.currentMonth].dates = [];
     saveState();
   }
   return state.months[state.currentMonth];
@@ -2860,15 +2860,19 @@ function saveEditDate() {
   const data = getCurrentMonthData();
   const idx = data.dates.findIndex(x => (x.uid||x.date) === orig);
   if (idx === -1) return;
-  if (orig !== newDate) {
+  const oldUid = data.dates[idx].uid;
+  const oldDate = data.dates[idx].date;
+  // 只有日期真的改變時，才更新 attended / scDates 裡的 key
+  // attended/scDates 存的是 uid（有 uid 的話），所以比對要用正確的 key
+  if (oldDate !== newDate) {
+    const matchKey = oldUid || oldDate;
     data.students.forEach(s => {
-      const ai = (s.attended||[]).indexOf(orig);
-      if (ai !== -1) s.attended[ai] = newDate;
-      const si = (s.scDates||[]).indexOf(orig);
-      if (si !== -1) s.scDates[si] = newDate;
+      const ai = (s.attended||[]).indexOf(matchKey);
+      if (ai !== -1) s.attended[ai] = oldUid || newDate;
+      const si = (s.scDates||[]).indexOf(matchKey);
+      if (si !== -1) s.scDates[si] = oldUid || newDate;
     });
   }
-  const oldUid = data.dates[idx].uid;
   data.dates[idx] = { date: newDate, venue, coach, note, isTeam, isSmall, uid: oldUid || (newDate + '_' + Date.now()) };
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
