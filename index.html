@@ -2324,31 +2324,70 @@ function saveState() {
 
 function getCurrentMonthData() {
   if (!state.months[state.currentMonth]) {
-    const prevMonths = Object.keys(state.months).sort();
-    const latestPrev = prevMonths[prevMonths.length - 1];
-    let students = [];
-    if (latestPrev && state.months[latestPrev]) {
-      students = state.months[latestPrev].students.map(s => ({
+    // 從所有月份合併出完整學員名單（以最近出現的資料為準）
+    const allMonths = Object.keys(state.months).sort();
+    const masterMap = {}; // name -> 最新學員快照
+    allMonths.forEach(ym => {
+      (state.months[ym].students || []).forEach(s => {
+        masterMap[s.name] = s; // 後面的月份會覆蓋前面，保留最新資料
+      });
+    });
+    // 找最近月份（作為結餘計算基準）
+    const latestPrev = allMonths[allMonths.length - 1];
+    const latestStudentMap = {};
+    if (latestPrev) {
+      (state.months[latestPrev].students || []).forEach(s => { latestStudentMap[s.name] = s; });
+    }
+    const students = Object.values(masterMap).map(s => {
+      const prev = latestStudentMap[s.name] || s;
+      return {
         ...s,
-        prevBalance: calcEndBalance(s),
+        prevBalance: calcEndBalance(prev),
         attended: [],
         midTopup: 0,
         endTopup: 0,
         giftTopup: 0,
         scGiftTopup: 0,
         scMidTopup: 0,
-        scPrevBal: ((s.scPrevBal||0) + (s.scMidTopup||0) + (s.scTopup||0) + (s.scGiftTopup||0) - (s.scDates ? s.scDates.length : (s.scAttended||0))),
+        scPrevBal: ((prev.scPrevBal||0) + (prev.scMidTopup||0) + (prev.scTopup||0) + (prev.scGiftTopup||0) - (prev.scDates ? prev.scDates.length : (prev.scAttended||0))),
         scTopup: 0,
-        scAttended: 0
-      }));
-    }
+        scAttended: 0,
+        scDates: []
+      };
+    });
     const dates = generateFixedDates(state.currentMonth);
     state.months[state.currentMonth] = { dates, students };
     saveState();
-  } else if (!state.months[state.currentMonth].dates) {
-    // Month exists but dates array is missing - init as empty (do NOT reset students)
-    state.months[state.currentMonth].dates = [];
-    saveState();
+  } else {
+    // 月份已存在，補上其他月份有但本月沒有的學員
+    const existingNames = new Set(state.months[state.currentMonth].students.map(s => s.name));
+    const allMonths = Object.keys(state.months).sort();
+    allMonths.forEach(ym => {
+      if (ym === state.currentMonth) return;
+      (state.months[ym].students || []).forEach(s => {
+        if (!existingNames.has(s.name)) {
+          existingNames.add(s.name);
+          state.months[state.currentMonth].students.push({
+            ...s,
+            prevBalance: 0,
+            attended: [],
+            midTopup: 0,
+            endTopup: 0,
+            giftTopup: 0,
+            scGiftTopup: 0,
+            scMidTopup: 0,
+            scPrevBal: 0,
+            scTopup: 0,
+            scAttended: 0,
+            scDates: []
+          });
+        }
+      });
+    });
+    if (!state.months[state.currentMonth].dates) {
+      state.months[state.currentMonth].dates = [];
+      saveState();
+    }
   }
   return state.months[state.currentMonth];
 }
