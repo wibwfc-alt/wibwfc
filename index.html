@@ -757,10 +757,8 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <button class="btn btn-outline batchGroupBtn" data-group="國中" onclick="toggleGroupFilter('國中')" style="font-size:0.75rem;padding:4px 8px;">國中</button>
           <button class="btn btn-outline batchGroupBtn" data-group="爸媽組" onclick="toggleGroupFilter('爸媽組')" style="font-size:0.75rem;padding:4px 8px;">爸媽</button>
         </div>
-        <div style="display:flex;border:1px solid rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;">
-          <button id="batchTabTeam" onclick="switchBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:none;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;border-right:1px solid rgba(255,255,255,0.1);">● 團課</button>
-          <button id="batchTabSmall" onclick="switchBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:none;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
-        </div>
+        <button id="batchTabTeam" onclick="toggleBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(36,110,88,0.5);border-radius:4px;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;">● 團課</button>
+        <button id="batchTabSmall" onclick="toggleBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
         <button class="btn btn-outline" id="batchAttendedBtn" onclick="toggleBatchAttended()" style="font-size:0.8rem;">有上課</button>
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         
@@ -1521,8 +1519,9 @@ function copyDebtList() {
 function showBatch() {
   document.getElementById('batchModal').style.display = 'flex';
   document.getElementById('batchMonthSelect').value = state.currentMonth;
-  if (!state._batchTab) state._batchTab = 'team';
-  switchBatchTab(state._batchTab);
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
+  updateBatchTabUI();
+  renderBatch();
 }
 
 function closeBatch() {
@@ -1586,22 +1585,36 @@ function toggleBatchSimple() {
   renderBatch();
 }
 
-function switchBatchTab(tab) {
-  state._batchTab = tab;
+function toggleBatchTab(tab) {
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
+  state._batchTabs[tab] = !state._batchTabs[tab];
+  updateBatchTabUI();
+  renderBatch();
+}
+
+function updateBatchTabUI() {
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
   const teamBtn = document.getElementById('batchTabTeam');
   const smallBtn = document.getElementById('batchTabSmall');
-  if (tab === 'team') {
+  if (!teamBtn || !smallBtn) return;
+  if (state._batchTabs.team) {
     teamBtn.style.background = 'rgba(36,110,88,0.35)';
     teamBtn.style.color = '#3aab6e';
-    smallBtn.style.background = 'none';
-    smallBtn.style.color = 'var(--gray)';
+    teamBtn.style.borderColor = 'rgba(36,110,88,0.5)';
   } else {
-    smallBtn.style.background = 'rgba(252,201,41,0.2)';
-    smallBtn.style.color = '#fcc929';
     teamBtn.style.background = 'none';
     teamBtn.style.color = 'var(--gray)';
+    teamBtn.style.borderColor = 'rgba(255,255,255,0.1)';
   }
-  renderBatch();
+  if (state._batchTabs.small) {
+    smallBtn.style.background = 'rgba(252,201,41,0.2)';
+    smallBtn.style.color = '#fcc929';
+    smallBtn.style.borderColor = 'rgba(252,201,41,0.5)';
+  } else {
+    smallBtn.style.background = 'none';
+    smallBtn.style.color = 'var(--gray)';
+    smallBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+  }
 }
 
 function toggleBatchAttended() {
@@ -1629,7 +1642,8 @@ function renderBatch() {
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   document.getElementById('batchMonthLabel').textContent = monthLabel;
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const courseFilter = state._batchTab || 'team';
+  const tabs = state._batchTabs || { team: true, small: false };
+  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
   const batchSearchEl = document.getElementById('batchSearch');
@@ -1637,7 +1651,7 @@ function renderBatch() {
   const debtOnly = document.getElementById('batchDebtBtn') && document.getElementById('batchDebtBtn').classList.contains('active');
   let students = data.students.filter(s => s.group !== '已離隊');
   if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
-  if (searchVal) students = students.filter(s => s.name.includes(searchVal) || (s.bib||'').includes(searchVal));
+  if (searchVal) students = students.filter(s => [...searchVal].every(c => s.name.includes(c)) || (s.bib||'').includes(searchVal));
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
   if (attendedOnly) {
     students = students.filter(s => {
@@ -1946,7 +1960,8 @@ function exportBatchPDF() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const courseFilter = state._batchTab || 'team';
+  const tabs = state._batchTabs || { team: true, small: false };
+  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const allDates = data.dates;
@@ -1962,7 +1977,7 @@ function exportBatchPDF() {
   const debtOnly = document.getElementById('batchDebtBtn') && document.getElementById('batchDebtBtn').classList.contains('active');
   let students = data.students.filter(s => s.group !== '已離隊');
   if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
-  if (searchVal) students = students.filter(s => s.name.includes(searchVal) || (s.bib||'').includes(searchVal));
+  if (searchVal) students = students.filter(s => [...searchVal].every(c => s.name.includes(c)) || (s.bib||'').includes(searchVal));
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
   if (attendedOnly) {
     students = students.filter(s => {
@@ -2383,7 +2398,7 @@ function renderSidebar() {
   let students = data.students;
   if (state.groupFilter !== 'all') students = students.filter(s => s.group === state.groupFilter);
   else students = students.filter(s => s.group !== '已離隊');
-  if (search) students = students.filter(s => s.name.includes(search));
+  if (search) students = students.filter(s => [...search].every(c => s.name.includes(c)));
   if (state.debtFilter) students = students.filter(s => calcEndBalance(s) < 0 && s.group !== '已離隊');
 
   const groups = {};
