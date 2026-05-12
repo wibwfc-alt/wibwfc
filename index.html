@@ -757,11 +757,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <button class="btn btn-outline batchGroupBtn" data-group="國中" onclick="toggleGroupFilter('國中')" style="font-size:0.75rem;padding:4px 8px;">國中</button>
           <button class="btn btn-outline batchGroupBtn" data-group="爸媽組" onclick="toggleGroupFilter('爸媽組')" style="font-size:0.75rem;padding:4px 8px;">爸媽</button>
         </div>
-        <select id="batchCourseFilter" onchange="renderBatch()" style="background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.8rem;">
-          <option value="all">團課＋小班</option>
-          <option value="team">僅團課</option>
-          <option value="small">僅小班課</option>
-        </select>
+        <div style="display:flex;border:1px solid rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;">
+          <button id="batchTabTeam" onclick="switchBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:none;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;border-right:1px solid rgba(255,255,255,0.1);">● 團課</button>
+          <button id="batchTabSmall" onclick="switchBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:none;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
+        </div>
         <button class="btn btn-outline" id="batchAttendedBtn" onclick="toggleBatchAttended()" style="font-size:0.8rem;">有上課</button>
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         
@@ -1522,7 +1521,8 @@ function copyDebtList() {
 function showBatch() {
   document.getElementById('batchModal').style.display = 'flex';
   document.getElementById('batchMonthSelect').value = state.currentMonth;
-  renderBatch();
+  if (!state._batchTab) state._batchTab = 'team';
+  switchBatchTab(state._batchTab);
 }
 
 function closeBatch() {
@@ -1586,6 +1586,24 @@ function toggleBatchSimple() {
   renderBatch();
 }
 
+function switchBatchTab(tab) {
+  state._batchTab = tab;
+  const teamBtn = document.getElementById('batchTabTeam');
+  const smallBtn = document.getElementById('batchTabSmall');
+  if (tab === 'team') {
+    teamBtn.style.background = 'rgba(36,110,88,0.35)';
+    teamBtn.style.color = '#3aab6e';
+    smallBtn.style.background = 'none';
+    smallBtn.style.color = 'var(--gray)';
+  } else {
+    smallBtn.style.background = 'rgba(252,201,41,0.2)';
+    smallBtn.style.color = '#fcc929';
+    teamBtn.style.background = 'none';
+    teamBtn.style.color = 'var(--gray)';
+  }
+  renderBatch();
+}
+
 function toggleBatchAttended() {
   const btn = document.getElementById('batchAttendedBtn');
   btn.classList.toggle('active');
@@ -1611,7 +1629,7 @@ function renderBatch() {
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   document.getElementById('batchMonthLabel').textContent = monthLabel;
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const courseFilter = document.getElementById('batchCourseFilter') ? document.getElementById('batchCourseFilter').value : 'all';
+  const courseFilter = state._batchTab || 'team';
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
   const batchSearchEl = document.getElementById('batchSearch');
@@ -1928,7 +1946,7 @@ function exportBatchPDF() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const courseFilter = document.getElementById('batchCourseFilter') ? document.getElementById('batchCourseFilter').value : 'all';
+  const courseFilter = state._batchTab || 'team';
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const allDates = data.dates;
@@ -2324,70 +2342,31 @@ function saveState() {
 
 function getCurrentMonthData() {
   if (!state.months[state.currentMonth]) {
-    // 從所有月份合併出完整學員名單（以最近出現的資料為準）
-    const allMonths = Object.keys(state.months).sort();
-    const masterMap = {}; // name -> 最新學員快照
-    allMonths.forEach(ym => {
-      (state.months[ym].students || []).forEach(s => {
-        masterMap[s.name] = s; // 後面的月份會覆蓋前面，保留最新資料
-      });
-    });
-    // 找最近月份（作為結餘計算基準）
-    const latestPrev = allMonths[allMonths.length - 1];
-    const latestStudentMap = {};
-    if (latestPrev) {
-      (state.months[latestPrev].students || []).forEach(s => { latestStudentMap[s.name] = s; });
-    }
-    const students = Object.values(masterMap).map(s => {
-      const prev = latestStudentMap[s.name] || s;
-      return {
+    const prevMonths = Object.keys(state.months).sort();
+    const latestPrev = prevMonths[prevMonths.length - 1];
+    let students = [];
+    if (latestPrev && state.months[latestPrev]) {
+      students = state.months[latestPrev].students.map(s => ({
         ...s,
-        prevBalance: calcEndBalance(prev),
+        prevBalance: calcEndBalance(s),
         attended: [],
         midTopup: 0,
         endTopup: 0,
         giftTopup: 0,
         scGiftTopup: 0,
         scMidTopup: 0,
-        scPrevBal: ((prev.scPrevBal||0) + (prev.scMidTopup||0) + (prev.scTopup||0) + (prev.scGiftTopup||0) - (prev.scDates ? prev.scDates.length : (prev.scAttended||0))),
+        scPrevBal: ((s.scPrevBal||0) + (s.scMidTopup||0) + (s.scTopup||0) + (s.scGiftTopup||0) - (s.scDates ? s.scDates.length : (s.scAttended||0))),
         scTopup: 0,
-        scAttended: 0,
-        scDates: []
-      };
-    });
+        scAttended: 0
+      }));
+    }
     const dates = generateFixedDates(state.currentMonth);
     state.months[state.currentMonth] = { dates, students };
     saveState();
-  } else {
-    // 月份已存在，補上其他月份有但本月沒有的學員
-    const existingNames = new Set(state.months[state.currentMonth].students.map(s => s.name));
-    const allMonths = Object.keys(state.months).sort();
-    allMonths.forEach(ym => {
-      if (ym === state.currentMonth) return;
-      (state.months[ym].students || []).forEach(s => {
-        if (!existingNames.has(s.name)) {
-          existingNames.add(s.name);
-          state.months[state.currentMonth].students.push({
-            ...s,
-            prevBalance: 0,
-            attended: [],
-            midTopup: 0,
-            endTopup: 0,
-            giftTopup: 0,
-            scGiftTopup: 0,
-            scMidTopup: 0,
-            scPrevBal: 0,
-            scTopup: 0,
-            scAttended: 0,
-            scDates: []
-          });
-        }
-      });
-    });
-    if (!state.months[state.currentMonth].dates) {
-      state.months[state.currentMonth].dates = [];
-      saveState();
-    }
+  } else if (!state.months[state.currentMonth].dates) {
+    // Month exists but dates array is missing - init as empty (do NOT reset students)
+    state.months[state.currentMonth].dates = [];
+    saveState();
   }
   return state.months[state.currentMonth];
 }
