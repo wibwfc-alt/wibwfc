@@ -1733,11 +1733,11 @@ function renderBatch() {
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
       const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
       const scBalColor = scEndBal < 0 ? 'color:var(--red)' : 'color:#3aab6e';
-      tbody += '<td class="batch-name-td">';
+      tbody += '<td class="batch-name-td" data-name-bal="' + s.name + '">';
       tbody += '<div class="bn">' + s.name + (s.bib ? ' <span style="color:var(--gray);font-size:0.65rem;">#' + s.bib + '</span>' : '') + '</div>';
-      tbody += '<div class="bm" style="' + nameBalColor + '">團 ' + (endBal>=0?'+':'') + endBal + '堂</div>';
+      tbody += '<div class="bm bal-team" style="' + nameBalColor + '">團 ' + (endBal>=0?'+':'') + endBal + '堂</div>';
       if (scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0) {
-        tbody += '<div class="bm" style="' + scBalColor + '">小 ' + (scEndBal>=0?'+':'') + scEndBal + '堂</div>';
+        tbody += '<div class="bm bal-sc" style="' + scBalColor + '">小 ' + (scEndBal>=0?'+':'') + scEndBal + '堂</div>';
       }
       tbody += '</td>';
       // 上月結餘
@@ -1802,8 +1802,16 @@ function renderBatch() {
             '</td>';
         }
       }
-      // 月底剩餘
-      if (!simpleMode) tbody += '<td class="batch-td" style="' + balColor + '">' + (endBal>=0?'+':'') + endBal + '</td>';
+      // 月底剩餘（根據 courseFilter 顯示對應剩餘）
+      if (!simpleMode) {
+        let balCell = '';
+        if (courseFilter !== 'small') balCell += '<div style="' + balColor + 'font-size:0.72rem;">團' + (endBal>=0?'+':'') + endBal + '</div>';
+        if (courseFilter !== 'team') {
+          const hasSmallData = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
+          if (hasSmallData) balCell += '<div style="' + scBalColor + 'font-size:0.72rem;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>';
+        }
+        tbody += '<td class="batch-td" data-bal-name="' + s.name + '">' + balCell + '</td>';
+      }
       tbody += '</tr>';
     });
   });
@@ -1840,7 +1848,30 @@ function batchUpdateTopup(input) {
   else if (type === 'scTopup') s.scTopup = val;
   saveState();
   renderSidebar();
-  // Don't re-render batch - it would reset input focus and values
+  // 即時更新該列的剩餘欄，不重繪整個表格
+  const tabs = state._batchTabs || { team: true, small: false };
+  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const endBal = calcEndBalance(s);
+  const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
+  const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
+  const balColor = endBal < 0 ? 'color:var(--red);font-weight:700;' : endBal > 0 ? 'color:#3aab6e;' : 'color:var(--gray);';
+  const scBalColor = scEndBal < 0 ? 'color:var(--red);' : 'color:#3aab6e;';
+  const hasSmallData = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
+  let balCell = '';
+  if (courseFilter !== 'small') balCell += '<div style="' + balColor + 'font-size:0.72rem;">團' + (endBal>=0?'+':'') + endBal + '</div>';
+  if (courseFilter !== 'team' && hasSmallData) balCell += '<div style="' + scBalColor + 'font-size:0.72rem;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>';
+  const balTd = document.querySelector('td[data-bal-name="' + name + '"]');
+  if (balTd) balTd.innerHTML = balCell;
+  // 同步更新學員名稱欄的小字結餘
+  const nameBalColor = endBal < 0 ? 'color:var(--red)' : 'color:#3aab6e';
+  const scBalColorName = scEndBal < 0 ? 'color:var(--red)' : 'color:#3aab6e';
+  const nameTd = document.querySelector('td[data-name-bal="' + name + '"]');
+  if (nameTd) {
+    const teamDiv = nameTd.querySelector('.bal-team');
+    const scDiv = nameTd.querySelector('.bal-sc');
+    if (teamDiv) { teamDiv.style.cssText = nameBalColor; teamDiv.textContent = '團 ' + (endBal>=0?'+':'') + endBal + '堂'; }
+    if (scDiv && hasSmallData) { scDiv.style.cssText = scBalColorName; scDiv.textContent = '小 ' + (scEndBal>=0?'+':'') + scEndBal + '堂'; }
+  }
 }
 
 function toggleBatchCell(el) {
