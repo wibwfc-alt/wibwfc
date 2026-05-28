@@ -848,8 +848,16 @@ body.edit-mode .edit-only { display: inline-block !important; }
 <div class="modal-overlay" id="addStudentModal">
   <div class="modal">
     <h3>新增學員</h3>
+    <!-- 正式 / 試上 切換 -->
+    <div class="form-group">
+      <label>學員類型</label>
+      <div style="display:flex;gap:8px;">
+        <button type="button" id="typeRegularBtn" onclick="setNewStudentType('regular')" class="btn" style="flex:1;font-size:0.82rem;">正式學員</button>
+        <button type="button" id="typeTrialBtn" onclick="setNewStudentType('trial')" class="btn btn-outline" style="flex:1;font-size:0.82rem;border-color:#fcc929;color:#fcc929;">🔍 試上</button>
+      </div>
+    </div>
     <div class="form-group"><label>姓名</label><input type="text" id="newName" placeholder="學員姓名"></div>
-    <div class="form-group"><label>組別</label>
+    <div id="newGroupSection" class="form-group"><label>組別</label>
       <select id="newGroup">
         <option value="幼兒">幼兒</option>
         <option value="小一">小一</option>
@@ -862,12 +870,17 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <option value="爸媽組">爸媽</option>
       </select>
     </div>
-    <div class="form-group"><label>背號</label><input type="text" id="newBib" placeholder="背號（選填）"></div>
-    <div class="form-group"><label>上月結餘堂數</label><input type="number" id="newPrevBalance" value="0"></div>
+    <div id="newRegularOnly">
+      <div class="form-group"><label>背號</label><input type="text" id="newBib" placeholder="背號（選填）"></div>
+      <div class="form-group"><label>上月結餘堂數</label><input type="number" id="newPrevBalance" value="0"></div>
+    </div>
+    <div id="newTrialNote" style="display:none;background:rgba(252,201,41,0.08);border:1px solid rgba(252,201,41,0.2);border-radius:6px;padding:10px 12px;font-size:0.78rem;color:var(--gray);margin-bottom:12px;">
+      試上學員只會出現在新增當月的點名表，不計算堂費結餘。<br>之後可在編輯模式升級為正式學員。
+    </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
       <button class="btn" onclick="addStudent()">新增</button>
-    </div></div>
+    </div>
   </div>
 </div>
 
@@ -967,13 +980,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     </div>
     <div class="form-group">
       <label style="color:#3aab6e;">● 團課教練（可多選）</label>
-      <div id="editTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editTeamCoach" value="馬哥"> 馬哥</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editTeamCoach" value="松育"> 松育</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editTeamCoach" value="芃宜"> 芃宜</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editTeamCoach" value="子豪"> 子豪</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editTeamCoach" value="紹詠"> 紹詠</label>
-      </div>
+      <div id="editTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       <div style="display:flex;gap:6px;margin-top:6px;">
         <input type="text" id="editNewTeamCoachInput" placeholder="新增團課教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('editNewTeamCoachInput','editTeamCoachList','editTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
@@ -981,13 +988,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     </div>
     <div class="form-group">
       <label style="color:#fcc929;">◆ 小班教練（可多選）</label>
-      <div id="editSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editSmallCoach" value="馬哥"> 馬哥</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editSmallCoach" value="松育"> 松育</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editSmallCoach" value="芃宜"> 芃宜</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editSmallCoach" value="子豪"> 子豪</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="editSmallCoach" value="紹詠"> 紹詠</label>
-      </div>
+      <div id="editSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       <div style="display:flex;gap:6px;margin-top:6px;">
         <input type="text" id="editNewSmallCoachInput" placeholder="新增小班教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('editNewSmallCoachInput','editSmallCoachList','editSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
@@ -1078,13 +1079,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     </div>
     <div class="form-group">
       <label style="color:#3aab6e;">● 團課教練（可多選）</label>
-      <div id="newTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newTeamCoach" value="馬哥"> 馬哥</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newTeamCoach" value="松育"> 松育</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newTeamCoach" value="芃宜"> 芃宜</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newTeamCoach" value="子豪"> 子豪</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newTeamCoach" value="紹詠"> 紹詠</label>
-      </div>
+      <div id="newTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       <div style="display:flex;gap:6px;margin-top:6px;">
         <input type="text" id="newNewTeamCoachInput" placeholder="新增團課教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('newNewTeamCoachInput','newTeamCoachList','newTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
@@ -1092,13 +1087,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     </div>
     <div class="form-group">
       <label style="color:#fcc929;">◆ 小班教練（可多選）</label>
-      <div id="newSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newSmallCoach" value="馬哥"> 馬哥</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newSmallCoach" value="松育"> 松育</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newSmallCoach" value="芃宜"> 芃宜</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newSmallCoach" value="子豪"> 子豪</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;"><input type="checkbox" name="newSmallCoach" value="紹詠"> 紹詠</label>
-      </div>
+      <div id="newSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       <div style="display:flex;gap:6px;margin-top:6px;">
         <input type="text" id="newNewSmallCoachInput" placeholder="新增小班教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('newNewSmallCoachInput','newSmallCoachList','newSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
@@ -1305,13 +1294,31 @@ function addNewCoachToList(inputId, listId, inputName) {
   const input = document.getElementById(inputId);
   const name = input.value.trim();
   if (!name) return;
-  const list = document.getElementById(listId);
-  if (list && !list.querySelector('[value="' + name + '"]')) {
-    const lbl = document.createElement('label');
-    lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--white);cursor:pointer;';
-    lbl.innerHTML = '<input type="checkbox" name="' + inputName + '" value="' + name + '" checked> ' + name;
-    list.appendChild(lbl);
+  // Add to all coach lists with same inputName pattern across both modals
+  const allListIds = {
+    'newTeamCoach':  ['newTeamCoachList',  'editTeamCoachList'],
+    'editTeamCoach': ['newTeamCoachList',  'editTeamCoachList'],
+    'newSmallCoach': ['newSmallCoachList', 'editSmallCoachList'],
+    'editSmallCoach':['newSmallCoachList', 'editSmallCoachList'],
+  };
+  const targets = allListIds[inputName] || [listId];
+  targets.forEach(lid => {
+    const list = document.getElementById(lid);
+    if (!list) return;
+    const targetInputName = lid.startsWith('new') ? inputName.replace('edit','new') : inputName.replace('new','edit');
+    const resolvedName = lid.startsWith('new') ? (inputName.includes('Team') ? 'newTeamCoach' : 'newSmallCoach') : (inputName.includes('Team') ? 'editTeamCoach' : 'editSmallCoach');
+    if (list.querySelector('[data-coach="' + name + '"]')) return;
+    list.appendChild(makeCoachLabel(name, resolvedName, lid === listId));
+  });
+  // Save custom coach
+  const defaultCoaches = ['馬哥','松育','芃宜','子豪','紹詠'];
+  if (!defaultCoaches.includes(name)) {
+    const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
+    if (!coaches.includes(name)) { coaches.push(name); localStorage.setItem('bw_coaches', JSON.stringify(coaches)); }
   }
+  // Also remove from deleted list if re-adding
+  const deleted = JSON.parse(localStorage.getItem('bw_deleted_coaches') || '[]');
+  if (deleted.includes(name)) { localStorage.setItem('bw_deleted_coaches', JSON.stringify(deleted.filter(c => c !== name))); }
   input.value = '';
 }
 
@@ -1345,17 +1352,27 @@ function addNewVenueEdit() {
   input.value = '';
 }
 
-function makeCoachLabel(name, inputName) {
+function makeCoachLabel(name, inputName, checked) {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
+  wrap.style.cssText = 'display:flex;align-items:center;gap:2px;';
   wrap.dataset.coach = name;
+  wrap.dataset.coachInput = inputName;
   const lbl = document.createElement('label');
   lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:#f5f5f0;cursor:pointer;';
-  lbl.innerHTML = '<input type="checkbox" name="' + inputName + '" value="' + name + '"> ' + name;
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.name = inputName;
+  cb.value = name;
+  if (checked) cb.checked = true;
+  lbl.appendChild(cb);
+  lbl.appendChild(document.createTextNode(' ' + name));
   const del = document.createElement('button');
   del.type = 'button';
   del.textContent = '✕';
-  del.style.cssText = 'background:none;border:none;color:var(--red);cursor:pointer;font-size:0.7rem;padding:0 2px;line-height:1;';
+  del.title = '刪除教練';
+  del.style.cssText = 'background:none;border:none;color:var(--red);cursor:pointer;font-size:0.68rem;padding:0 2px;line-height:1;opacity:0.7;';
+  del.onmouseenter = () => del.style.opacity = '1';
+  del.onmouseleave = () => del.style.opacity = '0.7';
   del.onclick = () => deleteCoach(name);
   wrap.appendChild(lbl);
   wrap.appendChild(del);
@@ -1363,11 +1380,18 @@ function makeCoachLabel(name, inputName) {
 }
 
 function deleteCoach(name) {
-  const defaultCoaches = ['馬哥','松育','芃宜','子豪','紹詠'];
-  if (defaultCoaches.includes(name)) { alert('預設教練不能刪除'); return; }
+  if (!confirm('確定刪除教練「' + name + '」？\n刪除後所有課日新增/編輯表單都不會再顯示此教練。')) return;
+  // Remove from all coach lists in DOM
   document.querySelectorAll('[data-coach="' + name + '"]').forEach(el => el.remove());
-  const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
-  localStorage.setItem('bw_coaches', JSON.stringify(coaches.filter(c => c !== name)));
+  // Save to localStorage: remove from coaches list, or add to deletedCoaches
+  const defaultCoaches = ['馬哥','松育','芃宜','子豪','紹詠'];
+  if (defaultCoaches.includes(name)) {
+    const deleted = JSON.parse(localStorage.getItem('bw_deleted_coaches') || '[]');
+    if (!deleted.includes(name)) { deleted.push(name); localStorage.setItem('bw_deleted_coaches', JSON.stringify(deleted)); }
+  } else {
+    const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
+    localStorage.setItem('bw_coaches', JSON.stringify(coaches.filter(c => c !== name)));
+  }
 }
 
 function deleteVenue(name) {
@@ -1408,20 +1432,26 @@ function updateVenueDeleteBtn(inputId, name) {
 }
 
 function loadCustomCoachesVenues() {
-  // Load custom coaches
-  const coaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
   const defaultCoaches = ['馬哥','松育','芃宜','子豪','紹詠'];
-  coaches.filter(c => !defaultCoaches.includes(c)).forEach(name => {
-    ['coachCheckList','editCoachCheckList'].forEach(listId => {
-      const list = document.getElementById(listId);
-      if (!list) return;
-      const inputName = listId === 'coachCheckList' ? 'coachCheck' : 'editCoachCheck';
-      const lbl = document.createElement('label');
-      lbl.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.85rem;color:#f5f5f0;cursor:pointer;';
-      lbl.innerHTML = '<input type="checkbox" name="' + inputName + '" value="' + name + '"> ' + name;
-      list.appendChild(lbl);
+  const deletedCoaches = JSON.parse(localStorage.getItem('bw_deleted_coaches') || '[]');
+  const customCoaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
+  const allCoaches = [...defaultCoaches.filter(c => !deletedCoaches.includes(c)), ...customCoaches.filter(c => !defaultCoaches.includes(c))];
+
+  // Populate all 4 coach lists
+  [
+    ['newTeamCoachList',   'newTeamCoach'],
+    ['editTeamCoachList',  'editTeamCoach'],
+    ['newSmallCoachList',  'newSmallCoach'],
+    ['editSmallCoachList', 'editSmallCoach'],
+  ].forEach(([listId, inputName]) => {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    list.innerHTML = '';
+    allCoaches.forEach(name => {
+      list.appendChild(makeCoachLabel(name, inputName, false));
     });
   });
+
   // Load custom venues
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '[]');
   const defaultVenues = ['黎光','朝馬','台體大'];
@@ -1663,7 +1693,7 @@ function renderBatch() {
   const batchSearchEl = document.getElementById('batchSearch');
   const searchVal = batchSearchEl ? batchSearchEl.value.toLowerCase() : '';
   const debtOnly = document.getElementById('batchDebtBtn') && document.getElementById('batchDebtBtn').classList.contains('active');
-  let students = data.students.filter(s => s.group !== '已離隊');
+  let students = data.students.filter(s => s.group !== '已離隊' && (!s.isTrial || s.trialMonth === state.currentMonth));
   if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
   if (searchVal) students = students.filter(s => [...searchVal].every(c => s.name.includes(c)) || (s.bib||'').includes(searchVal));
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
@@ -2417,7 +2447,7 @@ function getCurrentMonthData() {
     if (latestPrev) {
       (state.months[latestPrev].students || []).forEach(s => { latestStudentMap[s.name] = s; });
     }
-    const students = Object.values(masterMap).map(s => {
+    const students = Object.values(masterMap).filter(s => !s.isTrial).map(s => {
       const prev = latestStudentMap[s.name] || s;
       return {
         ...s,
@@ -2481,7 +2511,7 @@ function renderSidebar() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   let students = data.students;
   if (state.groupFilter !== 'all') students = students.filter(s => s.group === state.groupFilter);
-  else students = students.filter(s => s.group !== '已離隊');
+  else students = students.filter(s => s.group !== '已離隊' && !s.isTrial);
   if (search) students = students.filter(s => [...search].every(c => s.name.includes(c)));
   if (state.debtFilter) students = students.filter(s => calcEndBalance(s) < 0 && s.group !== '已離隊');
 
@@ -2514,6 +2544,24 @@ function renderSidebar() {
       </div>`;
     });
   });
+
+  // Trial students — only show in edit mode, only if trialMonth === currentMonth
+  if (!state.isReadOnly) {
+    const trialStudents = data.students.filter(s => s.isTrial && s.trialMonth === state.currentMonth);
+    if (trialStudents.length > 0) {
+      html += `<div class="group-header" style="color:#fcc929;border-color:rgba(252,201,41,0.3);">🔍 試上</div>`;
+      trialStudents.forEach(s => {
+        const active = state.selectedStudent === s.name ? 'active' : '';
+        html += `<div class="student-item ${active}" onclick="selectStudent('${s.name}')" style="border-left:2px solid rgba(252,201,41,0.4);">
+          <div>
+            <div class="student-name" style="color:#fcc929;">${s.name}</div>
+            <div class="student-meta">${s.group} · 試上 · ${s.attended.length}堂</div>
+          </div>
+        </div>`;
+      });
+    }
+  }
+
   document.getElementById('studentList').innerHTML = html;
 }
 
@@ -2610,8 +2658,12 @@ function renderPanel() {
         <div class="meta">${s.group}${s.bib ? ' · 背號 #' + s.bib : ''} · ${monthLabel}</div>
       </div>
       <div class="card-actions">
-        <button class="btn btn-outline edit-only" onclick="openEditStudent('${s.name}')">✎ 編輯資料</button>
-        <button class="btn btn-outline btn-red edit-only" onclick="removeStudent('${s.name}')">${s.group === '已離隊' ? '↩ 移回在籍' : '移至已離隊'}</button>
+        ${s.isTrial
+          ? `<button class="btn btn-outline edit-only" onclick="openEditStudent('${s.name}')">✎ 編輯資料</button>
+             <button class="btn edit-only" onclick="promoteTrial('${s.name}')" style="background:#fcc929;color:#010101;font-weight:700;">↑ 升級為正式學員</button>`
+          : `<button class="btn btn-outline edit-only" onclick="openEditStudent('${s.name}')">✎ 編輯資料</button>
+             <button class="btn btn-outline btn-red edit-only" onclick="removeStudent('${s.name}')">${s.group === '已離隊' ? '↩ 移回在籍' : '移至已離隊'}</button>`
+        }
       </div>
     </div>
 
@@ -2853,22 +2905,38 @@ function showDateManager() {
   const data = getCurrentMonthData();
   const dates = data.dates || [];
   const days = ['日','一','二','三','四','五','六'];
-  let content = '<div style="display:flex;flex-direction:column;gap:8px;">';
+  let content = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">';
   if (dates.length === 0) {
-    content += '<div style="color:var(--gray);text-align:center;padding:20px;">本月尚無課日</div>';
+    content = '<div style="color:var(--gray);text-align:center;padding:20px;">本月尚無課日</div>';
   } else {
     dates.sort((a,b) => a.date.localeCompare(b.date)).forEach(d => {
       const dt = new Date(d.date + 'T00:00:00');
-      const label = d.date.replace(/-/g,'/') + ' 週' + days[dt.getDay()] + (d.venue ? ' · ' + d.venue : '') + (d.coach ? ' 【' + d.coach + '】' : '') + (d.note ? ' · ' + d.note : '');
-      content += '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px 12px;">' +
-        '<span style="font-size:0.85rem;">' + label + '</span>' +
-        '<div style="display:flex;gap:6px;">' +
-        '<button class="btn btn-outline" onclick="openEditDate(\'' + (d.uid||d.date) + '\', true)" style="font-size:0.72rem;padding:4px 10px;">✎</button>' +
-        '<button class="btn btn-red" onclick="deleteDateDirect(\'' + (d.uid||d.date) + '\')" style="font-size:0.72rem;padding:4px 10px;">✕</button>' +
-        '</div></div>';
+      const weekday = '週' + days[dt.getDay()];
+      const dateParts = d.date.split('-');
+      const dateDisplay = dateParts[1] + '/' + dateParts[2];
+      const tags = [];
+      if (d.isTeam) tags.push('<span style="background:var(--green);color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">團隊</span>');
+      if (d.isSmall) tags.push('<span style="background:#b07c0b;color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">小班</span>');
+      const coachLine = [d.teamCoach, d.smallCoach].filter(Boolean).join(' / ');
+      content +=
+        '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+            '<div>' +
+              '<div style="font-size:1.1rem;font-weight:700;color:var(--yellow);">' + dateDisplay + '</div>' +
+              '<div style="font-size:0.78rem;color:var(--gray);">' + weekday + (d.venue ? '　' + d.venue : '') + '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:5px;">' +
+              '<button class="btn btn-outline" onclick="openEditDate(\'' + (d.uid||d.date) + '\', true)" style="font-size:0.7rem;padding:3px 9px;">✎</button>' +
+              '<button class="btn btn-red" onclick="deleteDateDirect(\'' + (d.uid||d.date) + '\')" style="font-size:0.7rem;padding:3px 9px;">✕</button>' +
+            '</div>' +
+          '</div>' +
+          (tags.length ? '<div style="display:flex;gap:4px;flex-wrap:wrap;">' + tags.join('') + '</div>' : '') +
+          (coachLine ? '<div style="font-size:0.75rem;color:var(--gray);">👤 ' + coachLine + '</div>' : '') +
+          (d.note ? '<div style="font-size:0.75rem;color:var(--gray);border-top:1px solid var(--border);padding-top:5px;">📝 ' + d.note + '</div>' : '') +
+        '</div>';
     });
+    content += '</div>';
   }
-  content += '</div>';
   document.getElementById('dateManagerContent').innerHTML = content;
   const modal = document.getElementById('dateManagerModal');
   document.body.appendChild(modal);
@@ -2902,20 +2970,65 @@ function closeModal() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
 }
 
+function setNewStudentType(type) {
+  const isTrialMode = type === 'trial';
+  document.getElementById('typeRegularBtn').className = isTrialMode ? 'btn btn-outline' : 'btn';
+  document.getElementById('typeTrialBtn').className = isTrialMode ? 'btn' : 'btn btn-outline';
+  document.getElementById('typeTrialBtn').style.borderColor = isTrialMode ? '' : '#fcc929';
+  document.getElementById('typeTrialBtn').style.color = isTrialMode ? '' : '#fcc929';
+  document.getElementById('newRegularOnly').style.display = isTrialMode ? 'none' : '';
+  document.getElementById('newTrialNote').style.display = isTrialMode ? '' : 'none';
+  document.getElementById('typeRegularBtn').dataset.selected = !isTrialMode;
+  document.getElementById('typeTrialBtn').dataset.selected = isTrialMode;
+}
+
 function addStudent() {
   if (state.isReadOnly) { alert('請先解鎖編輯模式'); return; }
   const name = document.getElementById('newName').value.trim();
   const group = document.getElementById('newGroup').value;
-  const bib = document.getElementById('newBib').value.trim();
-  const prevBalance = parseInt(document.getElementById('newPrevBalance').value) || 0;
+  const isTrial = document.getElementById('typeTrialBtn').dataset.selected === 'true';
   if (!name) return;
   const data = getCurrentMonthData();
-  if (data.students.find(s => s.name === name)) { alert('學員已存在'); return; }
-  data.students.push({ name, group, bib, prevBalance, attended: [], midTopup: 0, endTopup: 0 });
+  // Check across all months for trial students too
+  const allNames = new Set();
+  Object.values(state.months).forEach(m => (m.students||[]).forEach(s => allNames.add(s.name)));
+  if (allNames.has(name)) { alert('學員已存在'); return; }
+  if (isTrial) {
+    data.students.push({
+      name, group,
+      isTrial: true,
+      trialMonth: state.currentMonth,
+      attended: [],
+      midTopup: 0, endTopup: 0, prevBalance: 0,
+      scPrevBal: 0, scMidTopup: 0, scTopup: 0, scAttended: 0, scDates: [],
+      giftTopup: 0, scGiftTopup: 0, bib: '', note: ''
+    });
+  } else {
+    const bib = document.getElementById('newBib').value.trim();
+    const prevBalance = parseInt(document.getElementById('newPrevBalance').value) || 0;
+    data.students.push({ name, group, bib, prevBalance, attended: [], midTopup: 0, endTopup: 0 });
+  }
   saveState();
   closeModal();
   document.getElementById('newName').value = '';
+  // Reset to regular mode
+  setNewStudentType('regular');
   renderSidebar();
+}
+
+function promoteTrial(name) {
+  if (state.isReadOnly) { alert('請先解鎖編輯模式'); return; }
+  const data = getCurrentMonthData();
+  const s = data.students.find(x => x.name === name);
+  if (!s || !s.isTrial) return;
+  const group = prompt('升級為正式學員\n\n請輸入組別（幼兒/小一/小二/小三/小四/小五/小六/國中/爸媽組）：', s.group);
+  if (!group) return;
+  s.isTrial = false;
+  s.trialMonth = undefined;
+  s.group = group;
+  saveState();
+  renderSidebar();
+  renderPanel();
 }
 
 function addDate() {
@@ -2948,6 +3061,7 @@ function addDate() {
   document.querySelectorAll('input[name=newTeamCoach]').forEach(c => c.checked = false);
   document.querySelectorAll('input[name=newSmallCoach]').forEach(c => c.checked = false);
   renderPanel();
+  showDateManager();
 }
 
 function openEditDate(dateOrUid, fromManager) {
