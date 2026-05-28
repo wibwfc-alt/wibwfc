@@ -2588,7 +2588,40 @@ function renderPanel() {
     return; 
   }
   const s = data.students.find(x => x.name === state.selectedStudent);
-  if (!s || s.group === '已離隊') { document.getElementById('mainPanel').innerHTML = `<div class="panel-empty"><div class="icon">⚽</div><div>選擇左側學員查看紀錄</div></div>`; return; }
+  if (!s) { document.getElementById('mainPanel').innerHTML = `<div class="panel-empty"><div class="icon">⚽</div><div>選擇左側學員查看紀錄</div></div>`; return; }
+
+  // 已離隊：顯示簡單資料卡 + 操作按鈕
+  if (s.group === '已離隊') {
+    const monthLabel = state.currentMonth.replace('-', '年') + '月';
+    let datesHtml = '';
+    data.dates.forEach(d => {
+      const dKey = d.uid || d.date;
+      const attended = (s.attended||[]).includes(dKey);
+      const dt = new Date(d.date + 'T00:00:00');
+      const days2 = ['日','一','二','三','四','五','六'];
+      datesHtml += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:0.82rem;color:var(--gray);min-width:70px;">${d.date.slice(5).replace('-','/')} 週${days2[dt.getDay()]}</span>
+        <span style="font-size:0.78rem;color:var(--gray);min-width:40px;">${d.venue||''}</span>
+        <span style="font-size:0.85rem;${attended ? 'color:#3aab6e;font-weight:700;' : 'color:#444;'}">${attended ? '✓ 出席' : '—'}</span>
+      </div>`;
+    });
+    document.getElementById('mainPanel').innerHTML = `
+      <div style="padding:16px;">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:1.1rem;font-weight:700;">${s.name}</div>
+            <span style="background:rgba(224,92,42,0.15);color:var(--red);font-size:0.72rem;padding:2px 10px;border-radius:99px;">已離隊</span>
+          </div>
+          <div style="font-size:0.78rem;color:var(--gray);margin-bottom:12px;">${s.prevGroup || ''} · 本月出席 ${(s.attended||[]).length} 堂</div>
+          <div class="edit-only" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="removeStudent('${s.name}')" style="font-size:0.82rem;">↩ 移回在籍</button>
+            <button class="btn btn-outline" onclick="moveToTrial('${s.name}')" style="font-size:0.82rem;border-color:#fcc929;color:#fcc929;">🔍 移至試上</button>
+          </div>
+        </div>
+        ${datesHtml ? `<div style="font-size:0.72rem;font-weight:700;color:var(--gray);letter-spacing:2px;margin-bottom:8px;">本月出席紀錄</div>${datesHtml}` : '<div style="color:var(--gray);font-size:0.82rem;">本月尚無出席紀錄</div>'}
+      </div>`;
+    return;
+  }
 
   const bal = calcEndBalance(s);
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
@@ -2663,6 +2696,7 @@ function renderPanel() {
           ? `<button class="btn btn-outline edit-only" onclick="openEditStudent('${s.name}')">✎ 編輯資料</button>
              <button class="btn edit-only" onclick="promoteTrial('${s.name}')" style="background:#fcc929;color:#010101;font-weight:700;">↑ 升級為正式學員</button>`
           : `<button class="btn btn-outline edit-only" onclick="openEditStudent('${s.name}')">✎ 編輯資料</button>
+             <button class="btn btn-outline edit-only" onclick="moveToTrial('${s.name}')" style="border-color:#fcc929;color:#fcc929;font-size:0.82rem;">🔍 移至試上</button>
              <button class="btn btn-outline btn-red edit-only" onclick="removeStudent('${s.name}')">${s.group === '已離隊' ? '↩ 移回在籍' : '移至已離隊'}</button>`
         }
       </div>
@@ -3232,6 +3266,21 @@ function removeStudent(name) {
     s.prevGroup = s.group;
     s.group = '已離隊';
   }
+  saveState();
+  renderSidebar();
+  renderPanel();
+}
+
+function moveToTrial(name) {
+  if (state.isReadOnly) return;
+  const data = getCurrentMonthData();
+  const s = data.students.find(x => x.name === name);
+  if (!s) return;
+  if (!confirm('將「' + name + '」改為試上學員？\n僅會出現在本月點名，下月起自動隱藏。')) return;
+  s.prevGroup = s.prevGroup || s.group;
+  s.isTrial = true;
+  s.trialMonth = state.currentMonth;
+  s.group = s.prevGroup !== '已離隊' ? s.prevGroup : '幼兒';
   saveState();
   renderSidebar();
   renderPanel();
