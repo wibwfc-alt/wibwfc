@@ -913,7 +913,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="editIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsSmall"> <span style="color:#fcc929;">◆ 小班課</span>
+          <input type="checkbox" id="editIsSmall" onchange="var g=document.getElementById('editSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
       </div>
     </div>
@@ -1012,6 +1012,15 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button type="button" onclick="addNewCoachToList('editNewSmallCoachInput','editSmallCoachList','editSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
     </div>
+    <div class="form-group" id="editSmallVenueGroup" style="display:none;">
+      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <select id="editSmallVenue" style="width:100%;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
+    </div>
     <div class="form-group"><label>備註（選填）</label>
       <input type="text" id="editDateNote" placeholder="例：移訓、比賽、特訓…">
     </div>
@@ -1033,7 +1042,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="newIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsSmall"> <span style="color:#fcc929;">◆ 小班課</span>
+          <input type="checkbox" id="newIsSmall" onchange="var g=document.getElementById('newSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
       </div>
     </div>
@@ -1110,6 +1119,15 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="newNewSmallCoachInput" placeholder="新增小班教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('newNewSmallCoachInput','newSmallCoachList','newSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
+    </div>
+    <div class="form-group" id="newSmallVenueGroup" style="display:none;">
+      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <select id="newSmallVenue" style="width:100%;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
@@ -1551,7 +1569,7 @@ function loadCustomCoachesVenues() {
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '[]');
   const defaultVenues = ['黎光','朝馬','台體大'];
   venues.filter(v => !defaultVenues.includes(v)).forEach(name => {
-    ['newVenue','editVenue'].forEach(id => {
+    ['newVenue','editVenue','newSmallVenue','editSmallVenue'].forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
       if ([...sel.options].some(o => o.value === name)) return;
@@ -2733,7 +2751,7 @@ function renderPanel() {
       <div class="date-btn-new">
         <div class="date-header-row">
           <span class="date-num">${dateNum}</span>
-          <span class="date-day-venue">週${dayName}・${d.venue}${d.teamCoach||d.coach ? '<br><span style="color:#3aab6e;font-size:0.7rem;">● ' + (d.teamCoach||d.coach||'') + '</span>' : ''}${d.smallCoach ? '<br><span style="color:#fcc929;font-size:0.7rem;">◆ ' + d.smallCoach + '</span>' : ''}</span>
+          <span class="date-day-venue">週${dayName}・${d.venue}${d.smallVenue && d.smallVenue !== d.venue ? '<span style="color:#b07c0b;">　◆'+d.smallVenue+'</span>' : ''}${d.teamCoach||d.coach ? '<br><span style="color:#3aab6e;font-size:0.7rem;">● ' + (d.teamCoach||d.coach||'') + '</span>' : ''}${d.smallCoach ? '<br><span style="color:#fcc929;font-size:0.7rem;">◆ ' + d.smallCoach + '</span>' : ''}</span>
           <button class="date-del-btn" class="edit-only" style="position:relative;opacity:1;top:auto;right:auto;" onclick="event.stopPropagation();openEditDate('${d.date}')" title="編輯課日">✎</button>
         </div>
         <div class="date-check-row">
@@ -3173,6 +3191,7 @@ function addDate() {
   if (!y || !m || !d) return;
   const date = y + '-' + m + '-' + d;
   const venue = document.getElementById('newVenue').value;
+  const smallVenue = (document.getElementById('newSmallVenue') && document.getElementById('newIsSmall').checked) ? document.getElementById('newSmallVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=newTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=newSmallCoach]:checked')).map(x=>x.value).join('、');
   const data = getCurrentMonthData();
@@ -3184,7 +3203,7 @@ function addDate() {
   const isTeam2 = isTeamEl ? isTeamEl.checked : false;
   const isSmall2 = isSmallEl ? isSmallEl.checked : false;
   const uid = date + '_' + Date.now();
-  data.dates.push({ date, venue, teamCoach, smallCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
+  data.dates.push({ date, venue, smallVenue, teamCoach, smallCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   closeModal();
@@ -3210,6 +3229,10 @@ function openEditDate(dateOrUid, fromManager) {
   document.getElementById('editDateM').value = parts[1];
   document.getElementById('editDateD').value = parts[2];
   document.getElementById('editVenue').value = d.venue || '';
+  const _esvg = document.getElementById('editSmallVenueGroup');
+  if (_esvg) _esvg.style.display = d.isSmall ? '' : 'none';
+  const _esv = document.getElementById('editSmallVenue');
+  if (_esv) _esv.value = d.smallVenue || '';
   document.getElementById('editDateNote').value = d.note || '';
   document.getElementById('editIsTeam').checked = d.isTeam === true;
   document.getElementById('editIsSmall').checked = d.isSmall === true;
@@ -3230,6 +3253,7 @@ function saveEditDate() {
   const d = document.getElementById('editDateD').value;
   const newDate = y + '-' + m + '-' + d;
   const venue = document.getElementById('editVenue').value;
+  const smallVenue = (document.getElementById('editSmallVenue') && document.getElementById('editIsSmall').checked) ? document.getElementById('editSmallVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=editTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=editSmallCoach]:checked')).map(x=>x.value).join('、');
   const note = (document.getElementById('editDateNote').value || '').trim();
@@ -3251,7 +3275,7 @@ function saveEditDate() {
       if (si !== -1) s.scDates[si] = oldUid || newDate;
     });
   }
-  data.dates[idx] = { date: newDate, venue, teamCoach, smallCoach, note, isTeam, isSmall, uid: oldUid || (newDate + '_' + Date.now()) };
+  data.dates[idx] = { date: newDate, venue, smallVenue, teamCoach, smallCoach, note, isTeam, isSmall, uid: oldUid || (newDate + '_' + Date.now()) };
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   // If opened from dateManager, go back to it
