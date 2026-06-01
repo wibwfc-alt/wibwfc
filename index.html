@@ -598,7 +598,11 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <h3 id="overviewTitle">月結總覽</h3>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline" onclick="copyDebtList()" style="font-size:0.75rem;border-color:rgba(224,92,42,0.4);color:var(--red);">📋 複製催繳名單</button>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <label style="font-size:0.75rem;color:#3aab6e;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterTeam" checked> 團課</label>
+          <label style="font-size:0.75rem;color:#fcc929;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterSmall" checked> 小班</label>
+          <button class="btn btn-outline" onclick="copyDebtList()" style="font-size:0.75rem;border-color:rgba(224,92,42,0.4);color:var(--red);">📋 複製催繳名單</button>
+        </div>
         <button class="btn btn-outline" onclick="closeModal()" style="font-size:0.75rem;">關閉</button>
       </div>
     </div>
@@ -1757,25 +1761,43 @@ function showOverview() {
 function copyDebtList() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
+  const showTeam = document.getElementById('debtFilterTeam') ? document.getElementById('debtFilterTeam').checked : true;
+  const showSmall = document.getElementById('debtFilterSmall') ? document.getElementById('debtFilterSmall').checked : true;
   const groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國中','爸媽組'];
+
   const debtStudents = data.students
-    .filter(s => calcEndBalance(s) < 0 && s.group !== '已離隊')
+    .filter(s => {
+      if (s.group === '已離隊') return false;
+      const teamBal = calcEndBalance(s);
+      const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : 0) : (s.scAttended||0);
+      const scBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
+      if (showTeam && teamBal < 0) return true;
+      if (showSmall && scBal < 0) return true;
+      return false;
+    })
     .sort((a, b) => {
       const ai = groupOrder.indexOf(a.group);
       const bi = groupOrder.indexOf(b.group);
       return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
     });
+
   if (debtStudents.length === 0) { alert('本月沒有堂數不足的學員！'); return; }
+
   const lines = ['[' + monthLabel + ' 堂數不足名單]', ''];
   let lastGroup = '';
   debtStudents.forEach(s => {
-    const bal = calcEndBalance(s);
+    const teamBal = calcEndBalance(s);
+    const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : 0) : (s.scAttended||0);
+    const scBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
     if (s.group !== lastGroup) {
       if (lastGroup) lines.push('');
       lines.push('【' + s.group + '】');
       lastGroup = s.group;
     }
-    lines.push('・' + s.name + ' 差 ' + Math.abs(bal) + ' 堂');
+    const parts = [];
+    if (showTeam && teamBal < 0) parts.push('團課差 ' + Math.abs(teamBal) + ' 堂');
+    if (showSmall && scBal < 0) parts.push('小班差 ' + Math.abs(scBal) + ' 堂');
+    lines.push('・' + s.name + '　' + parts.join(' / '));
   });
   lines.push('');
   lines.push('請盡快完成儲值，謝謝！');
