@@ -2359,11 +2359,32 @@ function exportBatchPDF() {
   .legend span { display: flex; align-items: center; gap: 4px; }
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    @page { margin: 10mm; size: landscape; }
+    @page { margin: 8mm; size: landscape; }
+    body { padding: 0; }
   }
 </style>
-</head>
-<body>
+<script>
+window.onload = function() {
+  // Auto-scale to fit one page
+  var body = document.body;
+  var pw = 277; // A4 landscape printable width in mm at 96dpi ≈ 1047px, use mm-based
+  // Use actual pixel ratio: A4 landscape = 297mm wide, minus 16mm margins = 281mm
+  // At 96dpi: 1mm ≈ 3.78px
+  var pageW = (297 - 16) * 3.78;
+  var pageH = (210 - 16) * 3.78;
+  var bodyW = body.scrollWidth;
+  var bodyH = body.scrollHeight;
+  var scaleW = pageW / bodyW;
+  var scaleH = pageH / bodyH;
+  var scale = Math.min(scaleW, scaleH, 1); // never scale up, only down
+  if (scale < 1) {
+    body.style.transformOrigin = 'top left';
+    body.style.transform = 'scale(' + scale + ')';
+    body.style.width = (100 / scale) + '%';
+  }
+  setTimeout(function(){ window.print(); }, 800);
+};
+</script>
 <div class="header">
   <div>
     <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
@@ -2381,28 +2402,15 @@ function exportBatchPDF() {
   <span style="color:#cc3300;">紅色 = 堂數不足</span>
   <span style="color:#888;">小 = 小班課數值</span>
 </div>
-<scr' + 'ipt>window.onload = function() { setTimeout(function(){ window.print(); }, 600); };</scr' + 'ipt>
 </body></html>`);
   printWin.document.close();
 }
 
 function toggleEdit() {
-  if (!state.isReadOnly) {
-    state.isReadOnly = true;
-    updateLockUI();
-    renderSidebar();
-    renderPanel();
-    return;
-  }
-  const pwd = prompt('請輸入編輯密碼：');
-  if (pwd === EDIT_PASSWORD) {
-    state.isReadOnly = false;
-    updateLockUI();
-    renderSidebar();
-    renderPanel();
-  } else if (pwd !== null) {
-    alert('密碼錯誤');
-  }
+  state.isReadOnly = !state.isReadOnly;
+  updateLockUI();
+  renderSidebar();
+  renderPanel();
 }
 
 function updateLockUI() {
