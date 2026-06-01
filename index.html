@@ -2001,6 +2001,10 @@ function printCard() {
 <body>
 ${card.outerHTML}
 <scr"+"ipt>\n  window.onload = function() {\n    setTimeout(function() { window.print(); }, 500);\n  };\n</scr"+"ipt>
+</body></html>`);
+  printWin.document.close();
+}
+
 <!-- DATE MANAGER MODAL -->
 <div class="modal-overlay" id="dateManagerModal" onclick="event.target===this&&closeModal()">
   <div class="modal" style="width:min(92vw,860px);max-height:85vh;overflow-y:auto;">
@@ -2117,8 +2121,8 @@ function exportBatchPDF() {
       // 課日
       filteredDates.forEach(d => {
         const dKey = d.uid || d.date;
-        const isTeam = (s.attended||[]).includes(dKey) || (s.attended||[]).includes(d.date);
-        const isSmall = (s.scDates||[]).includes(dKey) || (s.scDates||[]).includes(d.date);
+        const isTeam = (s.attended||[]).includes(dKey);
+        const isSmall = (s.scDates||[]).includes(dKey);
         let cell = '';
         if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
         else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
