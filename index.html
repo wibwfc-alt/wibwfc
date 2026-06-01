@@ -1629,9 +1629,9 @@ function showOverview() {
     groups[s.group].push(s);
   });
 
-  let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘<br><span style="color:#fcc929;font-size:0.7rem;">可編輯</span></th><th>團課</th><th>小班</th><th>月中儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月底儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月中儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底結餘</th><th>小班結餘</th><th>備註</th></tr></thead><tbody>';
+  let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>上月結餘<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>團課</th><th>小班</th><th>月中儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月底儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月中儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底結餘</th><th>小班結餘</th><th>備註</th></tr></thead><tbody>';
   Object.entries(groups).forEach(([g, list]) => {
-    tableHtml += '<tr class="overview-group-row"><td colspan="12">' + g + '</td></tr>';
+    tableHtml += '<tr class="overview-group-row"><td colspan="13">' + g + '</td></tr>';
     list.forEach(s => {
       const bal = calcEndBalance(s);
       const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : Object.keys(s.scDates).length) : (s.scAttended||0);
@@ -1645,6 +1645,7 @@ function showOverview() {
         '<td>' + s.name + (s.bib ? ' <span style="color:var(--gray);font-size:0.72rem;">#' + s.bib + '</span>' : '') + '</td>' +
         '<td style="color:var(--gray);">' + s.group + '</td>' +
         '<td>' + inp(s.prevBalance||0, 'prevBalance') + '</td>' +
+        '<td>' + inp(s.scPrevBal||0, 'scPrevBal') + '</td>' +
         '<td style="color:#3aab6e;">' + teamCount + '</td>' +
         '<td style="color:#fcc929;">' + (scActual > 0 ? scActual : '—') + '</td>' +
         '<td>' + inp(s.midTopup||0, 'mid') + '</td>' +
