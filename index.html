@@ -1846,7 +1846,10 @@ function renderBatch() {
     let coachHtml = '';
     if (courseFilter !== 'small' && tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
     if (courseFilter !== 'team' && sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
-    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + (d.venue||'') + '</span>' + coachHtml + '</th>';
+    const hasTeamAttendance = students.some(s => (s.attended||[]).includes(d.uid||d.date));
+    const venueDisplay = (!hasTeamAttendance && d.smallVenue) ? d.smallVenue : (d.venue||'');
+    const smallVenueExtra = (hasTeamAttendance && d.smallVenue && d.smallVenue !== d.venue) ? '<br><span style="color:#b07c0b;font-size:0.6rem;">◆' + d.smallVenue + '</span>' : '';
+    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + venueDisplay + '</span>' + smallVenueExtra + coachHtml + '</th>';
   });
   thead += '<th class="batch-th" style="min-width:50px;">合計</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月底儲值</th>';
@@ -2208,7 +2211,9 @@ function exportBatchPDF() {
   if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
   filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
-    theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + (d.venue||'') + '</span></th>';
+    const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
+    const _vDisplay = (!_hasTeam && d.smallVenue) ? d.smallVenue : (d.venue||'');
+    theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + _vDisplay + '</span></th>';
   });
   theadHtml += '<th>合計</th>';
   if (!simpleMode) theadHtml += '<th>月底儲值<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月底剩餘<br><span style="color:#888;font-weight:400;">團/小</span></th>';
