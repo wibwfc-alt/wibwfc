@@ -1358,9 +1358,17 @@ function tpSave() {
 }
 
 function showPaymentHistory() {
+  const isRO = state.isReadOnly;
+  _renderPaymentHistory();
+}
+
+function _renderPaymentHistory() {
+  const isRO = state.isReadOnly;
   const history = (state.paymentHistory || []).slice().reverse();
   const months = [...new Set(history.map(p => p.month))].sort().reverse();
-  let html = '<div style="max-height:70vh;overflow-y:auto;">';
+  const _days = ['日','一','二','三','四','五','六'];
+
+  let html = '<div id="phList">';
   if (history.length === 0) {
     html += '<div style="color:var(--gray);text-align:center;padding:20px;">尚無匯款紀錄</div>';
   } else {
@@ -1369,31 +1377,113 @@ function showPaymentHistory() {
       html += '<div style="font-size:0.72rem;font-weight:700;color:var(--yellow);letter-spacing:2px;margin:12px 0 6px;">' + m.replace('-','年') + '月</div>';
       recs.forEach(p => {
         const dt = new Date(p.date+'T00:00:00');
-        const _days = ['日','一','二','三','四','五','六'];
         const pl = p.period === 'mid' ? '月中' : '月底';
-        html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;">'
-          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
-          + '<div><div style="font-size:0.88rem;font-weight:700;">' + p.name + '</div>'
-          + '<div style="font-size:0.75rem;color:var(--gray);">' + p.date.replace(/-/g,'/') + ' 週' + _days[dt.getDay()] + '　' + p.method + (p.ref?'（'+p.ref+'）':'') + (p.money?' · NT$'+p.money:'') + '</div></div>'
-          + '<div style="text-align:right;">'
-          + (p.teamAmt ? '<div style="font-size:0.78rem;color:#3aab6e;">● 團課 +' + p.teamAmt + '堂</div>' : '')
-          + (p.smallAmt ? '<div style="font-size:0.78rem;color:#fcc929;">◆ 小班 +' + p.smallAmt + '堂</div>' : '')
-          + '<div style="font-size:0.68rem;color:var(--gray);">' + pl + '儲值</div></div></div>'
-          + (p.note ? '<div style="font-size:0.72rem;color:var(--gray);margin-top:4px;">📝 ' + p.note + '</div>' : '')
+        const dis = isRO ? 'disabled' : '';
+        const inp = (val, field, w, type) =>
+          '<input type="' + (type||'text') + '" value="' + (val||'') + '" ' + dis + ' data-id="' + p.id + '" data-field="' + field + '"'
+          + ' style="width:' + w + ';background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--white);border-radius:3px;padding:2px 5px;font-size:0.78rem;font-family:\'Noto Sans TC\',sans-serif;"'
+          + ' onchange="phUpdateRecord(this)">';
+        html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+          + '<div style="flex:1;min-width:0;">'
+          + '<div style="font-size:0.88rem;font-weight:700;margin-bottom:6px;">' + p.name + '<span style="color:var(--gray);font-size:0.7rem;margin-left:8px;">' + m.replace('-','年') + '月 ' + pl + '</span></div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px;">'
+          + '<span style="font-size:0.72rem;color:var(--gray);">日期</span>' + inp(p.date, 'date', '110px', 'date')
+          + '<span style="font-size:0.72rem;color:var(--gray);">NT$</span>' + inp(p.money||'', 'money', '70px', 'number')
+          + '<span style="font-size:0.72rem;color:var(--gray);">方式</span>' + inp(p.method, 'method', '70px')
+          + inp(p.ref||'', 'ref', '80px')
+          + '</div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px;">'
+          + '<span style="font-size:0.72rem;color:#3aab6e;">● 團課</span>' + inp(p.teamAmt||0, 'teamAmt', '48px', 'number')
+          + '<span style="font-size:0.72rem;color:#fcc929;">◆ 小班</span>' + inp(p.smallAmt||0, 'smallAmt', '48px', 'number')
+          + '<span style="font-size:0.72rem;color:var(--gray);">備註</span>' + inp(p.note||'', 'note', '120px')
+          + '</div>'
+          + '</div>'
+          + '<button onclick="phDeleteRecord(' + p.id + ')" ' + dis + ' style="background:none;border:1px solid rgba(224,92,42,0.4);color:var(--red);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;flex-shrink:0;">✕</button>'
+          + '</div>'
           + '</div>';
       });
     });
   }
   html += '</div>';
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;';
-  overlay.innerHTML = '<div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:min(92vw,540px);">'
+
+  // Check if overlay already open
+  let overlay = document.getElementById('phOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'phOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = '<div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:min(92vw,600px);">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
     + '<h3 style="margin:0;font-size:1rem;">💳 匯款紀錄</h3>'
-    + '<button onclick="this.parentElement.parentElement.parentElement.remove()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#aaa;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.8rem;">關閉</button>'
-    + '</div>' + html + '</div>';
-  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-  document.body.appendChild(overlay);
+    + '<button onclick="document.getElementById(\'phOverlay\').remove()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#aaa;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.8rem;">關閉</button>'
+    + '</div>'
+    + '<div style="max-height:72vh;overflow-y:auto;">' + html + '</div>'
+    + '</div>';
+}
+
+function phUpdateRecord(el) {
+  if (state.isReadOnly) return;
+  const id = parseInt(el.dataset.id);
+  const field = el.dataset.field;
+  const val = el.type === 'number' ? (parseInt(el.value)||0) : el.value;
+  const rec = (state.paymentHistory||[]).find(p => p.id === id);
+  if (!rec) return;
+
+  const oldTeamAmt = rec.teamAmt || 0;
+  const oldSmallAmt = rec.smallAmt || 0;
+  const oldPeriod = rec.period;
+
+  rec[field] = val;
+
+  // If date changed, recalculate period
+  if (field === 'date') {
+    const day = parseInt(val.split('-')[2]);
+    rec.period = day <= 10 ? 'mid' : 'end';
+  }
+
+  // Re-apply topup changes to student data
+  const data = state.months[rec.month];
+  if (data) {
+    const s = data.students.find(x => x.name === rec.name);
+    if (s) {
+      // Reverse old values
+      if (oldPeriod === 'mid') { s.midTopup = Math.max(0, (s.midTopup||0) - oldTeamAmt); s.scMidTopup = Math.max(0, (s.scMidTopup||0) - oldSmallAmt); }
+      else { s.endTopup = Math.max(0, (s.endTopup||0) - oldTeamAmt); s.scTopup = Math.max(0, (s.scTopup||0) - oldSmallAmt); }
+      // Apply new values
+      const newTeam = rec.teamAmt || 0;
+      const newSmall = rec.smallAmt || 0;
+      if (rec.period === 'mid') { s.midTopup = (s.midTopup||0) + newTeam; s.scMidTopup = (s.scMidTopup||0) + newSmall; }
+      else { s.endTopup = (s.endTopup||0) + newTeam; s.scTopup = (s.scTopup||0) + newSmall; }
+    }
+  }
+
+  saveState();
+  renderSidebar();
+}
+
+function phDeleteRecord(id) {
+  if (state.isReadOnly) return;
+  if (!confirm('確定刪除這筆匯款紀錄？')) return;
+  const rec = (state.paymentHistory||[]).find(p => p.id === id);
+  if (rec) {
+    // Reverse the topup from student data
+    const data = state.months[rec.month];
+    if (data) {
+      const s = data.students.find(x => x.name === rec.name);
+      if (s) {
+        if (rec.period === 'mid') { s.midTopup = Math.max(0,(s.midTopup||0)-(rec.teamAmt||0)); s.scMidTopup = Math.max(0,(s.scMidTopup||0)-(rec.smallAmt||0)); }
+        else { s.endTopup = Math.max(0,(s.endTopup||0)-(rec.teamAmt||0)); s.scTopup = Math.max(0,(s.scTopup||0)-(rec.smallAmt||0)); }
+      }
+    }
+    state.paymentHistory = state.paymentHistory.filter(p => p.id !== id);
+  }
+  saveState();
+  renderSidebar();
+  _renderPaymentHistory();
 }
 
 function tpGenPreview() { tpUpdate(); }
