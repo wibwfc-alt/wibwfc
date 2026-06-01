@@ -1757,14 +1757,25 @@ function showOverview() {
 function copyDebtList() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
-  const debtStudents = data.students.filter(s => {
-    return calcEndBalance(s) < 0 && s.group !== '已離隊';
-  });
+  const groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國中','爸媽組'];
+  const debtStudents = data.students
+    .filter(s => calcEndBalance(s) < 0 && s.group !== '已離隊')
+    .sort((a, b) => {
+      const ai = groupOrder.indexOf(a.group);
+      const bi = groupOrder.indexOf(b.group);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
   if (debtStudents.length === 0) { alert('本月沒有堂數不足的學員！'); return; }
   const lines = ['[' + monthLabel + ' 堂數不足名單]', ''];
+  let lastGroup = '';
   debtStudents.forEach(s => {
     const bal = calcEndBalance(s);
-    lines.push('・' + s.name + '(' + s.group + ') 差 ' + Math.abs(bal) + ' 堂');
+    if (s.group !== lastGroup) {
+      if (lastGroup) lines.push('');
+      lines.push('【' + s.group + '】');
+      lastGroup = s.group;
+    }
+    lines.push('・' + s.name + ' 差 ' + Math.abs(bal) + ' 堂');
   });
   lines.push('');
   lines.push('請盡快完成儲值，謝謝！');
