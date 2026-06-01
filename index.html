@@ -2102,7 +2102,7 @@ function exportBatchPDF() {
       const endBal = calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
       const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-      const hasSmall = courseFilter !== 'team' && (scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0);
+      const hasSmall = courseFilter !== 'team' && scActual > 0;
       const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
       const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
 
