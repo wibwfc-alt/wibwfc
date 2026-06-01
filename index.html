@@ -412,6 +412,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
   <button id="syncBtn" class="btn btn-green" onclick="syncToGist()" style="font-size:0.78rem;display:none;">☁ 同步給教練</button>
 
   <button class="btn btn-outline" onclick="showBatch()" style="font-size:0.8rem;">✓ 批量點名</button>
+  <button class="btn btn-outline" onclick="showOverview()" style="font-size:0.8rem;">📊 月結總覽</button>
   <button class="btn edit-only" onclick="showTopupForm(state.selectedStudent || '')" style="font-size:0.8rem;background:var(--green);">💳 儲值</button>
   <button class="btn btn-outline edit-only" onclick="showPaymentHistory()" style="font-size:0.8rem;">📋 匯款紀錄</button>
   <div class="topbar-month">
@@ -1586,10 +1587,13 @@ function overviewUpdateTopup(name, type, val) {
   const s = data.students.find(x => x.name === name);
   if (!s) return;
   const n = parseInt(val) || 0;
-  if (type === 'mid') s.midTopup = n;
-  else s.endTopup = n;
+  if (type === 'prevBalance') s.prevBalance = n;
+  else if (type === 'mid') s.midTopup = n;
+  else if (type === 'end') s.endTopup = n;
+  else if (type === 'scMid') s.scMidTopup = n;
+  else if (type === 'scTopup') s.scTopup = n;
+  else if (type === 'scPrevBal') s.scPrevBal = n;
   saveState();
-  // Update balance display without re-rendering whole overview
   renderSidebar();
 }
 
@@ -1625,9 +1629,9 @@ function showOverview() {
     groups[s.group].push(s);
   });
 
-  let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘</th><th>團課</th><th>小班</th><th>月中儲值</th><th>月底儲值</th><th>月底結餘</th><th>小班結餘</th><th>備註</th></tr></thead><tbody>';
+  let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘<br><span style="color:#fcc929;font-size:0.7rem;">可編輯</span></th><th>團課</th><th>小班</th><th>月中儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月底儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月中儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底結餘</th><th>小班結餘</th><th>備註</th></tr></thead><tbody>';
   Object.entries(groups).forEach(([g, list]) => {
-    tableHtml += '<tr class="overview-group-row"><td colspan="10">' + g + '</td></tr>';
+    tableHtml += '<tr class="overview-group-row"><td colspan="12">' + g + '</td></tr>';
     list.forEach(s => {
       const bal = calcEndBalance(s);
       const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : Object.keys(s.scDates).length) : (s.scAttended||0);
@@ -1636,14 +1640,17 @@ function showOverview() {
       const scColor = scBal < 0 ? 'color:var(--red);font-weight:700;' : scBal > 0 ? 'color:#3aab6e;' : 'color:var(--gray);';
       const teamCount = Array.isArray(s.attended) ? s.attended.length : Object.keys(s.attended||{}).length;
       const isRO = state.isReadOnly;
+      const inp = (val, type) => '<input type="number" value="' + val + '" ' + (isRO?'disabled':'') + ' style="width:48px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.78rem;" onclick="event.stopPropagation()" onchange="overviewUpdateTopup(\'' + s.name + '\',\'' + type + '\',this.value)">';
       tableHtml += '<tr onclick="closeModal();selectStudent(\'' + s.name + '\')">' +
         '<td>' + s.name + (s.bib ? ' <span style="color:var(--gray);font-size:0.72rem;">#' + s.bib + '</span>' : '') + '</td>' +
         '<td style="color:var(--gray);">' + s.group + '</td>' +
-        '<td style="color:var(--yellow);">' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</td>' +
+        '<td>' + inp(s.prevBalance||0, 'prevBalance') + '</td>' +
         '<td style="color:#3aab6e;">' + teamCount + '</td>' +
         '<td style="color:#fcc929;">' + (scActual > 0 ? scActual : '—') + '</td>' +
-        '<td><input type="number" value="' + (s.midTopup||0) + '" min="0" ' + (isRO?'disabled':'') + ' style="width:52px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.78rem;" onchange="overviewUpdateTopup(\'' + s.name + '\',\'mid\',this.value)"></td>' +
-        '<td><input type="number" value="' + (s.endTopup||0) + '" min="0" ' + (isRO?'disabled':'') + ' style="width:52px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.78rem;" onchange="overviewUpdateTopup(\'' + s.name + '\',\'end\',this.value)"></td>' +
+        '<td>' + inp(s.midTopup||0, 'mid') + '</td>' +
+        '<td>' + inp(s.endTopup||0, 'end') + '</td>' +
+        '<td>' + inp(s.scMidTopup||0, 'scMid') + '</td>' +
+        '<td>' + inp(s.scTopup||0, 'scTopup') + '</td>' +
         '<td style="' + balColor + '">' + (bal>=0?'+':'') + bal + '</td>' +
         '<td style="' + scColor + '">' + (scActual>0||(s.scTopup||0)>0||(s.scPrevBal||0)!==0 ? (scBal>=0?'+':'')+scBal : '—') + '</td>' +
         '<td style="color:var(--gray);font-size:0.78rem;">' + (s.note||'') + '</td>' +
