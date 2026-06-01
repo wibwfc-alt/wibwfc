@@ -2417,12 +2417,12 @@ function exportBatchPDF() {
   .legend span { display: flex; align-items: center; gap: 4px; }
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    @page { margin: 8mm; size: landscape; }
+    @page { margin: 5mm; size: landscape; }
     .no-print { display: none; }
   }
 </style>
 </head>
-<body onload="(function(){ var b=document.body; var sw=b.scrollWidth; var sh=b.scrollHeight; var pw=(297-16)*3.78; var ph=(210-16)*3.78; var s=Math.min(pw/sw, ph/sh, 1); if(s<1){b.style.transformOrigin='top left';b.style.transform='scale('+s+')';b.style.width=(100/s)+'%';} })()">
+<body onload="(function(){ var b=document.body; var pw=(297-16)*3.78; var sw=b.scrollWidth; if(sw>pw){ var z=pw/sw; b.style.zoom=z; } setTimeout(function(){window.print();},800); })()">
 <div class="header">
   <div>
     <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
