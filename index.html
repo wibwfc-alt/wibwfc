@@ -412,7 +412,8 @@ body.edit-mode .edit-only { display: inline-block !important; }
   <button id="syncBtn" class="btn btn-green" onclick="syncToGist()" style="font-size:0.78rem;display:none;">☁ 同步給教練</button>
 
   <button class="btn btn-outline" onclick="showBatch()" style="font-size:0.8rem;">✓ 批量點名</button>
-  <button class="btn" onclick="showTopupForm(state.selectedStudent || '')" style="font-size:0.8rem;background:var(--green);">💳 儲值</button>
+  <button class="btn edit-only" onclick="showTopupForm(state.selectedStudent || '')" style="font-size:0.8rem;background:var(--green);">💳 儲值</button>
+  <button class="btn btn-outline edit-only" onclick="showPaymentHistory()" style="font-size:0.8rem;">📋 匯款紀錄</button>
   <div class="topbar-month">
     <input type="month" id="currentMonth" value="2026-04" onchange="changeMonth()" style="display:none;">
     <select id="monthSelect" onchange="changeMonthSelect(this.value)" style="background:#fcc929;border:none;color:#010101;padding:7px 14px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:900;font-size:0.85rem;cursor:pointer;">
@@ -774,41 +775,78 @@ body.edit-mode .edit-only { display: inline-block !important; }
 </div>
 
 <!-- TOPUP FORM MODAL -->
-<div id="topupModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;">
-  <div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:380px;max-width:90vw;max-height:90vh;overflow-y:auto;">
-    <h3 style="font-size:1rem;font-weight:700;margin-bottom:12px;">💳 儲值回報</h3>
+<div id="topupModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:999;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;">
+  <div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:420px;max-width:90vw;">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:4px;">💳 儲值登錄</h3>
     <div id="topupStudentName" style="font-size:0.82rem;color:#fcc929;margin-bottom:16px;"></div>
+
+    <!-- 課程類型 -->
     <div style="margin-bottom:12px;">
-      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">付款方式</div>
-      <div style="display:flex;gap:12px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="轉帳" checked onchange="tpUpdateHint()"> 轉帳</label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="LINE PAY" onchange="tpUpdateHint()"> LINE PAY</label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="現金" onchange="tpUpdateHint()"> 現金</label>
+      <div style="font-size:0.72rem;color:#666;margin-bottom:6px;">課程類型</div>
+      <div style="display:flex;gap:10px;">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
+          <input type="checkbox" id="tpIsTeam" onchange="tpUpdate()"> <span style="color:#3aab6e;">● 團課</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
+          <input type="checkbox" id="tpIsSmall" onchange="tpUpdate()"> <span style="color:#fcc929;">◆ 小班</span>
+        </label>
       </div>
     </div>
+
+    <!-- 匯款日期 -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">匯款日期</div>
+      <input id="tpDate" type="date" onchange="tpUpdate()" style="width:100%;background:#0d0d0d;border:2px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+      <div id="tpPeriodHint" style="font-size:0.72rem;color:#fcc929;margin-top:4px;"></div>
+    </div>
+
+    <!-- 付款方式 -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">付款方式</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="轉帳" checked onchange="tpUpdate()"> 轉帳</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="LINE PAY" onchange="tpUpdate()"> LINE PAY</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="現金" onchange="tpUpdate()"> 現金</label>
+      </div>
+    </div>
+
+    <!-- 後五碼 / LINE名字 -->
     <div id="tpRefGroup" style="margin-bottom:12px;">
       <div id="tpRefLabel" style="font-size:0.72rem;color:#666;margin-bottom:5px;">後五碼</div>
-      <input id="tpRef" type="text" placeholder="請輸入轉帳後五碼" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+      <input id="tpRef" type="text" placeholder="請輸入轉帳後五碼" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
+
+    <!-- 金額 -->
     <div style="margin-bottom:12px;">
-      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">堂數</div>
-      <input id="tpAmount" type="number" placeholder="例：10" min="1" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">匯款金額（元）</div>
+      <input id="tpMoney" type="number" placeholder="例：3000" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
-    <div style="margin-bottom:12px;">
-      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">日期</div>
-      <input id="tpDate" type="date" onchange="tpGenPreview()" style="width:100%;background:#0d0d0d;border:2px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+
+    <!-- 儲值堂數 -->
+    <div id="tpTeamSection" style="margin-bottom:12px;display:none;">
+      <div style="font-size:0.72rem;color:#3aab6e;margin-bottom:5px;">● 團課儲值堂數</div>
+      <input id="tpTeamAmount" type="number" placeholder="例：10" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(52,171,110,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
-    <div style="margin-bottom:12px;">
+    <div id="tpSmallSection" style="margin-bottom:12px;display:none;">
+      <div style="font-size:0.72rem;color:#fcc929;margin-bottom:5px;">◆ 小班儲值堂數</div>
+      <input id="tpSmallAmount" type="number" placeholder="例：4" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+    </div>
+
+    <!-- 備註 -->
+    <div style="margin-bottom:16px;">
       <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">備註（選填）</div>
-      <input id="tpNote" type="text" placeholder="例：四月份儲值" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+      <input id="tpNote" type="text" placeholder="例：五月份儲值" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
+
+    <!-- 預覽 -->
     <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:12px;margin-bottom:16px;">
-      <div style="font-size:0.68rem;color:#666;margin-bottom:6px;">預覽訊息</div>
-      <div id="tpPreview" style="font-size:0.82rem;color:#f5f5f0;line-height:1.8;white-space:pre-wrap;"></div>
+      <div style="font-size:0.68rem;color:#666;margin-bottom:6px;">儲值摘要</div>
+      <div id="tpPreview" style="font-size:0.82rem;color:#f5f5f0;line-height:1.9;white-space:pre-wrap;"></div>
     </div>
+
     <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="tpClose()" style="background:none;border:1px solid rgba(252,201,41,0.35);color:#fcc929;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-size:0.8rem;cursor:pointer;">關閉</button>
-      <button onclick="tpCopy()" style="background:#246e58;color:white;border:none;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;">📋 複製訊息</button>
+      <button onclick="tpClose()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#aaa;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-size:0.8rem;cursor:pointer;">取消</button>
+      <button onclick="tpSave()" style="background:#246e58;color:white;border:none;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;">✓ 確認儲值</button>
     </div>
   </div>
 </div>
@@ -896,7 +934,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="editIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsSmall"> <span style="color:#fcc929;">◆ 小班課</span>
+          <input type="checkbox" id="editIsSmall" onchange="const sg=document.getElementById('editSmallVenueGroup');if(sg)sg.style.display=this.checked?'':' none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
       </div>
     </div>
@@ -995,6 +1033,15 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button type="button" onclick="addNewCoachToList('editNewSmallCoachInput','editSmallCoachList','editSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
     </div>
+    <div class="form-group" id="editSmallVenueGroup" style="display:none;">
+      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <select id="editSmallVenue" style="width:100%;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
+    </div>
     <div class="form-group"><label>備註（選填）</label>
       <input type="text" id="editDateNote" placeholder="例：移訓、比賽、特訓…">
     </div>
@@ -1016,7 +1063,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="newIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsSmall"> <span style="color:#fcc929;">◆ 小班課</span>
+          <input type="checkbox" id="newIsSmall" onchange="const sg=document.getElementById('newSmallVenueGroup');if(sg)sg.style.display=this.checked?'':' none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
       </div>
     </div>
@@ -1093,6 +1140,15 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="newNewSmallCoachInput" placeholder="新增小班教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('newNewSmallCoachInput','newSmallCoachList','newSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
+    </div>
+    <div class="form-group" id="newSmallVenueGroup" style="display:none;">
+      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <select id="newSmallVenue" style="width:100%;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
@@ -1224,72 +1280,182 @@ function loadState() {
 }
 
 function showTopupForm(name) {
-  // Close any other open modals first
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
   document.getElementById('batchModal').style.display = 'none';
   const modal = document.getElementById('topupModal');
-  // Move modal to body level to avoid z-index stacking issues
   document.body.appendChild(modal);
   modal.style.display = 'flex';
-  document.getElementById('topupStudentName').textContent = '學員：' + name;
+  const displayName = name || (state.selectedStudent || '');
+  document.getElementById('topupStudentName').textContent = displayName ? '學員：' + displayName : '（請從左側選擇學員）';
   document.getElementById('tpRef').value = '';
-  document.getElementById('tpAmount').value = '';
+  document.getElementById('tpMoney').value = '';
+  document.getElementById('tpTeamAmount').value = '';
+  document.getElementById('tpSmallAmount').value = '';
   document.getElementById('tpNote').value = '';
   document.getElementById('tpDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('tpIsTeam').checked = false;
+  document.getElementById('tpIsSmall').checked = false;
   document.querySelector('input[name=tpMethod][value="轉帳"]').checked = true;
-  tpUpdateHint();
+  tpUpdate();
 }
 
 function tpClose() {
   document.getElementById('topupModal').style.display = 'none';
 }
 
-function tpUpdateHint() {
+function tpUpdate() {
+  const isTeam = document.getElementById('tpIsTeam').checked;
+  const isSmall = document.getElementById('tpIsSmall').checked;
+  document.getElementById('tpTeamSection').style.display = isTeam ? '' : 'none';
+  document.getElementById('tpSmallSection').style.display = isSmall ? '' : 'none';
+
   const method = document.querySelector('input[name=tpMethod]:checked').value;
   const refGroup = document.getElementById('tpRefGroup');
   const refLabel = document.getElementById('tpRefLabel');
   const refInput = document.getElementById('tpRef');
-  if (method === '轉帳') {
-    refGroup.style.display = 'block';
-    refLabel.textContent = '後五碼';
-    refInput.placeholder = '請輸入轉帳後五碼';
-  } else if (method === 'LINE PAY') {
-    refGroup.style.display = 'block';
-    refLabel.textContent = 'LINE 名字';
-    refInput.placeholder = '請輸入 LINE 顯示名稱';
-  } else {
-    refGroup.style.display = 'none';
-  }
-  tpGenPreview();
+  if (method === '轉帳') { refGroup.style.display=''; refLabel.textContent='後五碼'; refInput.placeholder='請輸入轉帳後五碼'; }
+  else if (method === 'LINE PAY') { refGroup.style.display=''; refLabel.textContent='LINE 名字'; refInput.placeholder='請輸入 LINE 顯示名稱'; }
+  else { refGroup.style.display='none'; }
+
+  const date = document.getElementById('tpDate').value;
+  const periodHint = document.getElementById('tpPeriodHint');
+  if (date) {
+    const day = parseInt(date.split('-')[2]);
+    const period = day <= 10 ? '月中儲值' : '月底儲值';
+    periodHint.textContent = '→ 將計入「' + period + '」';
+  } else { periodHint.textContent = ''; }
+
+  // Preview
+  const name = document.getElementById('topupStudentName').textContent.replace('學員：','');
+  const ref = document.getElementById('tpRef').value.trim();
+  const money = document.getElementById('tpMoney').value;
+  const teamAmt = document.getElementById('tpTeamAmount').value;
+  const smallAmt = document.getElementById('tpSmallAmount').value;
+  const note = document.getElementById('tpNote').value.trim();
+  let lines = [];
+  if (name) lines.push('學員：' + name);
+  if (date) { const dt = new Date(date+'T00:00:00'); lines.push('日期：' + date.replace(/-/g,'/') + '（週' + ['日','一','二','三','四','五','六'][dt.getDay()] + '）'); }
+  lines.push('方式：' + method + (ref ? '（' + ref + '）' : ''));
+  if (money) lines.push('金額：NT$' + money);
+  if (isTeam && teamAmt) lines.push('● 團課 +' + teamAmt + ' 堂');
+  if (isSmall && smallAmt) lines.push('◆ 小班 +' + smallAmt + ' 堂');
+  if (note) lines.push('備註：' + note);
+  document.getElementById('tpPreview').textContent = lines.join('\n');
 }
 
-function tpGenPreview() {
-  const name = document.getElementById('topupStudentName').textContent.replace('學員：','');
+function tpSave() {
+  const nameEl = document.getElementById('topupStudentName').textContent.replace('學員：','').trim();
+  if (!nameEl) { alert('請選擇學員'); return; }
+  const date = document.getElementById('tpDate').value;
+  if (!date) { alert('請填寫匯款日期'); return; }
+  const isTeam = document.getElementById('tpIsTeam').checked;
+  const isSmall = document.getElementById('tpIsSmall').checked;
+  if (!isTeam && !isSmall) { alert('請選擇課程類型（團課或小班）'); return; }
+  const teamAmt = parseInt(document.getElementById('tpTeamAmount').value) || 0;
+  const smallAmt = parseInt(document.getElementById('tpSmallAmount').value) || 0;
+  if (isTeam && teamAmt === 0 && isSmall && smallAmt === 0) { alert('請填寫儲值堂數'); return; }
+  if (isTeam && teamAmt === 0 && !isSmall) { alert('請填寫團課儲值堂數'); return; }
+  if (isSmall && smallAmt === 0 && !isTeam) { alert('請填寫小班儲值堂數'); return; }
+
+  const day = parseInt(date.split('-')[2]);
+  const period = day <= 10 ? 'mid' : 'end';
   const method = document.querySelector('input[name=tpMethod]:checked').value;
   const ref = document.getElementById('tpRef').value.trim();
-  const amount = document.getElementById('tpAmount').value;
-  const date = document.getElementById('tpDate').value;
+  const money = parseInt(document.getElementById('tpMoney').value) || 0;
   const note = document.getElementById('tpNote').value.trim();
-  let msg = '【儲值回報】\n';
-  msg += '學員：' + name + '\n';
-  msg += '方式：' + method;
-  if (ref) msg += '（' + ref + '）';
-  msg += '\n';
-  if (amount) msg += '堂數：' + amount + ' 堂\n';
-  if (date) {
-    const dt = new Date(date + 'T00:00:00');
-    const days = ['日','一','二','三','四','五','六'];
-    msg += '日期：' + date.replace(/-/g,'/') + '（週' + days[dt.getDay()] + '）\n';
+
+  const data = getCurrentMonthData();
+  const s = data.students.find(x => x.name === nameEl);
+  if (!s) { alert('找不到學員'); return; }
+
+  // Apply to month data
+  if (isTeam && teamAmt > 0) {
+    if (period === 'mid') s.midTopup = (s.midTopup||0) + teamAmt;
+    else s.endTopup = (s.endTopup||0) + teamAmt;
   }
-  if (note) msg += '備註：' + note + '\n';
-  document.getElementById('tpPreview').textContent = msg;
+  if (isSmall && smallAmt > 0) {
+    if (period === 'mid') s.scMidTopup = (s.scMidTopup||0) + smallAmt;
+    else s.scTopup = (s.scTopup||0) + smallAmt;
+  }
+
+  // Save payment record permanently
+  if (!state.paymentHistory) state.paymentHistory = [];
+  state.paymentHistory.push({
+    id: Date.now(),
+    name: nameEl,
+    date,
+    method,
+    ref,
+    money,
+    teamAmt: isTeam ? teamAmt : 0,
+    smallAmt: isSmall ? smallAmt : 0,
+    period,
+    month: state.currentMonth,
+    note,
+  });
+
+  saveState();
+  tpClose();
+  renderSidebar();
+  renderPanel();
+  alert('✓ 儲值已登錄！');
 }
 
+function showPaymentHistory() {
+  const history = (state.paymentHistory || []).slice().reverse();
+  const months = [...new Set(history.map(p => p.month))].sort().reverse();
+  let html = '<div style="max-height:70vh;overflow-y:auto;">';
+  if (history.length === 0) {
+    html += '<div style="color:var(--gray);text-align:center;padding:20px;">尚無匯款紀錄</div>';
+  } else {
+    months.forEach(m => {
+      const recs = history.filter(p => p.month === m);
+      html += `<div style="font-size:0.72rem;font-weight:700;color:var(--yellow);letter-spacing:2px;margin:12px 0 6px;">${m.replace('-','年')}月</div>`;
+      recs.forEach(p => {
+        const dt = new Date(p.date+'T00:00:00');
+        const days = ['日','一','二','三','四','五','六'];
+        const periodLabel = p.period === 'mid' ? '月中' : '月底';
+        html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div style="font-size:0.88rem;font-weight:700;">${p.name}</div>
+              <div style="font-size:0.75rem;color:var(--gray);">${p.date.replace(/-/g,'/')} 週${days[dt.getDay()]}　${p.method}${p.ref?'（'+p.ref+'）':''}${p.money?' · NT$'+p.money:''}</div>
+            </div>
+            <div style="text-align:right;">
+              ${p.teamAmt ? `<div style="font-size:0.78rem;color:#3aab6e;">● 團課 +${p.teamAmt}堂</div>` : ''}
+              ${p.smallAmt ? `<div style="font-size:0.78rem;color:#fcc929;">◆ 小班 +${p.smallAmt}堂</div>` : ''}
+              <div style="font-size:0.68rem;color:var(--gray);">${periodLabel}儲值</div>
+            </div>
+          </div>
+          ${p.note ? `<div style="font-size:0.72rem;color:var(--gray);margin-top:4px;">📝 ${p.note}</div>` : ''}
+        </div>`;
+      });
+    });
+  }
+  html += '</div>';
+
+  // Show in a modal
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;';
+  overlay.innerHTML = `<div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:min(92vw,540px);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h3 style="margin:0;font-size:1rem;">💳 匯款紀錄</h3>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#aaa;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.8rem;">關閉</button>
+    </div>
+    ${html}
+  </div>`;
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+// Legacy tpGenPreview kept for compatibility
+function tpGenPreview() { tpUpdate(); }
 function tpCopy() {
   const msg = document.getElementById('tpPreview').textContent;
   if (!msg.trim()) { alert('請先填寫儲值資料'); return; }
-  navigator.clipboard.writeText(msg).then(() => alert('已複製！請傳送給教練確認 🙏'));
+  navigator.clipboard.writeText(msg).then(() => alert('已複製！'));
 }
+function tpUpdateHint() { tpUpdate(); }
 
 function addNewCoachToList(inputId, listId, inputName) {
   const input = document.getElementById(inputId);
@@ -1457,7 +1623,7 @@ function loadCustomCoachesVenues() {
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '[]');
   const defaultVenues = ['黎光','朝馬','台體大'];
   venues.filter(v => !defaultVenues.includes(v)).forEach(name => {
-    ['newVenue','editVenue'].forEach(id => {
+    ['newVenue','editVenue','newSmallVenue','editSmallVenue'].forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
       if ([...sel.options].some(o => o.value === name)) return;
@@ -2046,7 +2212,7 @@ function exportBatchPDF() {
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const allDates = data.dates;
-  let filteredDates = allDates.filter(d => {
+  const filteredDates = allDates.filter(d => {
     if (courseFilter === 'team') return d.isTeam === true;
     if (courseFilter === 'small') return d.isSmall === true;
     return true;
@@ -2076,15 +2242,6 @@ function exportBatchPDF() {
     groups[s.group].push(s);
   });
 
-  // 過濾掉該組所有人都沒出席的課日
-  const _attendCount = {};
-  filteredDates.forEach(d => { _attendCount[d.uid||d.date] = 0; });
-  students.forEach(s => {
-    (s.attended||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
-    (s.scDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
-  });
-  filteredDates = filteredDates.filter(d => _attendCount[d.uid||d.date] > 0);
-
   let theadHtml = '<tr><th>學員</th>';
   if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
   filteredDates.forEach(d => {
@@ -2102,7 +2259,7 @@ function exportBatchPDF() {
       const endBal = calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
       const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-      const hasSmall = courseFilter !== 'team' && scActual > 0;
+      const hasSmall = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
       const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
       const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
 
@@ -2126,8 +2283,8 @@ function exportBatchPDF() {
       // 課日
       filteredDates.forEach(d => {
         const dKey = d.uid || d.date;
-        const isTeam = (s.attended||[]).includes(dKey);
-        const isSmall = (s.scDates||[]).includes(dKey);
+        const isTeam = (s.attended||[]).includes(dKey) || (s.attended||[]).includes(d.date);
+        const isSmall = (s.scDates||[]).includes(dKey) || (s.scDates||[]).includes(d.date);
         let cell = '';
         if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
         else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
@@ -2224,7 +2381,7 @@ function exportBatchPDF() {
   <span style="color:#cc3300;">紅色 = 堂數不足</span>
   <span style="color:#888;">小 = 小班課數值</span>
 </div>
-\x3cscript\x3ewindow.onload=function(){setTimeout(function(){window.print();},600);}\x3c/script\x3e
+<scr' + 'ipt>window.onload = function() { setTimeout(function(){ window.print(); }, 600); };</scr' + 'ipt>
 </body></html>`);
   printWin.document.close();
 }
@@ -2650,7 +2807,7 @@ function renderPanel() {
       <div class="date-btn-new">
         <div class="date-header-row">
           <span class="date-num">${dateNum}</span>
-          <span class="date-day-venue">週${dayName}・${d.venue}${d.teamCoach||d.coach ? '<br><span style="color:#3aab6e;font-size:0.7rem;">● ' + (d.teamCoach||d.coach||'') + '</span>' : ''}${d.smallCoach ? '<br><span style="color:#fcc929;font-size:0.7rem;">◆ ' + d.smallCoach + '</span>' : ''}</span>
+          <span class="date-day-venue">週${dayName}・${d.venue}${d.smallVenue && d.smallVenue !== d.venue ? '<span style="color:#b07c0b;">　◆'+d.smallVenue+'</span>' : ''}${d.teamCoach||d.coach ? '<br><span style="color:#3aab6e;font-size:0.7rem;">● ' + (d.teamCoach||d.coach||'') + '</span>' : ''}${d.smallCoach ? '<br><span style="color:#fcc929;font-size:0.7rem;">◆ ' + d.smallCoach + '</span>' : ''}</span>
           <button class="date-del-btn" class="edit-only" style="position:relative;opacity:1;top:auto;right:auto;" onclick="event.stopPropagation();openEditDate('${d.date}')" title="編輯課日">✎</button>
         </div>
         <div class="date-check-row">
@@ -2852,6 +3009,21 @@ function renderPanel() {
         <div class="preview-footer">灣島黑狼 FC · 足球 × 教育 × 成長</div>
       </div>
 
+      \${(() => {
+        const _recs = (state.paymentHistory || []).filter(p => p.name === s.name).sort((a,b) => b.date.localeCompare(a.date));
+        if (_recs.length === 0) return '';
+        const _days2 = ['日','一','二','三','四','五','六'];
+        const _rows = _recs.map(p => {
+          const _dt = new Date(p.date+'T00:00:00');
+          const _pl = p.period === 'mid' ? '月中' : '月底';
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'
+            + '<div><div style="font-size:0.8rem;">' + p.date.replace(/-/g,'/') + ' 週' + _days2[_dt.getDay()] + '\u3000<span style="color:#666;font-size:0.72rem;">' + p.method + (p.ref?'（'+p.ref+'）':'') + (p.money?' · NT$'+p.money:'') + '</span></div>'
+            + '<div style="font-size:0.7rem;color:#666;">' + p.month.replace('-','年') + '月 ' + _pl + (p.note?' · '+p.note:'') + '</div></div>'
+            + '<div style="text-align:right;flex-shrink:0;">' + (p.teamAmt?'<div style="font-size:0.78rem;color:#3aab6e;">● +'+p.teamAmt+'堂</div>':'') + (p.smallAmt?'<div style="font-size:0.78rem;color:#fcc929;">◆ +'+p.smallAmt+'堂</div>':'') + '</div></div>';
+        }).join('');
+        return '<div style="margin-top:16px;"><div style="font-size:0.72rem;font-weight:700;color:#888;letter-spacing:2px;margin-bottom:8px;">匯款紀錄</div>' + _rows + '</div>';
+      })()}
+
     </div>
   `;
 }
@@ -2974,7 +3146,7 @@ function showDateManager() {
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
             '<div>' +
               '<div style="font-size:1.1rem;font-weight:700;color:var(--yellow);">' + dateDisplay + '</div>' +
-              '<div style="font-size:0.78rem;color:var(--gray);">' + weekday + (d.venue ? '　' + d.venue : '') + '</div>' +
+              '<div style="font-size:0.78rem;color:var(--gray);">' + weekday + (d.venue ? '　' + d.venue : '') + (d.smallVenue && d.smallVenue !== d.venue ? '<span style="color:#b07c0b;">　◆' + d.smallVenue + '</span>' : '') + '</div>' +
             '</div>' +
             '<div style="display:flex;gap:5px;">' +
               '<button class="btn btn-outline" onclick="openEditDate(\'' + (d.uid||d.date) + '\', true)" style="font-size:0.7rem;padding:3px 9px;">✎</button>' +
@@ -3090,6 +3262,7 @@ function addDate() {
   if (!y || !m || !d) return;
   const date = y + '-' + m + '-' + d;
   const venue = document.getElementById('newVenue').value;
+  const smallVenue = document.getElementById('newSmallVenue') ? document.getElementById('newSmallVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=newTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=newSmallCoach]:checked')).map(x=>x.value).join('、');
   const data = getCurrentMonthData();
@@ -3101,7 +3274,7 @@ function addDate() {
   const isTeam2 = isTeamEl ? isTeamEl.checked : false;
   const isSmall2 = isSmallEl ? isSmallEl.checked : false;
   const uid = date + '_' + Date.now();
-  data.dates.push({ date, venue, teamCoach, smallCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
+  data.dates.push({ date, venue, smallVenue, teamCoach, smallCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   closeModal();
@@ -3127,6 +3300,10 @@ function openEditDate(dateOrUid, fromManager) {
   document.getElementById('editDateM').value = parts[1];
   document.getElementById('editDateD').value = parts[2];
   document.getElementById('editVenue').value = d.venue || '';
+  const editSVG = document.getElementById('editSmallVenueGroup');
+  if (editSVG) { editSVG.style.display = d.isSmall ? '' : 'none'; }
+  const editSV = document.getElementById('editSmallVenue');
+  if (editSV) { editSV.value = d.smallVenue || ''; }
   document.getElementById('editDateNote').value = d.note || '';
   document.getElementById('editIsTeam').checked = d.isTeam === true;
   document.getElementById('editIsSmall').checked = d.isSmall === true;
@@ -3147,6 +3324,7 @@ function saveEditDate() {
   const d = document.getElementById('editDateD').value;
   const newDate = y + '-' + m + '-' + d;
   const venue = document.getElementById('editVenue').value;
+  const smallVenue = document.getElementById('editSmallVenue') ? document.getElementById('editSmallVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=editTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=editSmallCoach]:checked')).map(x=>x.value).join('、');
   const note = (document.getElementById('editDateNote').value || '').trim();
@@ -3168,7 +3346,7 @@ function saveEditDate() {
       if (si !== -1) s.scDates[si] = oldUid || newDate;
     });
   }
-  data.dates[idx] = { date: newDate, venue, teamCoach, smallCoach, note, isTeam, isSmall, uid: oldUid || (newDate + '_' + Date.now()) };
+  data.dates[idx] = { date: newDate, venue, smallVenue, teamCoach, smallCoach, note, isTeam, isSmall, uid: oldUid || (newDate + '_' + Date.now()) };
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   // If opened from dateManager, go back to it
