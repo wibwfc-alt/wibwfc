@@ -2046,7 +2046,7 @@ function exportBatchPDF() {
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const allDates = data.dates;
-  const filteredDates = allDates.filter(d => {
+  let filteredDates = allDates.filter(d => {
     if (courseFilter === 'team') return d.isTeam === true;
     if (courseFilter === 'small') return d.isSmall === true;
     return true;
