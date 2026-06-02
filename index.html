@@ -2195,10 +2195,12 @@ function renderBatch() {
   // Date totals
   const dateTotals = {};
   const dateSmallTotals = {};
-  filteredDates.forEach(d => { const k = d.uid||d.date; dateTotals[k] = 0; dateSmallTotals[k] = 0; });
+  const datePrivateTotals = {};
+  filteredDates.forEach(d => { const k = d.uid||d.date; dateTotals[k] = 0; dateSmallTotals[k] = 0; datePrivateTotals[k] = 0; });
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if (dateTotals[a] !== undefined) dateTotals[a]++; });
     (s.scDates||[]).forEach(a => { if (dateSmallTotals[a] !== undefined) dateSmallTotals[a]++; });
+    (s.privateDates||[]).forEach(a => { if (datePrivateTotals[a] !== undefined) datePrivateTotals[a]++; });
   });
 
   const totalCols = filteredDates.length + 5; // name + 上月 + 月中 + dates + 合計 + 月底 + 月底剩餘
@@ -2309,15 +2311,24 @@ function renderBatch() {
   // 出席人數列 — 跟著 courseFilter 決定顯示哪幾列，合計欄加總
   const totalTeam = filteredDates.reduce((sum, d) => sum + (dateTotals[d.uid||d.date]||0), 0);
   const totalSmall = filteredDates.reduce((sum, d) => sum + (dateSmallTotals[d.uid||d.date]||0), 0);
-  if (courseFilter !== 'small') {
+  const totalPrivate = filteredDates.reduce((sum, d) => sum + (datePrivateTotals[d.uid||d.date]||0), 0);
+  const showTeamRow = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+private';
+  const showSmallRow = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private';
+  const showPrivateRow = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
+  if (showTeamRow) {
     tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#3aab6e;">團課人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
     filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#3aab6e;">' + (dateTotals[k]||0) + '</td>'; });
     tbody += '<td style="color:#3aab6e;font-weight:900;">' + totalTeam + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   }
-  if (courseFilter !== 'team') {
+  if (showSmallRow) {
     tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#fcc929;">小班人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
     filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#fcc929;">' + (dateSmallTotals[k]||0) + '</td>'; });
     tbody += '<td style="color:#fcc929;font-weight:900;">' + totalSmall + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
+  }
+  if (showPrivateRow) {
+    tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#a78bfa;">單雙人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
+    filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#a78bfa;">' + (datePrivateTotals[k]||0) + '</td>'; });
+    tbody += '<td style="color:#a78bfa;font-weight:900;">' + totalPrivate + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   }
   tbody += '</tbody>';
 
@@ -2806,20 +2817,27 @@ function exportBatchPDF() {
   // 出席人數列
   const dateTotals = {};
   const dateSmallTotals2 = {};
-  filteredDates.forEach(d => { const k=d.uid||d.date; dateTotals[k]=0; dateSmallTotals2[k]=0; });
+  const datePrivateTotals2 = {};
+  filteredDates.forEach(d => { const k=d.uid||d.date; dateTotals[k]=0; dateSmallTotals2[k]=0; datePrivateTotals2[k]=0; });
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if(dateTotals[a]!==undefined) dateTotals[a]++; });
     (s.scDates||[]).forEach(a => { if(dateSmallTotals2[a]!==undefined) dateSmallTotals2[a]++; });
+    (s.privateDates||[]).forEach(a => { if(datePrivateTotals2[a]!==undefined) datePrivateTotals2[a]++; });
   });
   const extraCols = simpleMode ? 1 : 3;
-  if (courseFilter !== 'small') {
+  if (courseFilter !== 'small' && courseFilter !== 'private' && courseFilter !== 'small+private') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">團課人數</td>';
     filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateTotals[k]||0) + '</td>'; });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
-  if (courseFilter !== 'team') {
+  if (courseFilter !== 'team' && courseFilter !== 'private' && courseFilter !== 'team+private') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">小班人數</td>';
     filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateSmallTotals2[k]||0) + '</td>'; });
+    tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
+  }
+  if (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all') {
+    tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">單雙人數</td>';
+    filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (datePrivateTotals2[k]||0) + '</td>'; });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
 
