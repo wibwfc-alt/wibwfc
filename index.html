@@ -2173,12 +2173,17 @@ function renderBatch() {
     const tc = d.teamCoach || d.coach || '';
     const sc = d.smallCoach || '';
     let coachHtml = '';
-    if (courseFilter !== 'small' && tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
-    if (courseFilter !== 'team' && sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
+    const showTeamCoach = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+private';
+    const showSmallCoach = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private';
+    const showPrivateCoach = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
+    if (showTeamCoach && tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
+    if (showSmallCoach && sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
+    if (showPrivateCoach && d.privateCoach) coachHtml += '<br><span style="color:#a78bfa;font-size:0.6rem;">★ ' + d.privateCoach + '</span>';
     const hasTeamAttendance = students.some(s => (s.attended||[]).includes(d.uid||d.date));
-    const venueDisplay = (!hasTeamAttendance && d.smallVenue) ? d.smallVenue : (d.venue||'');
-    const smallVenueExtra = (hasTeamAttendance && d.smallVenue && d.smallVenue !== d.venue) ? '<br><span style="color:#b07c0b;font-size:0.6rem;">◆' + d.smallVenue + '</span>' : '';
-    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + venueDisplay + '</span>' + smallVenueExtra + coachHtml + '</th>';
+    const venueDisplay = (showSmallCoach && !hasTeamAttendance && d.smallVenue) ? d.smallVenue : (d.venue||'');
+    const smallVenueExtra = (showSmallCoach && hasTeamAttendance && d.smallVenue && d.smallVenue !== d.venue) ? '<br><span style="color:#b07c0b;font-size:0.6rem;">◆' + d.smallVenue + '</span>' : '';
+    const privateVenueExtra = (showPrivateCoach && d.privateVenue && d.privateVenue !== d.venue) ? '<br><span style="color:#a78bfa;font-size:0.6rem;">★' + d.privateVenue + '</span>' : '';
+    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + venueDisplay + '</span>' + smallVenueExtra + privateVenueExtra + coachHtml + '</th>';
   });
   thead += '<th class="batch-th" style="min-width:50px;">合計</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月底儲值</th>';
@@ -2253,7 +2258,7 @@ function renderBatch() {
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
         const isPrivate = (s.privateDates||[]).includes(dKey);
-        const dateIsTeam = d.isTeam === true && !courseFilter.startsWith('small') || (courseFilter === 'team+private' && d.isTeam);
+        const dateIsTeam = d.isTeam === true && (courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+private');
         const dateIsSmall = d.isSmall === true && (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private');
         const dateIsPrivate = d.isPrivate === true && (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all');
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
@@ -2351,7 +2356,13 @@ function batchUpdateTopup(input) {
   renderSidebar();
   // 即時更新該列的剩餘欄，不重繪整個表格
   const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const courseFilter = tabs.private ? 'private' : (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
+    : (tabs.team && tabs.private) ? 'team+private'
+    : (tabs.small && tabs.private) ? 'small+private'
+    : (tabs.team && tabs.small) ? 'all'
+    : tabs.private ? 'private'
+    : tabs.small ? 'small'
+    : 'team';
   const endBal = calcEndBalance(s);
   const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
   const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
@@ -2526,7 +2537,13 @@ function exportDualMonthPDF() {
 
 function _exportMultiMonthPDF(months) {
   const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const courseFilter = tabs.private ? 'private' : (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
+    : (tabs.team && tabs.private) ? 'team+private'
+    : (tabs.small && tabs.private) ? 'small+private'
+    : (tabs.team && tabs.small) ? 'all'
+    : tabs.private ? 'private'
+    : tabs.small ? 'small'
+    : 'team';
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
@@ -2591,7 +2608,7 @@ function _exportMultiMonthPDF(months) {
         const endBal = calcEndBalance(s);
         const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
         const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-        const hasSmall = courseFilter !== 'team' && scActual > 0;
+        const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private') && scActual > 0;
         const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
         const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
         tbodyHtml += '<tr>';
@@ -2694,7 +2711,13 @@ function exportBatchPDF() {
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
   const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const courseFilter = tabs.private ? 'private' : (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
+    : (tabs.team && tabs.private) ? 'team+private'
+    : (tabs.small && tabs.private) ? 'small+private'
+    : (tabs.team && tabs.small) ? 'all'
+    : tabs.private ? 'private'
+    : tabs.small ? 'small'
+    : 'team';
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const allDates = data.dates;
@@ -2756,7 +2779,7 @@ function exportBatchPDF() {
       const endBal = calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
       const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-      const hasSmall = courseFilter !== 'team' && scActual > 0;
+      const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private') && scActual > 0;
       const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
       const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
 
