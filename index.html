@@ -2127,6 +2127,16 @@ function renderBatch() {
             '</td>';
         }
       }
+      // 月底剩餘
+      if (!simpleMode) {
+        let balCell = '';
+        if (courseFilter !== 'small') balCell += '<div style="' + balColor + 'font-size:0.72rem;">團' + (endBal>=0?'+':'') + endBal + '</div>';
+        if (courseFilter !== 'team') {
+          const hasSmallData = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
+          if (hasSmallData) balCell += '<div style="' + scBalColor + 'font-size:0.72rem;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>';
+        }
+        tbody += '<td class="batch-td" data-bal-name="' + s.name + '">' + balCell + '</td>';
+      }
       tbody += '</tr>';
     });
   });
