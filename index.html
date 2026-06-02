@@ -412,7 +412,8 @@ body.edit-mode .edit-only { display: inline-block !important; }
   <button id="syncBtn" class="btn btn-green" onclick="syncToGist()" style="font-size:0.78rem;display:none;">☁ 同步給教練</button>
 
   <button class="btn btn-outline" onclick="showBatch()" style="font-size:0.8rem;">✓ 批量點名</button>
-  <button class="btn btn-outline" onclick="showOverview()" style="font-size:0.8rem;">📊 月結總覽</button>
+  <button class="btn btn-outline edit-only" onclick="showOverview()" style="font-size:0.8rem;">📊 月結總覽</button>
+  <button class="btn btn-outline edit-only" onclick="recalcPrevBalance()" style="font-size:0.8rem;border-color:rgba(252,201,41,0.4);color:#fcc929;">🔄 重算上月結餘</button>
   <button class="btn edit-only" onclick="showTopupForm(state.selectedStudent || '')" style="font-size:0.8rem;background:var(--green);">💳 儲值</button>
   <button class="btn btn-outline edit-only" onclick="showPaymentHistory()" style="font-size:0.8rem;">📋 匯款紀錄</button>
   <div class="topbar-month">
@@ -598,7 +599,6 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <h3 id="overviewTitle">月結總覽</h3>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline edit-only" onclick="recalcPrevBalance()" style="font-size:0.75rem;border-color:rgba(252,201,41,0.4);color:#fcc929;">🔄 重算上月結餘</button>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <label style="font-size:0.75rem;color:#3aab6e;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterTeam" checked> 團課</label>
           <label style="font-size:0.75rem;color:#fcc929;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterSmall" checked> 小班</label>
