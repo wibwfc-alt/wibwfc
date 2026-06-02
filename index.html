@@ -598,6 +598,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <h3 id="overviewTitle">月結總覽</h3>
       <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline edit-only" onclick="recalcPrevBalance()" style="font-size:0.75rem;border-color:rgba(252,201,41,0.4);color:#fcc929;">🔄 重算上月結餘</button>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <label style="font-size:0.75rem;color:#3aab6e;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterTeam" checked> 團課</label>
           <label style="font-size:0.75rem;color:#fcc929;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterSmall" checked> 小班</label>
@@ -766,6 +767,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </div>
         <button id="batchTabTeam" onclick="toggleBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(36,110,88,0.5);border-radius:4px;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;">● 團課</button>
         <button id="batchTabSmall" onclick="toggleBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
+        <button id="batchTabPrivate" onclick="toggleBatchTab('private')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">★ 個人/雙人</button>
         <button class="btn btn-outline" id="batchAttendedBtn" onclick="toggleBatchAttended()" style="font-size:0.8rem;">有上課</button>
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         
@@ -862,6 +864,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>備註</label><input type="text" id="editNote" placeholder="例：長期請假、體驗中、待確認費用…"></div>
     <div class="modal-actions">
       <button class="btn btn-red" onclick="deleteStudentFromEdit()">永久刪除</button>
+      <button class="btn btn-outline" onclick="mergeStudentFromEdit()" style="border-color:#a78bfa;color:#a78bfa;font-size:0.78rem;">合併至其他學員</button>
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
       <button class="btn" onclick="saveEditStudent()">儲存</button>
     </div>
@@ -920,6 +923,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
           <input type="checkbox" id="editIsSmall" onchange="var g=document.getElementById('editSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
+          <input type="checkbox" id="editIsPrivate"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
         </label>
       </div>
     </div>
@@ -1049,6 +1055,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
           <input type="checkbox" id="newIsSmall" onchange="var g=document.getElementById('newSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
+          <input type="checkbox" id="newIsPrivate"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
         </label>
       </div>
     </div>
@@ -1436,8 +1445,16 @@ function _renderPaymentHistory() {
         html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;">'
           + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
           + '<div style="flex:1;min-width:0;">'
-          + '<div style="font-size:0.88rem;font-weight:700;margin-bottom:6px;">' + p.name + '<span style="color:var(--gray);font-size:0.7rem;margin-left:8px;">' + m.replace('-','年') + '月 ' + pl + '</span></div>'
+          + '<div style="font-size:0.88rem;font-weight:700;margin-bottom:6px;">' + p.name + '</div>'
           + '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px;">'
+          + '<span style="font-size:0.72rem;color:var(--yellow);">計入月份</span>'
+          + '<select data-id="' + p.id + '" data-field="month" ' + dis + ' style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);color:var(--white);border-radius:3px;padding:2px 5px;font-size:0.78rem;" onchange="phUpdateRecord(this)">'
+          + Object.keys(state.months).sort().map(m => '<option value="' + m + '"' + (m === p.month ? ' selected' : '') + '>' + m.replace('-','年') + '月</option>').join('')
+          + '</select>'
+          + '<select data-id="' + p.id + '" data-field="period" ' + dis + ' style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);color:var(--white);border-radius:3px;padding:2px 5px;font-size:0.78rem;" onchange="phUpdateRecord(this)">'
+          + '<option value="mid"' + (p.period==='mid'?' selected':'') + '>月中</option>'
+          + '<option value="end"' + (p.period==='end'?' selected':'') + '>月底</option>'
+          + '</select>'
           + '<span style="font-size:0.72rem;color:var(--gray);">日期</span>' + inp(p.date, 'date', '110px', 'date')
           + '<span style="font-size:0.72rem;color:var(--gray);">NT$</span>' + inp(p.money||'', 'money', '70px', 'number')
           + '<span style="font-size:0.72rem;color:var(--gray);">方式</span>' + inp(p.method, 'method', '70px')
@@ -1486,35 +1503,55 @@ function phUpdateRecord(el) {
   const oldTeamAmt = rec.teamAmt || 0;
   const oldSmallAmt = rec.smallAmt || 0;
   const oldPeriod = rec.period;
+  const oldMonth = rec.month;
 
-  rec[field] = val;
-
-  // If date changed, recalculate period
-  if (field === 'date') {
-    const day = parseInt(val.split('-')[2]);
-    if (day <= 5) { rec.period = 'end'; }
-    else if (day <= 15) { rec.period = 'mid'; }
-    else { rec.period = 'end'; }
+  // Reverse old topup from old month
+  const oldData = state.months[oldMonth];
+  if (oldData) {
+    const s = oldData.students.find(x => x.name === rec.name);
+    if (s) {
+      if (oldPeriod === 'mid') { s.midTopup = Math.max(0,(s.midTopup||0)-oldTeamAmt); s.scMidTopup = Math.max(0,(s.scMidTopup||0)-oldSmallAmt); }
+      else { s.endTopup = Math.max(0,(s.endTopup||0)-oldTeamAmt); s.scTopup = Math.max(0,(s.scTopup||0)-oldSmallAmt); }
+    }
   }
 
-  // Re-apply topup changes to student data
-  const data = state.months[rec.month];
-  if (data) {
-    const s = data.students.find(x => x.name === rec.name);
+  // Update record field
+  rec[field] = val;
+
+  // If date changed, recalculate period (unless period was manually set)
+  if (field === 'date') {
+    const day = parseInt(val.split('-')[2]);
+    rec.period = day <= 5 ? 'end' : day <= 15 ? 'mid' : 'end';
+  }
+
+  // Apply new topup to new month
+  const newData = state.months[rec.month];
+  if (newData) {
+    let s = newData.students.find(x => x.name === rec.name);
+    if (!s) {
+      // Try to find student from any month and add to target month
+      const refMonths = Object.keys(state.months).sort().reverse();
+      let ref = null;
+      for (const m of refMonths) {
+        ref = state.months[m].students.find(x => x.name === rec.name);
+        if (ref) break;
+      }
+      if (ref) {
+        newData.students.push(Object.assign({}, ref, { attended:[], midTopup:0, endTopup:0, scMidTopup:0, scTopup:0, scDates:[] }));
+        s = newData.students.find(x => x.name === rec.name);
+      }
+    }
     if (s) {
-      // Reverse old values
-      if (oldPeriod === 'mid') { s.midTopup = Math.max(0, (s.midTopup||0) - oldTeamAmt); s.scMidTopup = Math.max(0, (s.scMidTopup||0) - oldSmallAmt); }
-      else { s.endTopup = Math.max(0, (s.endTopup||0) - oldTeamAmt); s.scTopup = Math.max(0, (s.scTopup||0) - oldSmallAmt); }
-      // Apply new values
       const newTeam = rec.teamAmt || 0;
       const newSmall = rec.smallAmt || 0;
-      if (rec.period === 'mid') { s.midTopup = (s.midTopup||0) + newTeam; s.scMidTopup = (s.scMidTopup||0) + newSmall; }
-      else { s.endTopup = (s.endTopup||0) + newTeam; s.scTopup = (s.scTopup||0) + newSmall; }
+      if (rec.period === 'mid') { s.midTopup = (s.midTopup||0)+newTeam; s.scMidTopup = (s.scMidTopup||0)+newSmall; }
+      else { s.endTopup = (s.endTopup||0)+newTeam; s.scTopup = (s.scTopup||0)+newSmall; }
     }
   }
 
   saveState();
   renderSidebar();
+  _renderPaymentHistory();
 }
 
 function phDeleteRecord(id) {
@@ -1739,6 +1776,35 @@ function overviewUpdateTopup(name, type, val) {
   renderSidebar();
 }
 
+function recalcPrevBalance() {
+  if (state.isReadOnly) return;
+  const allMonths = Object.keys(state.months).sort();
+  const curIdx = allMonths.indexOf(state.currentMonth);
+  if (curIdx <= 0) { alert('目前是最早的月份，沒有上個月可以計算。'); return; }
+  const prevMonth = allMonths[curIdx - 1];
+  const prevData = state.months[prevMonth];
+  const curData = state.months[state.currentMonth];
+  if (!prevData || !curData) return;
+
+  let updated = 0;
+  curData.students.forEach(s => {
+    const prev = prevData.students.find(x => x.name === s.name);
+    if (!prev) return;
+    const newTeamBal = calcEndBalance(prev);
+    const newScBal = (prev.scPrevBal||0) + (prev.scMidTopup||0) + (prev.scTopup||0) + (prev.scGiftTopup||0) - (prev.scDates ? prev.scDates.length : (prev.scAttended||0));
+    if (s.prevBalance !== newTeamBal || s.scPrevBal !== newScBal) {
+      s.prevBalance = newTeamBal;
+      s.scPrevBal = newScBal;
+      updated++;
+    }
+  });
+
+  saveState();
+  renderSidebar();
+  showOverview();
+  alert('✓ 已重算完成！共更新 ' + updated + ' 位學員的上月結餘。\n（依據 ' + prevMonth.replace('-','年') + '月 的資料）');
+}
+
 function showOverview() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
@@ -1855,7 +1921,7 @@ function copyDebtList() {
 function showBatch() {
   document.getElementById('batchModal').style.display = 'flex';
   document.getElementById('batchMonthSelect').value = state.currentMonth;
-  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false, private: false };
   updateBatchTabUI();
   renderBatch();
 }
@@ -1922,16 +1988,17 @@ function toggleBatchSimple() {
 }
 
 function toggleBatchTab(tab) {
-  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false, private: false };
   state._batchTabs[tab] = !state._batchTabs[tab];
   updateBatchTabUI();
   renderBatch();
 }
 
 function updateBatchTabUI() {
-  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false, private: false };
   const teamBtn = document.getElementById('batchTabTeam');
   const smallBtn = document.getElementById('batchTabSmall');
+  const privateBtn = document.getElementById('batchTabPrivate');
   if (!teamBtn || !smallBtn) return;
   if (state._batchTabs.team) {
     teamBtn.style.background = 'rgba(36,110,88,0.35)';
@@ -1950,6 +2017,17 @@ function updateBatchTabUI() {
     smallBtn.style.background = 'none';
     smallBtn.style.color = 'var(--gray)';
     smallBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+  }
+  if (privateBtn) {
+    if (state._batchTabs.private) {
+      privateBtn.style.background = 'rgba(167,139,250,0.2)';
+      privateBtn.style.color = '#a78bfa';
+      privateBtn.style.borderColor = 'rgba(167,139,250,0.5)';
+    } else {
+      privateBtn.style.background = 'none';
+      privateBtn.style.color = 'var(--gray)';
+      privateBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+    }
   }
 }
 
@@ -1978,8 +2056,8 @@ function renderBatch() {
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   document.getElementById('batchMonthLabel').textContent = monthLabel;
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const tabs = state._batchTabs || { team: true, small: false };
-  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const tabs = state._batchTabs || { team: true, small: false, private: false };
+  const courseFilter = tabs.private ? 'private' : (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
   const batchSearchEl = document.getElementById('batchSearch');
@@ -2093,13 +2171,15 @@ function renderBatch() {
         const dKey = d.uid || d.date;
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
-        const dateIsTeam = d.isTeam === true && courseFilter !== 'small';
-        const dateIsSmall = d.isSmall === true && courseFilter !== 'team';
+        const isPrivate = (s.privateDates||[]).includes(dKey);
+        const dateIsTeam = d.isTeam === true && courseFilter !== 'small' && courseFilter !== 'private';
+        const dateIsSmall = d.isSmall === true && courseFilter !== 'team' && courseFilter !== 'private';
+        const dateIsPrivate = d.isPrivate === true && courseFilter === 'private';
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
         if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
         if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
-        if (!dateIsTeam && !dateIsSmall) cell += '<div style="color:var(--gray);font-size:0.65rem;text-align:center;">—</div>';
-        cell += '</td>';
+        if (dateIsPrivate) cell += '<div class="batch-check ' + (isPrivate?'checked':'') + '" style="font-size:0.65rem;border-color:rgba(167,139,250,0.4);' + (isPrivate?'background:rgba(167,139,250,0.25);color:#a78bfa;':'color:#a78bfa;') + '" data-name="' + s.name + '" data-date="' + dKey + '" data-type="private" onclick="toggleBatchCell(this)">' + (isPrivate?'★':'') + '</div>';
+        if (!dateIsTeam && !dateIsSmall && !dateIsPrivate) cell += '<div style="color:var(--gray);font-size:0.65rem;text-align:center;">—</div>';
         tbody += cell;
       });
       // 合計
@@ -2174,8 +2254,8 @@ function batchUpdateTopup(input) {
   saveState();
   renderSidebar();
   // 即時更新該列的剩餘欄，不重繪整個表格
-  const tabs = state._batchTabs || { team: true, small: false };
-  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const tabs = state._batchTabs || { team: true, small: false, private: false };
+  const courseFilter = tabs.private ? 'private' : (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const endBal = calcEndBalance(s);
   const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
   const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
@@ -2213,6 +2293,11 @@ function toggleBatchCell(el) {
     if (idx === -1) s.scDates.push(date);
     else s.scDates.splice(idx, 1);
     s.scAttended = s.scDates.length;
+  } else if (type === 'private') {
+    if (!s.privateDates) s.privateDates = [];
+    const idx = s.privateDates.indexOf(date);
+    if (idx === -1) s.privateDates.push(date);
+    else s.privateDates.splice(idx, 1);
   } else {
     if (!s.attended) s.attended = [];
     const idx = s.attended.indexOf(date);
@@ -2344,8 +2429,8 @@ function exportDualMonthPDF() {
 }
 
 function _exportMultiMonthPDF(months) {
-  const tabs = state._batchTabs || { team: true, small: false };
-  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const tabs = state._batchTabs || { team: true, small: false, private: false };
+  const courseFilter = tabs.private ? 'private' : (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
@@ -2512,8 +2597,8 @@ function exportBatchPDF() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const tabs = state._batchTabs || { team: true, small: false };
-  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const tabs = state._batchTabs || { team: true, small: false, private: false };
+  const courseFilter = tabs.private ? 'private' : (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const allDates = data.dates;
@@ -3007,7 +3092,7 @@ function renderSidebar() {
       html += `<div class="student-item ${active}" onclick="selectStudent('${s.name}')">
         <div>
           <div class="student-name">${s.name}</div>
-          <div class="student-meta">${s.group}${s.bib ? ' · #' + s.bib : ''} · 團${s.attended.length}堂${scActualSB > 0 ? ' 小' + scActualSB + '堂' : ''}${s.note ? ' · ' + s.note : ''}</div>
+          <div class="student-meta">${s.group}${s.bib ? ' · #' + s.bib : ''} · 團${s.attended.length}堂${scActualSB > 0 ? ' 小' + scActualSB + '堂' : ''}${(s.privateDates||[]).length > 0 ? ' ★' + s.privateDates.length + '堂' : ''}${s.note ? ' · ' + s.note : ''}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
           <div class="balance-badge ${balClass}">${bal > 0 ? '+' : ''}${bal}</div>
@@ -3331,8 +3416,12 @@ function toggleDate(studentName, date, type) {
     const idx = s.scDates.indexOf(date);
     if (idx === -1) s.scDates.push(date);
     else s.scDates.splice(idx, 1);
-    // Auto-update scAttended count
     s.scAttended = s.scDates.length;
+  } else if (type === 'private') {
+    if (!s.privateDates) s.privateDates = [];
+    const idx = s.privateDates.indexOf(date);
+    if (idx === -1) s.privateDates.push(date);
+    else s.privateDates.splice(idx, 1);
   } else {
     if (!s.attended) s.attended = [];
     const idx = s.attended.indexOf(date);
@@ -3342,7 +3431,6 @@ function toggleDate(studentName, date, type) {
   saveState();
   renderSidebar();
   renderPanel();
-  // Restore tab after re-render
   const tab = state._activeTab || 'attendance';
   const tabBtn = document.querySelector(`.tab-btn[onclick*="${tab}"]`);
   const tabContent = document.getElementById('tab-' + tab);
@@ -3425,6 +3513,7 @@ function showDateManager() {
       const tags = [];
       if (d.isTeam) tags.push('<span style="background:var(--green);color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">團課</span>');
       if (d.isSmall) tags.push('<span style="background:#b07c0b;color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">小班</span>');
+      if (d.isPrivate) tags.push('<span style="background:rgba(167,139,250,0.25);color:#a78bfa;font-size:0.7rem;padding:2px 7px;border-radius:99px;">個人/雙人</span>');
       const tc = d.teamCoach || d.coach || '';
       const sc = d.smallCoach || '';
       const coachHtml = [
@@ -3561,10 +3650,11 @@ function addDate() {
   const noteVal2 = noteEl ? noteEl.value.trim() : '';
   const isTeamEl = document.getElementById('newIsTeam');
   const isSmallEl = document.getElementById('newIsSmall');
-  const isTeam2 = isTeamEl ? isTeamEl.checked : false;
+  const isPrivateEl2 = document.getElementById('newIsPrivate');
   const isSmall2 = isSmallEl ? isSmallEl.checked : false;
+  const isPrivate2 = isPrivateEl2 ? isPrivateEl2.checked : false;
   const uid = date + '_' + Date.now();
-  data.dates.push({ date, venue, smallVenue, teamCoach, smallCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
+  data.dates.push({ date, venue, smallVenue, teamCoach, smallCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, isPrivate: isPrivate2, uid });
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   closeModal();
@@ -3597,6 +3687,7 @@ function openEditDate(dateOrUid, fromManager) {
   document.getElementById('editDateNote').value = d.note || '';
   document.getElementById('editIsTeam').checked = d.isTeam === true;
   document.getElementById('editIsSmall').checked = d.isSmall === true;
+  if (document.getElementById('editIsPrivate')) document.getElementById('editIsPrivate').checked = d.isPrivate === true;
   const teamCoaches = (d.teamCoach || d.coach || '').split('、').filter(Boolean);
   const smallCoaches = (d.smallCoach || '').split('、').filter(Boolean);
   document.querySelectorAll('input[name=editTeamCoach]').forEach(c => { c.checked = teamCoaches.includes(c.value); });
@@ -3620,6 +3711,7 @@ function saveEditDate() {
   const note = (document.getElementById('editDateNote').value || '').trim();
   const isTeam = document.getElementById('editIsTeam').checked;
   const isSmall = document.getElementById('editIsSmall').checked;
+  const isPrivate = document.getElementById('editIsPrivate') ? document.getElementById('editIsPrivate').checked : false;
   const data = getCurrentMonthData();
   const idx = data.dates.findIndex(x => (x.uid||x.date) === orig);
   if (idx === -1) return;
@@ -3636,7 +3728,7 @@ function saveEditDate() {
       if (si !== -1) s.scDates[si] = oldUid || newDate;
     });
   }
-  data.dates[idx] = { date: newDate, venue, smallVenue, teamCoach, smallCoach, note, isTeam, isSmall, uid: oldUid || (newDate + '_' + Date.now()) };
+  data.dates[idx] = { date: newDate, venue, smallVenue, teamCoach, smallCoach, note, isTeam, isSmall, isPrivate, uid: oldUid || (newDate + '_' + Date.now()) };
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   // If opened from dateManager, go back to it
@@ -3690,11 +3782,46 @@ function openEditStudent(name) {
   modal.classList.add('show');
 }
 
+function mergeStudentFromEdit() {
+  const orig = document.getElementById('editStudentOrig').value;
+  // Get all student names across all months
+  const allNames = new Set();
+  Object.values(state.months).forEach(m => (m.students||[]).forEach(s => { if (s.name !== orig) allNames.add(s.name); }));
+  const target = prompt('將「' + orig + '」的所有出席紀錄合併到哪個學員？\n\n請輸入目標學員姓名：\n（可用：' + [...allNames].slice(0,10).join('、') + (allNames.size > 10 ? '...' : '') + '）');
+  if (!target || !allNames.has(target)) { if (target) alert('找不到學員「' + target + '」'); return; }
+  if (!confirm('確定將「' + orig + '」的所有出席紀錄合併到「' + target + '」？\n合併後「' + orig + '」將被永久刪除。')) return;
+
+  // Merge attended, scDates, privateDates from orig to target in each month
+  Object.values(state.months).forEach(m => {
+    const from = (m.students||[]).find(s => s.name === orig);
+    const to = (m.students||[]).find(s => s.name === target);
+    if (from && to) {
+      // Merge attended
+      (from.attended||[]).forEach(d => { if (!(to.attended||[]).includes(d)) { if (!to.attended) to.attended=[]; to.attended.push(d); } });
+      // Merge scDates
+      (from.scDates||[]).forEach(d => { if (!(to.scDates||[]).includes(d)) { if (!to.scDates) to.scDates=[]; to.scDates.push(d); } });
+      // Merge privateDates
+      (from.privateDates||[]).forEach(d => { if (!(to.privateDates||[]).includes(d)) { if (!to.privateDates) to.privateDates=[]; to.privateDates.push(d); } });
+    }
+    // Delete orig from this month
+    if (m.students) m.students = m.students.filter(s => s.name !== orig);
+  });
+
+  if (state.selectedStudent === orig) state.selectedStudent = target;
+  saveState();
+  closeModal();
+  renderSidebar();
+  renderPanel();
+  alert('✓ 合併完成！');
+}
+
 function deleteStudentFromEdit() {
   const orig = document.getElementById('editStudentOrig').value;
-  if (!confirm('確定永久刪除 ' + orig + '？此動作無法復原。')) return;
-  const data = getCurrentMonthData();
-  data.students = data.students.filter(s => s.name !== orig);
+  if (!confirm('確定永久刪除「' + orig + '」？\n將從所有月份的資料中移除，此動作無法復原。')) return;
+  // Delete from all months
+  Object.values(state.months).forEach(m => {
+    if (m.students) m.students = m.students.filter(s => s.name !== orig);
+  });
   if (state.selectedStudent === orig) state.selectedStudent = null;
   saveState();
   closeModal();
