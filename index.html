@@ -2327,6 +2327,7 @@ function _exportMultiMonthPDF(months) {
   const tabs = state._batchTabs || { team: true, small: false };
   const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
+  const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
   const days = ['日','一','二','三','四','五','六'];
 
