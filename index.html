@@ -771,6 +771,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" id="batchAttendedBtn" onclick="toggleBatchAttended()" style="font-size:0.8rem;">有上課</button>
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         
+        <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.8rem;">📅 本月課日</button>
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
@@ -925,9 +926,24 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="editIsSmall" onchange="var g=document.getElementById('editSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsPrivate"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
+          <input type="checkbox" id="editIsPrivate" onchange="var g=document.getElementById('editPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
         </label>
       </div>
+    </div>
+    <div class="form-group" id="editPrivateGroup" style="display:none;">
+      <label style="color:#a78bfa;">★ 個人/雙人課教練（可多選）</label>
+      <div id="editPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 個人/雙人課場地（留空同團課）</label>
+      <select id="editPrivateVenue" style="width:100%;margin-top:4px;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
     </div>
     <div class="form-group"><label>日期</label>
       <div style="display:flex;gap:6px;align-items:center;">
@@ -1057,9 +1073,24 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="newIsSmall" onchange="var g=document.getElementById('newSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsPrivate"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
+          <input type="checkbox" id="newIsPrivate" onchange="var g=document.getElementById('newPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
         </label>
       </div>
+    </div>
+    <div class="form-group" id="newPrivateGroup" style="display:none;">
+      <label style="color:#a78bfa;">★ 個人/雙人課教練（可多選）</label>
+      <div id="newPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 個人/雙人課場地（留空同團課）</label>
+      <select id="newPrivateVenue" style="width:100%;margin-top:4px;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
     </div>
     <div class="form-group"><label>日期</label>
       <div style="display:flex;gap:6px;align-items:center;">
@@ -1749,7 +1780,7 @@ function loadCustomCoachesVenues() {
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '[]');
   const defaultVenues = ['黎光','朝馬','台體大'];
   venues.filter(v => !defaultVenues.includes(v)).forEach(name => {
-    ['newVenue','editVenue','newSmallVenue','editSmallVenue'].forEach(id => {
+    ['newVenue','editVenue','newSmallVenue','editSmallVenue','newPrivateVenue','editPrivateVenue'].forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
       if ([...sel.options].some(o => o.value === name)) return;
@@ -3189,6 +3220,7 @@ function renderPanel() {
     const dKey = d.uid || d.date;
     const isTeam = (s.attended||[]).includes(dKey);
     const isSmall = (s.scDates||[]).includes(dKey);
+    const isPrivate = (s.privateDates||[]).includes(dKey);
     const dt = new Date(d.date + 'T00:00:00');
     const days = ['日','一','二','三','四','五','六'];
     const dayName = days[dt.getDay()];
@@ -3197,18 +3229,22 @@ function renderPanel() {
       <div class="date-btn-new">
         <div class="date-header-row">
           <span class="date-num">${dateNum}</span>
-          <span class="date-day-venue">週${dayName}・${d.venue}${d.smallVenue && d.smallVenue !== d.venue ? '<span style="color:#b07c0b;">　◆'+d.smallVenue+'</span>' : ''}${d.teamCoach||d.coach ? '<br><span style="color:#3aab6e;font-size:0.7rem;">● ' + (d.teamCoach||d.coach||'') + '</span>' : ''}${d.smallCoach ? '<br><span style="color:#fcc929;font-size:0.7rem;">◆ ' + d.smallCoach + '</span>' : ''}</span>
+          <span class="date-day-venue">週${dayName}・${d.venue}${d.smallVenue && d.smallVenue !== d.venue ? '<span style="color:#b07c0b;">　◆'+d.smallVenue+'</span>' : ''}${d.privateVenue && d.privateVenue !== d.venue ? '<span style="color:#a78bfa;">　★'+d.privateVenue+'</span>' : ''}${d.teamCoach||d.coach ? '<br><span style="color:#3aab6e;font-size:0.7rem;">● ' + (d.teamCoach||d.coach||'') + '</span>' : ''}${d.smallCoach ? '<br><span style="color:#fcc929;font-size:0.7rem;">◆ ' + d.smallCoach + '</span>' : ''}${d.privateCoach ? '<br><span style="color:#a78bfa;font-size:0.7rem;">★ ' + d.privateCoach + '</span>' : ''}</span>
           <button class="date-del-btn" class="edit-only" style="position:relative;opacity:1;top:auto;right:auto;" onclick="event.stopPropagation();openEditDate('${d.date}')" title="編輯課日">✎</button>
         </div>
         <div class="date-check-row">
-          <div class="date-check-box ${isTeam ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${dKey}','team')">
+          ${d.isTeam ? `<div class="date-check-box ${isTeam ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${dKey}','team')">
             <span class="check-label">團課</span>
             ${isTeam ? '<span>✓</span>' : ''}
-          </div>
-          <div class="date-check-box ${isSmall ? 'checked-small' : ''}" onclick="toggleDate('${s.name}','${dKey}','small')">
+          </div>` : ''}
+          ${d.isSmall ? `<div class="date-check-box ${isSmall ? 'checked-small' : ''}" onclick="toggleDate('${s.name}','${dKey}','small')">
             <span class="check-label">小班</span>
             ${isSmall ? '<span>✓</span>' : ''}
-          </div>
+          </div>` : ''}
+          ${d.isPrivate ? `<div class="date-check-box ${isPrivate ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${dKey}','private')" style="${isPrivate ? 'background:rgba(167,139,250,0.25);border-color:rgba(167,139,250,0.6);' : 'border-color:rgba(167,139,250,0.3);'}">
+            <span class="check-label" style="color:#a78bfa;">個人/雙人</span>
+            ${isPrivate ? '<span style="color:#a78bfa;">✓</span>' : ''}
+          </div>` : ''}
         </div>
       </div>
     </div>`;
@@ -3516,9 +3552,11 @@ function showDateManager() {
       if (d.isPrivate) tags.push('<span style="background:rgba(167,139,250,0.25);color:#a78bfa;font-size:0.7rem;padding:2px 7px;border-radius:99px;">個人/雙人</span>');
       const tc = d.teamCoach || d.coach || '';
       const sc = d.smallCoach || '';
+      const pc = d.privateCoach || '';
       const coachHtml = [
         tc ? '<span style="color:#3aab6e;">● ' + tc + '</span>' : '',
-        sc ? '<span style="color:#fcc929;">◆ ' + sc + '</span>' : ''
+        sc ? '<span style="color:#fcc929;">◆ ' + sc + '</span>' : '',
+        pc ? '<span style="color:#a78bfa;">★ ' + pc + '</span>' : ''
       ].filter(Boolean).join('<span style="color:var(--border);margin:0 4px;">|</span>');
       content +=
         '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;">' +
@@ -3642,6 +3680,8 @@ function addDate() {
   const date = y + '-' + m + '-' + d;
   const venue = document.getElementById('newVenue').value;
   const smallVenue = (document.getElementById('newSmallVenue') && document.getElementById('newIsSmall').checked) ? document.getElementById('newSmallVenue').value : '';
+  const privateCoach = Array.from(document.querySelectorAll('input[name=newPrivateCoach]:checked')).map(x=>x.value).join('、');
+  const privateVenue = (document.getElementById('newPrivateVenue') && document.getElementById('newIsPrivate').checked) ? document.getElementById('newPrivateVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=newTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=newSmallCoach]:checked')).map(x=>x.value).join('、');
   const data = getCurrentMonthData();
@@ -3654,7 +3694,7 @@ function addDate() {
   const isSmall2 = isSmallEl ? isSmallEl.checked : false;
   const isPrivate2 = isPrivateEl2 ? isPrivateEl2.checked : false;
   const uid = date + '_' + Date.now();
-  data.dates.push({ date, venue, smallVenue, teamCoach, smallCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, isPrivate: isPrivate2, uid });
+  data.dates.push({ date, venue, smallVenue, privateVenue, teamCoach, smallCoach, privateCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, isPrivate: isPrivate2, uid });
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   closeModal();
@@ -3687,7 +3727,13 @@ function openEditDate(dateOrUid, fromManager) {
   document.getElementById('editDateNote').value = d.note || '';
   document.getElementById('editIsTeam').checked = d.isTeam === true;
   document.getElementById('editIsSmall').checked = d.isSmall === true;
-  if (document.getElementById('editIsPrivate')) document.getElementById('editIsPrivate').checked = d.isPrivate === true;
+  if (document.getElementById('editIsPrivate')) {
+    document.getElementById('editIsPrivate').checked = d.isPrivate === true;
+    const _epg = document.getElementById('editPrivateGroup');
+    if (_epg) _epg.style.display = d.isPrivate ? '' : 'none';
+  }
+  const _epv = document.getElementById('editPrivateVenue');
+  if (_epv) _epv.value = d.privateVenue || '';
   const teamCoaches = (d.teamCoach || d.coach || '').split('、').filter(Boolean);
   const smallCoaches = (d.smallCoach || '').split('、').filter(Boolean);
   document.querySelectorAll('input[name=editTeamCoach]').forEach(c => { c.checked = teamCoaches.includes(c.value); });
@@ -3706,6 +3752,8 @@ function saveEditDate() {
   const newDate = y + '-' + m + '-' + d;
   const venue = document.getElementById('editVenue').value;
   const smallVenue = (document.getElementById('editSmallVenue') && document.getElementById('editIsSmall').checked) ? document.getElementById('editSmallVenue').value : '';
+  const privateCoach = Array.from(document.querySelectorAll('input[name=editPrivateCoach]:checked')).map(x=>x.value).join('、');
+  const privateVenue = (document.getElementById('editPrivateVenue') && document.getElementById('editIsPrivate').checked) ? document.getElementById('editPrivateVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=editTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=editSmallCoach]:checked')).map(x=>x.value).join('、');
   const note = (document.getElementById('editDateNote').value || '').trim();
@@ -3728,7 +3776,7 @@ function saveEditDate() {
       if (si !== -1) s.scDates[si] = oldUid || newDate;
     });
   }
-  data.dates[idx] = { date: newDate, venue, smallVenue, teamCoach, smallCoach, note, isTeam, isSmall, isPrivate, uid: oldUid || (newDate + '_' + Date.now()) };
+  data.dates[idx] = { date: newDate, venue, smallVenue, privateVenue, teamCoach, smallCoach, privateCoach, note, isTeam, isSmall, isPrivate, uid: oldUid || (newDate + '_' + Date.now()) };
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   // If opened from dateManager, go back to it
