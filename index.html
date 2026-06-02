@@ -3608,6 +3608,11 @@ function showAddDate() {
 }
 function closeModal() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+  // 如果批量點名開著，重新 render
+  const batchModal = document.getElementById('batchModal');
+  if (batchModal && batchModal.style.display === 'flex') {
+    renderBatch();
+  }
 }
 
 function setNewStudentType(type) {
