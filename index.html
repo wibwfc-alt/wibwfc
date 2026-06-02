@@ -2117,16 +2117,11 @@ function renderBatch() {
             '</td>';
         }
       }
-      // 月底剩餘（根據 courseFilter 顯示對應剩餘）
-      if (!simpleMode) {
-        let balCell = '';
-        if (courseFilter !== 'small') balCell += '<div style="' + balColor + 'font-size:0.72rem;">團' + (endBal>=0?'+':'') + endBal + '</div>';
-        if (courseFilter !== 'team') {
-          const hasSmallData = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
-          if (hasSmallData) balCell += '<div style="' + scBalColor + 'font-size:0.72rem;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>';
-        }
-        tbody += '<td class="batch-td" data-bal-name="' + s.name + '">' + balCell + '</td>';
-      }
+      // 合計（只顯示堂數）
+      let totalCell = '';
+      if (courseFilter !== 'small') totalCell += '<div style="font-size:0.72rem;color:#3aab6e;">團' + teamActual + '</div>';
+      if (courseFilter !== 'team' && scActual > 0) totalCell += '<div style="font-size:0.72rem;color:#fcc929;">小' + scActual + '</div>';
+      tbody += '<td class="batch-td">' + totalCell + '</td>';
       tbody += '</tr>';
     });
   });
@@ -2356,6 +2351,16 @@ function _exportMultiMonthPDF(months) {
 
     let students = (data.students||[]).filter(s => s.group !== '已離隊' && !s.isTrial);
     if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
+    // 僅上課：只顯示該月有出席的學員
+    if (attendedOnly) {
+      students = students.filter(s => {
+        const tc = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
+        const sc = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
+        if (courseFilter === 'team') return tc > 0;
+        if (courseFilter === 'small') return sc > 0;
+        return tc > 0 || sc > 0;
+      });
+    }
 
     const groups = {};
     students.forEach(s => { if (!groups[s.group]) groups[s.group] = []; groups[s.group].push(s); });
@@ -2413,7 +2418,7 @@ function _exportMultiMonthPDF(months) {
         }
         const teamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
         const scCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
-        tbodyHtml += '<td style="text-align:right;"><div style="' + balStyle + 'font-size:11px;">團' + teamCount + (endBal!==0?' ('+( endBal>0?'+':'')+endBal+')':'') + '</div>' + (hasSmall ? '<div style="' + scBalStyle + 'font-size:10px;">小' + scCount + (scEndBal!==0?' ('+(scEndBal>0?'+':'')+scEndBal+')':'') + '</div>' : '') + '</td>';
+        tbodyHtml += '<td style="text-align:right;"><div style="font-size:11px;">團' + teamCount + '</div>' + (hasSmall ? '<div style="font-size:10px;color:#888;">小' + scCount + '</div>' : '') + '</td>';
         tbodyHtml += '</tr>';
       });
       // Total row
