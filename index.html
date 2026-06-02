@@ -770,6 +770,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
+        <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
       </div>
     </div>
@@ -1303,7 +1304,19 @@ function tpUpdate() {
   const periodHint = document.getElementById('tpPeriodHint');
   if (date) {
     const day = parseInt(date.split('-')[2]);
-    periodHint.textContent = '→ 將計入「' + (day <= 10 ? '月中儲值' : '月底儲值') + '」';
+    const _ym = document.getElementById('tpDate').value.slice(0,7);
+    let _hint = '';
+    if (day <= 5) {
+      const _prev = _ym === state.currentMonth
+        ? (() => { const d = new Date(_ym+'-01'); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,7); })()
+        : _ym.slice(0,7);
+      _hint = '→ 將計入「' + _prev.replace('-','年') + '月 月底儲值」';
+    } else if (day <= 15) {
+      _hint = '→ 將計入「本月月中儲值」';
+    } else {
+      _hint = '→ 將計入「本月月底儲值」';
+    }
+    periodHint.textContent = _hint;
   } else { periodHint.textContent = ''; }
   const name = document.getElementById('topupStudentName').textContent.replace('學員：','');
   const ref = document.getElementById('tpRef').value.trim();
@@ -1336,24 +1349,47 @@ function tpSave() {
   if (isTeam && teamAmt === 0 && !isSmall) { alert('請填寫團課儲值堂數'); return; }
   if (isSmall && smallAmt === 0 && !isTeam) { alert('請填寫小班儲值堂數'); return; }
   const day = parseInt(date.split('-')[2]);
-  const period = day <= 10 ? 'mid' : 'end';
+  const dateYM = date.slice(0,7);
+  let period, targetMonth;
+  if (day <= 5) {
+    // previous month end
+    const d = new Date(dateYM+'-01');
+    d.setMonth(d.getMonth()-1);
+    targetMonth = d.toISOString().slice(0,7);
+    period = 'end';
+  } else if (day <= 15) {
+    targetMonth = dateYM;
+    period = 'mid';
+  } else {
+    targetMonth = dateYM;
+    period = 'end';
+  }
   const method = document.querySelector('input[name=tpMethod]:checked').value;
   const ref = document.getElementById('tpRef').value.trim();
   const money = parseInt(document.getElementById('tpMoney').value) || 0;
   const note = document.getElementById('tpNote').value.trim();
-  const data = getCurrentMonthData();
-  const s = data.students.find(x => x.name === nameEl);
-  if (!s) { alert('找不到學員'); return; }
+  // Use targetMonth (may be previous month if date ≤ 5)
+  if (!state.months[targetMonth]) state.months[targetMonth] = { dates: [], students: [] };
+  const targetData = state.months[targetMonth];
+  const s = targetData.students.find(x => x.name === nameEl);
+  if (!s) {
+    // Try current month
+    const cur = getCurrentMonthData().students.find(x => x.name === nameEl);
+    if (!cur) { alert('找不到學員'); return; }
+    // Copy student to target month if not exist
+    targetData.students.push(Object.assign({}, cur, { attended: [], midTopup: 0, endTopup: 0, scMidTopup: 0, scTopup: 0, scDates: [] }));
+  }
+  const ts = targetData.students.find(x => x.name === nameEl);
   if (isTeam && teamAmt > 0) {
-    if (period === 'mid') s.midTopup = (s.midTopup||0) + teamAmt;
-    else s.endTopup = (s.endTopup||0) + teamAmt;
+    if (period === 'mid') ts.midTopup = (ts.midTopup||0) + teamAmt;
+    else ts.endTopup = (ts.endTopup||0) + teamAmt;
   }
   if (isSmall && smallAmt > 0) {
-    if (period === 'mid') s.scMidTopup = (s.scMidTopup||0) + smallAmt;
-    else s.scTopup = (s.scTopup||0) + smallAmt;
+    if (period === 'mid') ts.scMidTopup = (ts.scMidTopup||0) + smallAmt;
+    else ts.scTopup = (ts.scTopup||0) + smallAmt;
   }
   if (!state.paymentHistory) state.paymentHistory = [];
-  state.paymentHistory.push({ id: Date.now(), name: nameEl, date, method, ref, money, teamAmt: isTeam ? teamAmt : 0, smallAmt: isSmall ? smallAmt : 0, period, month: state.currentMonth, note });
+  state.paymentHistory.push({ id: Date.now(), name: nameEl, date, method, ref, money, teamAmt: isTeam ? teamAmt : 0, smallAmt: isSmall ? smallAmt : 0, period, month: targetMonth, note });
   saveState();
   tpClose();
   renderSidebar();
@@ -1446,7 +1482,9 @@ function phUpdateRecord(el) {
   // If date changed, recalculate period
   if (field === 'date') {
     const day = parseInt(val.split('-')[2]);
-    rec.period = day <= 10 ? 'mid' : 'end';
+    if (day <= 5) { rec.period = 'end'; }
+    else if (day <= 15) { rec.period = 'mid'; }
+    else { rec.period = 'end'; }
   }
 
   // Re-apply topup changes to student data
@@ -2281,6 +2319,169 @@ ${card.outerHTML}
 </body>
 </html>`);
   printWin.document.close();
+}
+
+function exportDualMonthPDF() {
+  // Ask which second month to include
+  const availableMonths = Object.keys(state.months).sort();
+  if (availableMonths.length < 2) { alert('資料中只有一個月份，無法雙月匯出'); return; }
+  const otherMonths = availableMonths.filter(m => m !== state.currentMonth);
+  const secondMonth = prompt('請輸入第二個月份（格式：YYYY-MM）\n可用月份：' + otherMonths.join('、'), otherMonths[otherMonths.length - 1]);
+  if (!secondMonth || !state.months[secondMonth]) { if (secondMonth) alert('找不到該月份資料'); return; }
+
+  const months = [state.currentMonth, secondMonth].sort();
+  _exportMultiMonthPDF(months);
+}
+
+function _exportMultiMonthPDF(months) {
+  const tabs = state._batchTabs || { team: true, small: false };
+  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
+  const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
+  const days = ['日','一','二','三','四','五','六'];
+
+  // Build one section per month
+  let allSections = '';
+
+  months.forEach((month, mIdx) => {
+    const data = state.months[month];
+    if (!data) return;
+    const monthLabel = month.replace('-', '年') + '月';
+
+    let filteredDates = (data.dates||[]).filter(d => {
+      if (courseFilter === 'team') return d.isTeam === true;
+      if (courseFilter === 'small') return d.isSmall === true;
+      return true;
+    });
+
+    let students = (data.students||[]).filter(s => s.group !== '已離隊' && !s.isTrial);
+    if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
+
+    const groups = {};
+    students.forEach(s => { if (!groups[s.group]) groups[s.group] = []; groups[s.group].push(s); });
+
+    // Filter dates with 0 attendance
+    const _ac = {};
+    filteredDates.forEach(d => { _ac[d.uid||d.date] = 0; });
+    students.forEach(s => {
+      (s.attended||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
+      (s.scDates||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
+    });
+    filteredDates = filteredDates.filter(d => _ac[d.uid||d.date] > 0);
+
+    const groupTitle = selectedGroups ? selectedGroups.join('、') : '全部';
+
+    let theadHtml = '<tr><th>學員</th>';
+    if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
+    filteredDates.forEach(d => {
+      const dt = new Date(d.date + 'T00:00:00');
+      const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
+      const _vDisplay = (!_hasTeam && d.smallVenue) ? d.smallVenue : (d.venue||'');
+      theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + _vDisplay + '</span></th>';
+    });
+    if (!simpleMode) theadHtml += '<th>月底儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
+    theadHtml += '<th>合計</th></tr>';
+
+    let tbodyHtml = '';
+    Object.entries(groups).forEach(([g, list]) => {
+      tbodyHtml += '<tr class="group-row"><td colspan="' + (filteredDates.length + (simpleMode ? 2 : 5)) + '">' + g + '</td></tr>';
+      list.forEach(s => {
+        const endBal = calcEndBalance(s);
+        const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
+        const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
+        const hasSmall = courseFilter !== 'team' && scActual > 0;
+        const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
+        const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
+        tbodyHtml += '<tr>';
+        tbodyHtml += '<td class="name-cell">' + s.name + (s.bib ? ' <span style="color:#888;font-size:9px;">#'+s.bib+'</span>' : '') + '</td>';
+        if (!simpleMode) {
+          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') + '</td>';
+          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scMidTopup||0) + '</div>' : '') + '</td>';
+        }
+        filteredDates.forEach(d => {
+          const dKey = d.uid||d.date;
+          const isTeam = (s.attended||[]).includes(dKey);
+          const isSmall = (s.scDates||[]).includes(dKey);
+          let cell = '';
+          if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
+          else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
+          else if (isSmall) cell = '<span style="color:#c8a000;">◆</span>';
+          tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
+        });
+        if (!simpleMode) {
+          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') + '</td>';
+        }
+        const teamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
+        const scCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
+        tbodyHtml += '<td style="text-align:right;"><div style="' + balStyle + 'font-size:11px;">團' + teamCount + (endBal!==0?' ('+( endBal>0?'+':'')+endBal+')':'') + '</div>' + (hasSmall ? '<div style="' + scBalStyle + 'font-size:10px;">小' + scCount + (scEndBal!==0?' ('+(scEndBal>0?'+':'')+scEndBal+')':'') + '</div>' : '') + '</td>';
+        tbodyHtml += '</tr>';
+      });
+      // Total row
+      const totalRow = Array(filteredDates.length).fill(0);
+      const scTotalRow = Array(filteredDates.length).fill(0);
+      list.forEach(s => {
+        filteredDates.forEach((d,i) => {
+          if ((s.attended||[]).includes(d.uid||d.date)) totalRow[i]++;
+          if ((s.scDates||[]).includes(d.uid||d.date)) scTotalRow[i]++;
+        });
+      });
+      tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">團課人數</td>' + totalRow.map(n=>'<td>'+(n||'')+' </td>').join('') + (simpleMode?'':'<td></td>') + '<td></td></tr>';
+      if (courseFilter !== 'team') tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">小班人數</td>' + scTotalRow.map(n=>'<td>'+(n||'')+' </td>').join('') + (simpleMode?'':'<td></td>') + '<td></td></tr>';
+    });
+
+    const pageBreak = mIdx > 0 ? 'style="page-break-before:always;"' : '';
+    allSections += `<div ${pageBreak}>
+<div class="header">
+  <div>
+    <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
+    <div class="header-sub">${groupTitle} · 共 ${students.length} 人 · ${filteredDates.length} 個課日</div>
+  </div>
+  <div class="header-right">列印日期：${new Date().toLocaleDateString('zh-TW')}</div>
+</div>
+<table class="attendance-table">
+  <thead>${theadHtml}</thead>
+  <tbody>${tbodyHtml}</tbody>
+</table>
+<div class="legend">
+  <span><span style="color:#1a7a50;">●</span> 團課出席</span>
+  <span><span style="color:#1a7a50;">◆</span> 小班課出席</span>
+  <span style="color:#cc3300;">紅色 = 堂數不足</span>
+  <span style="color:#888;">小 = 小班課數值</span>
+</div>
+</div>`;
+  });
+
+  // Get CSS from the single-month export (reuse same styles)
+  const singleWin = window.open('', '_blank');
+  if (!singleWin) { alert('請允許彈出視窗'); return; }
+
+  // Reuse same CSS as exportBatchPDF - extract it inline
+  singleWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>雙月出席紀錄</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans TC', sans-serif; font-size: 11px; background: white; color: #111; padding: 8px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #fcc929; }
+  .header-title { font-size: 16px; font-weight: 900; color: #111; }
+  .header-title span { color: #246e58; }
+  .header-sub { font-size: 11px; color: #555; margin-top: 3px; }
+  .header-right { font-size: 10px; color: #888; }
+  .attendance-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .attendance-table th { background: #f5f5f5; border: 1px solid #ddd; padding: 4px 3px; text-align: center; font-weight: 700; font-size: 9px; line-height: 1.3; }
+  .attendance-table td { border: 1px solid #eee; padding: 3px; text-align: center; line-height: 1.4; }
+  .name-cell { white-space: nowrap; font-weight: 700; min-width: 60px; text-align: left !important; }
+  .group-row td { background: #fcc929; color: #111; font-weight: 900; font-size: 11px; letter-spacing: 2px; padding: 5px 8px; }
+  .total-row td { background: #f0f0f0; color: #333; font-weight: 700; text-align: center; }
+  .legend { margin-top: 16px; display: flex; gap: 20px; font-size: 10px; color: #666; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0; }
+    @page { margin: 5mm; size: landscape; }
+  }
+</style>
+</head>
+<body onload="(function(){ var b=document.body; var pw=(297-10)*3.78; var sw=b.scrollWidth; if(sw>pw){ b.style.zoom=pw/sw; } setTimeout(function(){window.print();},800); })()">
+${allSections}
+</body></html>`);
+  singleWin.document.close();
 }
 
 function exportBatchPDF() {
