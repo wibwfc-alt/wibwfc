@@ -793,6 +793,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <div style="display:flex;gap:10px;">
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsTeam" onchange="tpUpdate()"> <span style="color:#3aab6e;">● 團課</span></label>
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsSmall" onchange="tpUpdate()"> <span style="color:#fcc929;">◆ 小班</span></label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsPrivate" onchange="tpUpdate()"> <span style="color:#a78bfa;">★ 個人/雙人</span></label>
       </div>
     </div>
     <div style="margin-bottom:12px;">
@@ -823,6 +824,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div id="tpSmallSection" style="margin-bottom:12px;display:none;">
       <div style="font-size:0.72rem;color:#fcc929;margin-bottom:5px;">◆ 小班儲值堂數</div>
       <input id="tpSmallAmount" type="number" placeholder="例：4" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+    </div>
+    <div id="tpPrivateSection" style="margin-bottom:12px;display:none;">
+      <div style="font-size:0.72rem;color:#a78bfa;margin-bottom:5px;">★ 個人/雙人儲值堂數</div>
+      <input id="tpPrivateAmount" type="number" placeholder="例：4" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(167,139,250,0.2);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
     <div style="margin-bottom:16px;">
       <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">備註（選填）</div>
@@ -1320,6 +1325,8 @@ function showTopupForm(name) {
   document.getElementById('tpDate').value = new Date().toISOString().split('T')[0];
   document.getElementById('tpIsTeam').checked = false;
   document.getElementById('tpIsSmall').checked = false;
+  if (document.getElementById('tpIsPrivate')) document.getElementById('tpIsPrivate').checked = false;
+  if (document.getElementById('tpPrivateAmount')) document.getElementById('tpPrivateAmount').value = '';
   document.querySelector('input[name=tpMethod][value="轉帳"]').checked = true;
   tpUpdate();
 }
@@ -1331,8 +1338,10 @@ function tpClose() {
 function tpUpdate() {
   const isTeam = document.getElementById('tpIsTeam').checked;
   const isSmall = document.getElementById('tpIsSmall').checked;
+  const isPrivate = document.getElementById('tpIsPrivate') ? document.getElementById('tpIsPrivate').checked : false;
   document.getElementById('tpTeamSection').style.display = isTeam ? '' : 'none';
   document.getElementById('tpSmallSection').style.display = isSmall ? '' : 'none';
+  if (document.getElementById('tpPrivateSection')) document.getElementById('tpPrivateSection').style.display = isPrivate ? '' : 'none';
   const method = document.querySelector('input[name=tpMethod]:checked').value;
   const refGroup = document.getElementById('tpRefGroup');
   const refLabel = document.getElementById('tpRefLabel');
@@ -1370,8 +1379,10 @@ function tpUpdate() {
   if (date) { const dt = new Date(date+'T00:00:00'); lines.push('日期：' + date.replace(/-/g,'/') + '（週' + days[dt.getDay()] + '）'); }
   lines.push('方式：' + method + (ref ? '（' + ref + '）' : ''));
   if (money) lines.push('金額：NT$' + money);
+  const privateAmt = document.getElementById('tpPrivateAmount') ? document.getElementById('tpPrivateAmount').value : '';
   if (isTeam && teamAmt) lines.push('● 團課 +' + teamAmt + ' 堂');
   if (isSmall && smallAmt) lines.push('◆ 小班 +' + smallAmt + ' 堂');
+  if (isPrivate && privateAmt) lines.push('★ 個人/雙人 +' + privateAmt + ' 堂');
   if (note) lines.push('備註：' + note);
   document.getElementById('tpPreview').textContent = lines.join('\n');
 }
@@ -1383,11 +1394,14 @@ function tpSave() {
   if (!date) { alert('請填寫匯款日期'); return; }
   const isTeam = document.getElementById('tpIsTeam').checked;
   const isSmall = document.getElementById('tpIsSmall').checked;
-  if (!isTeam && !isSmall) { alert('請選擇課程類型'); return; }
+  const isPrivateTp = document.getElementById('tpIsPrivate') ? document.getElementById('tpIsPrivate').checked : false;
+  if (!isTeam && !isSmall && !isPrivateTp) { alert('請選擇課程類型'); return; }
   const teamAmt = parseInt(document.getElementById('tpTeamAmount').value) || 0;
   const smallAmt = parseInt(document.getElementById('tpSmallAmount').value) || 0;
-  if (isTeam && teamAmt === 0 && !isSmall) { alert('請填寫團課儲值堂數'); return; }
-  if (isSmall && smallAmt === 0 && !isTeam) { alert('請填寫小班儲值堂數'); return; }
+  const privateAmt = isPrivateTp && document.getElementById('tpPrivateAmount') ? (parseInt(document.getElementById('tpPrivateAmount').value) || 0) : 0;
+  if (isTeam && teamAmt === 0 && !isSmall && !isPrivateTp) { alert('請填寫團課儲值堂數'); return; }
+  if (isSmall && smallAmt === 0 && !isTeam && !isPrivateTp) { alert('請填寫小班儲值堂數'); return; }
+  if (isPrivateTp && privateAmt === 0 && !isTeam && !isSmall) { alert('請填寫個人/雙人儲值堂數'); return; }
   const day = parseInt(date.split('-')[2]);
   const dateYM = date.slice(0,7);
   let period, targetMonth;
@@ -1438,8 +1452,12 @@ function tpSave() {
     if (period === 'mid') ts.scMidTopup = (ts.scMidTopup||0) + smallAmt;
     else ts.scTopup = (ts.scTopup||0) + smallAmt;
   }
+  if (isPrivateTp && privateAmt > 0) {
+    if (period === 'mid') ts.privateMidTopup = (ts.privateMidTopup||0) + privateAmt;
+    else ts.privateTopup = (ts.privateTopup||0) + privateAmt;
+  }
   if (!state.paymentHistory) state.paymentHistory = [];
-  state.paymentHistory.push({ id: Date.now(), name: nameEl, date, method, ref, money, teamAmt: isTeam ? teamAmt : 0, smallAmt: isSmall ? smallAmt : 0, period, month: targetMonth, note });
+  state.paymentHistory.push({ id: Date.now(), name: nameEl, date, method, ref, money, teamAmt: isTeam ? teamAmt : 0, smallAmt: isSmall ? smallAmt : 0, privateAmt: isPrivateTp ? privateAmt : 0, period, month: targetMonth, note });
   saveState();
   tpClose();
   renderSidebar();
@@ -1494,6 +1512,7 @@ function _renderPaymentHistory() {
           + '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px;">'
           + '<span style="font-size:0.72rem;color:#3aab6e;">● 團課</span>' + inp(p.teamAmt||0, 'teamAmt', '48px', 'number')
           + '<span style="font-size:0.72rem;color:#fcc929;">◆ 小班</span>' + inp(p.smallAmt||0, 'smallAmt', '48px', 'number')
+          + '<span style="font-size:0.72rem;color:#a78bfa;">★ 雙人</span>' + inp(p.privateAmt||0, 'privateAmt', '48px', 'number')
           + '<span style="font-size:0.72rem;color:var(--gray);">備註</span>' + inp(p.note||'', 'note', '120px')
           + '</div>'
           + '</div>'
@@ -1533,6 +1552,7 @@ function phUpdateRecord(el) {
 
   const oldTeamAmt = rec.teamAmt || 0;
   const oldSmallAmt = rec.smallAmt || 0;
+  const oldPrivateAmt = rec.privateAmt || 0;
   const oldPeriod = rec.period;
   const oldMonth = rec.month;
 
@@ -1541,8 +1561,8 @@ function phUpdateRecord(el) {
   if (oldData) {
     const s = oldData.students.find(x => x.name === rec.name);
     if (s) {
-      if (oldPeriod === 'mid') { s.midTopup = Math.max(0,(s.midTopup||0)-oldTeamAmt); s.scMidTopup = Math.max(0,(s.scMidTopup||0)-oldSmallAmt); }
-      else { s.endTopup = Math.max(0,(s.endTopup||0)-oldTeamAmt); s.scTopup = Math.max(0,(s.scTopup||0)-oldSmallAmt); }
+      if (oldPeriod === 'mid') { s.midTopup = Math.max(0,(s.midTopup||0)-oldTeamAmt); s.scMidTopup = Math.max(0,(s.scMidTopup||0)-oldSmallAmt); s.privateMidTopup = Math.max(0,(s.privateMidTopup||0)-oldPrivateAmt); }
+      else { s.endTopup = Math.max(0,(s.endTopup||0)-oldTeamAmt); s.scTopup = Math.max(0,(s.scTopup||0)-oldSmallAmt); s.privateTopup = Math.max(0,(s.privateTopup||0)-oldPrivateAmt); }
     }
   }
 
@@ -1575,8 +1595,9 @@ function phUpdateRecord(el) {
     if (s) {
       const newTeam = rec.teamAmt || 0;
       const newSmall = rec.smallAmt || 0;
-      if (rec.period === 'mid') { s.midTopup = (s.midTopup||0)+newTeam; s.scMidTopup = (s.scMidTopup||0)+newSmall; }
-      else { s.endTopup = (s.endTopup||0)+newTeam; s.scTopup = (s.scTopup||0)+newSmall; }
+      const newPrivate = rec.privateAmt || 0;
+      if (rec.period === 'mid') { s.midTopup = (s.midTopup||0)+newTeam; s.scMidTopup = (s.scMidTopup||0)+newSmall; s.privateMidTopup = (s.privateMidTopup||0)+newPrivate; }
+      else { s.endTopup = (s.endTopup||0)+newTeam; s.scTopup = (s.scTopup||0)+newSmall; s.privateTopup = (s.privateTopup||0)+newPrivate; }
     }
   }
 
@@ -1595,8 +1616,8 @@ function phDeleteRecord(id) {
     if (data) {
       const s = data.students.find(x => x.name === rec.name);
       if (s) {
-        if (rec.period === 'mid') { s.midTopup = Math.max(0,(s.midTopup||0)-(rec.teamAmt||0)); s.scMidTopup = Math.max(0,(s.scMidTopup||0)-(rec.smallAmt||0)); }
-        else { s.endTopup = Math.max(0,(s.endTopup||0)-(rec.teamAmt||0)); s.scTopup = Math.max(0,(s.scTopup||0)-(rec.smallAmt||0)); }
+        if (rec.period === 'mid') { s.midTopup = Math.max(0,(s.midTopup||0)-(rec.teamAmt||0)); s.scMidTopup = Math.max(0,(s.scMidTopup||0)-(rec.smallAmt||0)); s.privateMidTopup = Math.max(0,(s.privateMidTopup||0)-(rec.privateAmt||0)); }
+        else { s.endTopup = Math.max(0,(s.endTopup||0)-(rec.teamAmt||0)); s.scTopup = Math.max(0,(s.scTopup||0)-(rec.smallAmt||0)); s.privateTopup = Math.max(0,(s.privateTopup||0)-(rec.privateAmt||0)); }
       }
     }
     state.paymentHistory = state.paymentHistory.filter(p => p.id !== id);
@@ -1803,6 +1824,9 @@ function overviewUpdateTopup(name, type, val) {
   else if (type === 'scMid') s.scMidTopup = n;
   else if (type === 'scTopup') s.scTopup = n;
   else if (type === 'scPrevBal') s.scPrevBal = n;
+  else if (type === 'privatePrevBal') s.privatePrevBal = n;
+  else if (type === 'privateMid') s.privateMidTopup = n;
+  else if (type === 'privateTopup') s.privateTopup = n;
   saveState();
   renderSidebar();
 }
@@ -1823,9 +1847,11 @@ function recalcPrevBalance() {
     if (!prev) return;
     const newTeamBal = calcEndBalance(prev);
     const newScBal = (prev.scPrevBal||0) + (prev.scMidTopup||0) + (prev.scTopup||0) + (prev.scGiftTopup||0) - (prev.scDates ? prev.scDates.length : (prev.scAttended||0));
-    if (s.prevBalance !== newTeamBal || s.scPrevBal !== newScBal) {
+    const newPrivBal = calcPrivateBalance(prev);
+    if (s.prevBalance !== newTeamBal || s.scPrevBal !== newScBal || s.privatePrevBal !== newPrivBal) {
       s.prevBalance = newTeamBal;
       s.scPrevBal = newScBal;
+      s.privatePrevBal = newPrivBal;
       updated++;
     }
   });
@@ -1870,7 +1896,7 @@ function showOverview() {
 
   let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>上月結餘<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>團課</th><th>小班</th><th>月中儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月底儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月中儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底結餘</th><th>小班結餘</th><th>備註</th></tr></thead><tbody>';
   Object.entries(groups).forEach(([g, list]) => {
-    tableHtml += '<tr class="overview-group-row"><td colspan="13">' + g + '</td></tr>';
+    tableHtml += '<tr class="overview-group-row"><td colspan="16">' + g + '</td></tr>';
     list.forEach(s => {
       const bal = calcEndBalance(s);
       const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : Object.keys(s.scDates).length) : (s.scAttended||0);
@@ -1880,19 +1906,27 @@ function showOverview() {
       const teamCount = Array.isArray(s.attended) ? s.attended.length : Object.keys(s.attended||{}).length;
       const isRO = state.isReadOnly;
       const inp = (val, type) => '<input type="number" value="' + val + '" ' + (isRO?'disabled':'') + ' style="width:48px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.78rem;" onclick="event.stopPropagation()" onchange="overviewUpdateTopup(\'' + s.name + '\',\'' + type + '\',this.value)">';
+      const privateActual = (s.privateDates||[]).length;
+      const privBal = calcPrivateBalance(s);
+      const privColor = privBal < 0 ? 'color:var(--red);font-weight:700;' : privBal > 0 ? 'color:#a78bfa;' : '';
       tableHtml += '<tr onclick="closeModal();selectStudent(\'' + s.name + '\')">' +
         '<td>' + s.name + (s.bib ? ' <span style="color:var(--gray);font-size:0.72rem;">#' + s.bib + '</span>' : '') + '</td>' +
         '<td style="color:var(--gray);">' + s.group + '</td>' +
         '<td>' + inp(s.prevBalance||0, 'prevBalance') + '</td>' +
         '<td>' + inp(s.scPrevBal||0, 'scPrevBal') + '</td>' +
+        '<td>' + inp(s.privatePrevBal||0, 'privatePrevBal') + '</td>' +
         '<td style="color:#3aab6e;">' + teamCount + '</td>' +
         '<td style="color:#fcc929;">' + (scActual > 0 ? scActual : '—') + '</td>' +
+        '<td style="color:#a78bfa;">' + (privateActual > 0 ? privateActual : '—') + '</td>' +
         '<td>' + inp(s.midTopup||0, 'mid') + '</td>' +
         '<td>' + inp(s.endTopup||0, 'end') + '</td>' +
         '<td>' + inp(s.scMidTopup||0, 'scMid') + '</td>' +
         '<td>' + inp(s.scTopup||0, 'scTopup') + '</td>' +
+        '<td>' + inp(s.privateMidTopup||0, 'privateMid') + '</td>' +
+        '<td>' + inp(s.privateTopup||0, 'privateTopup') + '</td>' +
         '<td style="' + balColor + '">' + (bal>=0?'+':'') + bal + '</td>' +
         '<td style="' + scColor + '">' + (scActual>0||(s.scTopup||0)>0||(s.scPrevBal||0)!==0 ? (scBal>=0?'+':'')+scBal : '—') + '</td>' +
+        '<td style="' + privColor + '">' + (privateActual>0||(s.privateTopup||0)>0||(s.privatePrevBal||0)!==0 ? (privBal>=0?'+':'')+privBal : '—') + '</td>' +
         '<td style="color:var(--gray);font-size:0.78rem;">' + (s.note||'') + '</td>' +
         '</tr>';
     });
@@ -2509,7 +2543,7 @@ function _exportMultiMonthPDF(months) {
     const groupTitle = selectedGroups ? selectedGroups.join('、') : '全部';
 
     let theadHtml = '<tr><th>學員</th>';
-    if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
+    if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小/雙</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小/雙</span></th>';
     filteredDates.forEach(d => {
       const dt = new Date(d.date + 'T00:00:00');
       const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
@@ -2546,7 +2580,7 @@ function _exportMultiMonthPDF(months) {
           tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
         });
         if (!simpleMode) {
-          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') + '</td>';
+          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') + (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">雙' + (s.privateTopup||0) + '</div>' : '') + '</td>';
         }
         const teamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
         const scCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
@@ -2673,7 +2707,7 @@ function exportBatchPDF() {
   filteredDates = filteredDates.filter(d => _attendCount[d.uid||d.date] > 0);
 
   let theadHtml = '<tr><th>學員</th>';
-  if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
+  if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小/雙</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小/雙</span></th>';
   filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
     const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
@@ -2737,9 +2771,12 @@ function exportBatchPDF() {
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') +
         '</td>';
       // 月底剩餘
+      const privEndBal = calcPrivateBalance(s);
+      const privBalStyle = privEndBal < 0 ? 'color:#cc3300;font-weight:700;' : privEndBal > 0 ? 'color:#a78bfa;' : '';
       tbodyHtml += '<td style="text-align:center;">' +
         '<div style="' + balStyle + 'font-weight:700;font-size:9px;">團' + (endBal>=0?'+':'') + endBal + '</div>' +
         (hasSmall ? '<div style="' + scBalStyle + 'font-size:9px;font-weight:700;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>' : '') +
+        (hasPrivate ? '<div style="' + privBalStyle + 'font-size:9px;font-weight:700;">雙' + (privEndBal>=0?'+':'') + privEndBal + '</div>' : '') +
         '</td>';
       } // end !simpleMode
       tbodyHtml += '</tr>';
@@ -3088,6 +3125,11 @@ function getCurrentMonthData() {
   return state.months[state.currentMonth];
 }
 
+function calcPrivateBalance(s) {
+  const actual = (s.privateDates||[]).length;
+  return (s.privatePrevBal||0) + (s.privateMidTopup||0) + (s.privateTopup||0) - actual;
+}
+
 function calcEndBalance(s) {
   return (s.prevBalance || 0) + (s.midTopup || 0) + (s.endTopup || 0) + (s.giftTopup || 0) - (s.attended ? s.attended.length : 0);
 }
@@ -3128,6 +3170,7 @@ function renderSidebar() {
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
           <div class="balance-badge ${balClass}">${bal > 0 ? '+' : ''}${bal}</div>
           ${hasSmallClass ? `<div class="balance-badge ${scBalClass}" style="font-size:0.62rem;">${scBal > 0 ? '+' : ''}${scBal}</div>` : ''}
+          ${(s.privateDates||[]).length > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0 ? '<div class="balance-badge ' + (calcPrivateBalance(s) < 0 ? 'balance-neg' : calcPrivateBalance(s) > 0 ? 'balance-pos' : 'balance-zero') + '" style="font-size:0.62rem;border-color:rgba(167,139,250,0.5);">' + (calcPrivateBalance(s) > 0 ? '+' : '') + calcPrivateBalance(s) + '</div>' : ''}
         </div>
       </div>`;
     });
@@ -3430,6 +3473,18 @@ function renderPanel() {
               '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">' + (s.scAttended||0) + '</div><div class=\"preview-stat-label\">本月上課</div></div>' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">+' + ((s.scMidTopup||0)+(s.scTopup||0)) + ((s.scGiftTopup||0) > 0 ? '+' + (s.scGiftTopup||0) : '') + '</div><div class=\"preview-stat-label\">本月儲值</div></div>' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val ' + (scBal<0?'val-red':'val-green') + '\">' + (scBal>=0?'+':'') + scBal + '</div><div class=\"preview-stat-label\">月底剩餘</div></div>' +
+            '</div>';
+        })()}
+        \${(() => {
+          const privActual = (s.privateDates||[]).length;
+          const privBal = calcPrivateBalance(s);
+          if (privActual === 0 && (s.privateTopup||0) === 0 && (s.privatePrevBal||0) === 0) return '';
+          return '<div style="font-size:0.68rem;color:#a78bfa;letter-spacing:2px;margin:12px 0 6px;">個人/雙人課</div>' +
+            '<div class="preview-stats">' +
+              '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">' + ((s.privatePrevBal||0)>=0?'+':'') + (s.privatePrevBal||0) + '</div><div class="preview-stat-label">上月結餘</div></div>' +
+              '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">' + privActual + '</div><div class="preview-stat-label">本月上課</div></div>' +
+              '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">+' + ((s.privateMidTopup||0)+(s.privateTopup||0)) + '</div><div class="preview-stat-label">本月儲值</div></div>' +
+              '<div class="preview-stat"><div class="preview-stat-val ' + (privBal<0?'val-red':'val-green') + '">' + (privBal>=0?'+':'') + privBal + '</div><div class="preview-stat-label">月底剩餘</div></div>' +
             '</div>';
         })()}
         <div class="preview-footer">灣島黑狼 FC · 足球 × 教育 × 成長</div>
