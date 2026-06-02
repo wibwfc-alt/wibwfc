@@ -2117,11 +2117,6 @@ function renderBatch() {
             '</td>';
         }
       }
-      // 合計（只顯示堂數）
-      let totalCell = '';
-      if (courseFilter !== 'small') totalCell += '<div style="font-size:0.72rem;color:#3aab6e;">團' + teamActual + '</div>';
-      if (courseFilter !== 'team' && scActual > 0) totalCell += '<div style="font-size:0.72rem;color:#fcc929;">小' + scActual + '</div>';
-      tbody += '<td class="batch-td">' + totalCell + '</td>';
       tbody += '</tr>';
     });
   });
