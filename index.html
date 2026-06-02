@@ -2122,7 +2122,13 @@ function renderBatch() {
   document.getElementById('batchMonthLabel').textContent = monthLabel;
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
   const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const courseFilter = tabs.private ? 'private' : (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
+  const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
+    : (tabs.team && tabs.private) ? 'team+private'
+    : (tabs.small && tabs.private) ? 'small+private'
+    : (tabs.team && tabs.small) ? 'all'
+    : tabs.private ? 'private'
+    : tabs.small ? 'small'
+    : 'team';
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
   const batchSearchEl = document.getElementById('batchSearch');
@@ -2134,11 +2140,15 @@ function renderBatch() {
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
   if (attendedOnly) {
     students = students.filter(s => {
-      const teamCount = (s.attended||[]).filter(a => dates.find(d => (d.uid||d.date) === a)).length;
-      const scCount = (s.scDates||[]).filter(a => dates.find(d => (d.uid||d.date) === a)).length;
+      const teamCount = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
+      const scCount = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
+      const pvCount = (s.privateDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
       if (courseFilter === 'team') return teamCount > 0;
       if (courseFilter === 'small') return scCount > 0;
-      return teamCount > 0 || scCount > 0;
+      if (courseFilter === 'private') return pvCount > 0;
+      if (courseFilter === 'team+private') return teamCount > 0 || pvCount > 0;
+      if (courseFilter === 'small+private') return scCount > 0 || pvCount > 0;
+      return teamCount > 0 || scCount > 0 || pvCount > 0;
     });
   }
 
@@ -2150,9 +2160,13 @@ function renderBatch() {
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#fcc929;">上月結餘</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月中儲值</th>';
   const filteredDates = dates.filter(d => {
+    if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
+    if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
+    if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
     if (courseFilter === 'team') return d.isTeam === true;
     if (courseFilter === 'small') return d.isSmall === true;
-    return true;
+    if (courseFilter === 'private') return d.isPrivate === true;
+    return d.isTeam || d.isSmall;
   });
   filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
@@ -2237,9 +2251,9 @@ function renderBatch() {
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
         const isPrivate = (s.privateDates||[]).includes(dKey);
-        const dateIsTeam = d.isTeam === true && courseFilter !== 'small';
-        const dateIsSmall = d.isSmall === true && courseFilter !== 'team';
-        const dateIsPrivate = d.isPrivate === true && (courseFilter === 'private' || courseFilter === 'all');
+        const dateIsTeam = d.isTeam === true && !courseFilter.startsWith('small') || (courseFilter === 'team+private' && d.isTeam);
+        const dateIsSmall = d.isSmall === true && (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private');
+        const dateIsPrivate = d.isPrivate === true && (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all');
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
         if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
         if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
