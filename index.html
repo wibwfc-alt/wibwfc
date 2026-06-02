@@ -2280,6 +2280,12 @@ function renderBatch() {
           const hasSmallData = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
           if (hasSmallData) balCell += '<div style="' + scBalColor + 'font-size:0.72rem;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>';
         }
+        const privBal2 = calcPrivateBalance(s);
+        const hasPrivData = (s.privateDates||[]).length > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0 || (s.privateMidTopup||0) > 0;
+        if (hasPrivData) {
+          const privBalColor2 = privBal2 < 0 ? 'color:var(--red)' : 'color:#a78bfa';
+          balCell += '<div style="' + privBalColor2 + ';font-size:0.72rem;">雙' + (privBal2>=0?'+':'') + privBal2 + '</div>';
+        }
         tbody += '<td class="batch-td" data-bal-name="' + s.name + '">' + balCell + '</td>';
       }
       tbody += '</tr>';
@@ -3475,7 +3481,7 @@ function renderPanel() {
               '<div class=\"preview-stat\"><div class=\"preview-stat-val ' + (scBal<0?'val-red':'val-green') + '\">' + (scBal>=0?'+':'') + scBal + '</div><div class=\"preview-stat-label\">月底剩餘</div></div>' +
             '</div>';
         })()}
-        \${(() => {
+        ${(() => {
           const privActual = (s.privateDates||[]).length;
           const privBal = calcPrivateBalance(s);
           if (privActual === 0 && (s.privateTopup||0) === 0 && (s.privatePrevBal||0) === 0) return '';
