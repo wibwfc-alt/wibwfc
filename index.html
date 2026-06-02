@@ -930,21 +930,6 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </label>
       </div>
     </div>
-    <div class="form-group" id="editPrivateGroup" style="display:none;">
-      <label style="color:#a78bfa;">★ 個人/雙人課教練（可多選）</label>
-      <div id="editPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-      <div style="display:flex;gap:6px;margin-top:6px;">
-        <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-        <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-      </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 個人/雙人課場地（留空同團課）</label>
-      <select id="editPrivateVenue" style="width:100%;margin-top:4px;">
-        <option value="">同團課場地</option>
-        <option value="黎光">黎光</option>
-        <option value="朝馬">朝馬</option>
-        <option value="台體大">台體大</option>
-      </select>
-    </div>
     <div class="form-group"><label>日期</label>
       <div style="display:flex;gap:6px;align-items:center;">
         <select id="editDateY" style="flex:2;">
@@ -1052,6 +1037,21 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>備註（選填）</label>
       <input type="text" id="editDateNote" placeholder="例：移訓、比賽、特訓…">
     </div>
+    <div class="form-group" id="editPrivateGroup" style="display:none;">
+      <label style="color:#a78bfa;">★ 個人/雙人課教練（可多選）</label>
+      <div id="editPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 個人/雙人課場地（留空同團課）</label>
+      <select id="editPrivateVenue" style="width:100%;margin-top:4px;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-red" onclick="deleteDateFromEdit()">刪除課日</button>
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
@@ -1076,21 +1076,6 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="newIsPrivate" onchange="var g=document.getElementById('newPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
         </label>
       </div>
-    </div>
-    <div class="form-group" id="newPrivateGroup" style="display:none;">
-      <label style="color:#a78bfa;">★ 個人/雙人課教練（可多選）</label>
-      <div id="newPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-      <div style="display:flex;gap:6px;margin-top:6px;">
-        <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-        <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-      </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 個人/雙人課場地（留空同團課）</label>
-      <select id="newPrivateVenue" style="width:100%;margin-top:4px;">
-        <option value="">同團課場地</option>
-        <option value="黎光">黎光</option>
-        <option value="朝馬">朝馬</option>
-        <option value="台體大">台體大</option>
-      </select>
     </div>
     <div class="form-group"><label>日期</label>
       <div style="display:flex;gap:6px;align-items:center;">
@@ -1169,6 +1154,21 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group" id="newSmallVenueGroup" style="display:none;">
       <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
       <select id="newSmallVenue" style="width:100%;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
+    </div>
+    <div class="form-group" id="newPrivateGroup" style="display:none;">
+      <label style="color:#a78bfa;">★ 個人/雙人課教練（可多選）</label>
+      <div id="newPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 個人/雙人課場地（留空同團課）</label>
+      <select id="newPrivateVenue" style="width:100%;margin-top:4px;">
         <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
@@ -1662,14 +1662,14 @@ function addNewVenueEdit() {
   const input = document.getElementById('editNewVenueInput');
   const name = input.value.trim();
   if (!name) return;
-  ['newVenue', 'editVenue'].forEach(id => {
+  ['newVenue', 'editVenue', 'newSmallVenue', 'editSmallVenue', 'newPrivateVenue', 'editPrivateVenue'].forEach(id => {
     const sel = document.getElementById(id);
     if (sel && ![...sel.options].some(o => o.value === name)) {
       const opt = document.createElement('option');
       opt.value = name; opt.textContent = name;
       sel.appendChild(opt);
     }
-    if (sel) sel.value = name;
+    if (sel && id === 'editVenue') sel.value = name;
   });
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '["黎光","朝馬","台體大"]');
   if (!venues.includes(name)) { venues.push(name); localStorage.setItem('bw_venues', JSON.stringify(venues)); }
@@ -1735,14 +1735,14 @@ function addNewVenue() {
   const input = document.getElementById('newVenueInput');
   const name = input.value.trim();
   if (!name) return;
-  ['newVenue', 'editVenue'].forEach(id => {
+  ['newVenue', 'editVenue', 'newSmallVenue', 'editSmallVenue', 'newPrivateVenue', 'editPrivateVenue'].forEach(id => {
     const sel = document.getElementById(id);
     if (sel && ![...sel.options].some(o => o.value === name)) {
       const opt = document.createElement('option');
       opt.value = name; opt.textContent = name;
       sel.appendChild(opt);
     }
-    if (sel) sel.value = name;
+    if (sel && id === 'newVenue') sel.value = name;
   });
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '["黎光","朝馬","台體大"]');
   if (!venues.includes(name)) { venues.push(name); localStorage.setItem('bw_venues', JSON.stringify(venues)); }
@@ -3691,6 +3691,7 @@ function addDate() {
   const isTeamEl = document.getElementById('newIsTeam');
   const isSmallEl = document.getElementById('newIsSmall');
   const isPrivateEl2 = document.getElementById('newIsPrivate');
+  const isTeam2 = isTeamEl ? isTeamEl.checked : false;
   const isSmall2 = isSmallEl ? isSmallEl.checked : false;
   const isPrivate2 = isPrivateEl2 ? isPrivateEl2.checked : false;
   const uid = date + '_' + Date.now();
