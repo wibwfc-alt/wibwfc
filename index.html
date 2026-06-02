@@ -1641,17 +1641,21 @@ function addNewCoachToList(inputId, listId, inputName) {
   if (!name) return;
   // Add to all coach lists with same inputName pattern across both modals
   const allListIds = {
-    'newTeamCoach':  ['newTeamCoachList',  'editTeamCoachList'],
-    'editTeamCoach': ['newTeamCoachList',  'editTeamCoachList'],
-    'newSmallCoach': ['newSmallCoachList', 'editSmallCoachList'],
-    'editSmallCoach':['newSmallCoachList', 'editSmallCoachList'],
+    'newTeamCoach':     ['newTeamCoachList',    'editTeamCoachList'],
+    'editTeamCoach':    ['newTeamCoachList',    'editTeamCoachList'],
+    'newSmallCoach':    ['newSmallCoachList',   'editSmallCoachList'],
+    'editSmallCoach':   ['newSmallCoachList',   'editSmallCoachList'],
+    'newPrivateCoach':  ['newPrivateCoachList', 'editPrivateCoachList'],
+    'editPrivateCoach': ['newPrivateCoachList', 'editPrivateCoachList'],
   };
   const targets = allListIds[inputName] || [listId];
   targets.forEach(lid => {
     const list = document.getElementById(lid);
     if (!list) return;
-    const targetInputName = lid.startsWith('new') ? inputName.replace('edit','new') : inputName.replace('new','edit');
-    const resolvedName = lid.startsWith('new') ? (inputName.includes('Team') ? 'newTeamCoach' : 'newSmallCoach') : (inputName.includes('Team') ? 'editTeamCoach' : 'editSmallCoach');
+    let resolvedName;
+    if (inputName.includes('Team')) resolvedName = lid.startsWith('new') ? 'newTeamCoach' : 'editTeamCoach';
+    else if (inputName.includes('Small')) resolvedName = lid.startsWith('new') ? 'newSmallCoach' : 'editSmallCoach';
+    else resolvedName = lid.startsWith('new') ? 'newPrivateCoach' : 'editPrivateCoach';
     if (list.querySelector('[data-coach="' + name + '"]')) return;
     list.appendChild(makeCoachLabel(name, resolvedName, lid === listId));
   });
@@ -1782,12 +1786,14 @@ function loadCustomCoachesVenues() {
   const customCoaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
   const allCoaches = [...defaultCoaches.filter(c => !deletedCoaches.includes(c)), ...customCoaches.filter(c => !defaultCoaches.includes(c))];
 
-  // Populate all 4 coach lists
+  // Populate all 6 coach lists
   [
-    ['newTeamCoachList',   'newTeamCoach'],
-    ['editTeamCoachList',  'editTeamCoach'],
-    ['newSmallCoachList',  'newSmallCoach'],
-    ['editSmallCoachList', 'editSmallCoach'],
+    ['newTeamCoachList',    'newTeamCoach'],
+    ['editTeamCoachList',   'editTeamCoach'],
+    ['newSmallCoachList',   'newSmallCoach'],
+    ['editSmallCoachList',  'editSmallCoach'],
+    ['newPrivateCoachList', 'newPrivateCoach'],
+    ['editPrivateCoachList','editPrivateCoach'],
   ].forEach(([listId, inputName]) => {
     const list = document.getElementById(listId);
     if (!list) return;
@@ -2131,6 +2137,15 @@ function renderBatch() {
     : 'team';
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
+  const filteredDates = dates.filter(d => {
+    if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
+    if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
+    if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
+    if (courseFilter === 'team') return d.isTeam === true;
+    if (courseFilter === 'small') return d.isSmall === true;
+    if (courseFilter === 'private') return d.isPrivate === true;
+    return d.isTeam || d.isSmall;
+  });
   const batchSearchEl = document.getElementById('batchSearch');
   const searchVal = batchSearchEl ? batchSearchEl.value.toLowerCase() : '';
   const debtOnly = document.getElementById('batchDebtBtn') && document.getElementById('batchDebtBtn').classList.contains('active');
@@ -2159,15 +2174,6 @@ function renderBatch() {
   thead += '<th class="batch-name-th" style="min-width:120px;">學員</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#fcc929;">上月結餘</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月中儲值</th>';
-  const filteredDates = dates.filter(d => {
-    if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
-    if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
-    if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
-    if (courseFilter === 'team') return d.isTeam === true;
-    if (courseFilter === 'small') return d.isSmall === true;
-    if (courseFilter === 'private') return d.isPrivate === true;
-    return d.isTeam || d.isSmall;
-  });
   filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
     const tc = d.teamCoach || d.coach || '';
@@ -2266,6 +2272,7 @@ function renderBatch() {
         if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
         if (dateIsPrivate) cell += '<div class="batch-check ' + (isPrivate?'checked':'') + '" style="font-size:0.65rem;border-color:rgba(167,139,250,0.4);' + (isPrivate?'background:rgba(167,139,250,0.25);color:#a78bfa;':'color:#a78bfa;') + '" data-name="' + s.name + '" data-date="' + dKey + '" data-type="private" onclick="toggleBatchCell(this)">' + (isPrivate?'★':'') + '</div>';
         if (!dateIsTeam && !dateIsSmall && !dateIsPrivate) cell += '<div style="color:var(--gray);font-size:0.65rem;text-align:center;">—</div>';
+        cell += '</td>';
         tbody += cell;
       });
       // 合計
@@ -3910,6 +3917,9 @@ function saveEditDate() {
     renderPanel();
   }
   renderSidebar();
+  // 批量點名開著的話也要更新
+  const batchModal = document.getElementById('batchModal');
+  if (batchModal && batchModal.style.display === 'flex') renderBatch();
 }
 
 function deleteDateFromEdit() {
