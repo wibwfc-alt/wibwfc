@@ -1371,15 +1371,25 @@ function tpSave() {
   // Use targetMonth (may be previous month if date ≤ 5)
   if (!state.months[targetMonth]) state.months[targetMonth] = { dates: [], students: [] };
   const targetData = state.months[targetMonth];
-  const s = targetData.students.find(x => x.name === nameEl);
-  if (!s) {
-    // Try current month
-    const cur = getCurrentMonthData().students.find(x => x.name === nameEl);
-    if (!cur) { alert('找不到學員'); return; }
-    // Copy student to target month if not exist
-    targetData.students.push(Object.assign({}, cur, { attended: [], midTopup: 0, endTopup: 0, scMidTopup: 0, scTopup: 0, scDates: [] }));
+  let ts = targetData.students.find(x => x.name === nameEl);
+  if (!ts) {
+    // 找其他月份的學員資料作為參考
+    const refMonths = Object.keys(state.months).sort().reverse();
+    let refStudent = null;
+    for (const m of refMonths) {
+      refStudent = state.months[m].students.find(x => x.name === nameEl);
+      if (refStudent) break;
+    }
+    if (!refStudent) { alert('找不到學員'); return; }
+    // 加入 targetMonth，保留現有的 topup 欄位
+    targetData.students.push(Object.assign({}, refStudent, {
+      attended: [], midTopup: 0, endTopup: 0,
+      scMidTopup: 0, scTopup: 0, scDates: [],
+      prevBalance: refStudent.prevBalance || 0,
+      scPrevBal: refStudent.scPrevBal || 0,
+    }));
+    ts = targetData.students.find(x => x.name === nameEl);
   }
-  const ts = targetData.students.find(x => x.name === nameEl);
   if (isTeam && teamAmt > 0) {
     if (period === 'mid') ts.midTopup = (ts.midTopup||0) + teamAmt;
     else ts.endTopup = (ts.endTopup||0) + teamAmt;
