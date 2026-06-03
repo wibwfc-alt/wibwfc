@@ -612,10 +612,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
 </div>
 
 <!-- BATCH ATTENDANCE MODAL -->
-<div class="modal-overlay" id="batchModal" style="align-items:flex-start;padding:0;overflow:hidden;display:none;">
-  <div style="background:#0d0d0d;width:100%;height:100vh;display:flex;flex-direction:column;">
+<div class="modal-overlay" id="batchModal" style="align-items:flex-start;padding:0;overflow:auto;display:none;">
+  <div style="background:#0d0d0d;width:100%;min-height:100vh;">
     <!-- 第一排：標題 + 月份 + 搜尋 + 年齡組 -->
-    <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 8px;flex-wrap:wrap;background:#0d0d0d;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 8px;flex-wrap:wrap;position:sticky;top:0;background:#0d0d0d;z-index:10;border-bottom:1px solid rgba(255,255,255,0.06);">
       <div style="font-size:1rem;font-weight:900;color:var(--yellow);">✓ 批量點名</div>
       <select id="batchMonthSelect" onchange="changeBatchMonth(this.value)" style="background:#fcc929;border:none;color:#010101;padding:6px 10px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:900;font-size:0.8rem;cursor:pointer;">
           <option value="2026-01">2026年 1月</option>
@@ -766,7 +766,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </div>
       </div>
       <!-- 第二排：課程類型 + 篩選 + 功能 -->
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 16px 10px;border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 16px 10px;border-top:1px solid rgba(255,255,255,0.06);">
         <button id="batchTabTeam" onclick="toggleBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(36,110,88,0.5);border-radius:4px;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;">● 團課</button>
         <button id="batchTabSmall" onclick="toggleBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
         <button id="batchTabPrivate" onclick="toggleBatchTab('private')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">★ 私課</button>
@@ -780,7 +780,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
       </div>
     </div>
-    <div style="flex:1;overflow:auto;" id="batchTableWrap">
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;" id="batchTableWrap"><div style="max-height:calc(100vh - 120px);overflow-y:auto;">
       <table id="batchTable" style="border-collapse:collapse;font-size:0.78rem;white-space:nowrap;"></table>
     </div>
   </div>
@@ -928,13 +928,13 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>課程類型</label>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsTeam" onchange="document.getElementById('editTeamGroup').style.display=this.checked?'':'none'"> <span style="color:#3aab6e;">● 團課</span>
+          <input type="checkbox" id="editIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsSmall" onchange="document.getElementById('editSmallGroup').style.display=this.checked?'':'none'"> <span style="color:#fcc929;">◆ 小班課</span>
+          <input type="checkbox" id="editIsSmall" onchange="var g=document.getElementById('editSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsPrivate" onchange="document.getElementById('editPrivateGroup').style.display=this.checked?'':'none'"> <span style="color:#a78bfa;">★ 私課</span>
+          <input type="checkbox" id="editIsPrivate" onchange="var g=document.getElementById('editPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 私課</span>
         </label>
       </div>
     </div>
@@ -1004,85 +1004,67 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </select>
       </div>
     </div>
-    <!-- 團課區塊 -->
-    <div id="editTeamGroup" style="display:none;border:1px solid rgba(36,110,88,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#3aab6e;font-weight:700;margin-bottom:8px;">● 團課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#3aab6e;">場地</label>
-        <select id="editVenue" style="width:100%;">
+    <div class="form-group"><label>場地</label>
+      <select id="editVenue">
         <option value="">選擇場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
-        </select>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="editNewVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewVenueEdit()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
-          <button type="button" onclick="deleteVenueFromSelect('editVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#3aab6e;">教練（可多選）</label>
-        <div id="editTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="editNewTeamCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('editNewTeamCoachInput','editTeamCoachList','editTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
+      </select>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewVenueEdit()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
+        <button type="button" onclick="deleteVenueFromSelect('editVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
       </div>
     </div>
-    <!-- 小班課區塊 -->
-    <div id="editSmallGroup" style="display:none;border:1px solid rgba(252,201,41,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#fcc929;font-weight:700;margin-bottom:8px;">◆ 小班課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#fcc929;">場地</label>
-        <select id="editSmallVenue" style="width:100%;">
-        <option value="">選擇場地</option>
-        <option value="黎光">黎光</option>
-        <option value="朝馬">朝馬</option>
-        <option value="台體大">台體大</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#fcc929;">教練（可多選）</label>
-        <div id="editSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="editNewSmallCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('editNewSmallCoachInput','editSmallCoachList','editSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
+    <div class="form-group">
+      <label style="color:#3aab6e;">● 團課教練（可多選）</label>
+      <div id="editTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewTeamCoachInput" placeholder="新增團課教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('editNewTeamCoachInput','editTeamCoachList','editTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
     </div>
-    <!-- 私課區塊 -->
-    <div id="editPrivateGroup" style="display:none;border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#a78bfa;font-weight:700;margin-bottom:8px;">★ 私課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#a78bfa;">場地</label>
-        <select id="editPrivateVenue" style="width:100%;">
-        <option value="">選擇場地</option>
+    <div class="form-group">
+      <label style="color:#fcc929;">◆ 小班教練（可多選）</label>
+      <div id="editSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewSmallCoachInput" placeholder="新增小班教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('editNewSmallCoachInput','editSmallCoachList','editSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+    </div>
+    <div class="form-group" id="editSmallVenueGroup" style="display:none;">
+      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <select id="editSmallVenue" style="width:100%;">
+        <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#a78bfa;">教練（可多選）</label>
-        <div id="editPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
-      </div>
+      </select>
     </div>
     <div class="form-group"><label>備註（選填）</label>
       <input type="text" id="editDateNote" placeholder="例：移訓、比賽、特訓…">
+    </div>
+    <div class="form-group" id="editPrivateGroup" style="display:none;">
+      <label style="color:#a78bfa;">★ 私課教練（可多選）</label>
+      <div id="editPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
+      <select id="editPrivateVenue" style="width:100%;margin-top:4px;">
+        <option value="">同團課場地</option>
+        <option value="黎光">黎光</option>
+        <option value="朝馬">朝馬</option>
+        <option value="台體大">台體大</option>
+      </select>
     </div>
     <div class="modal-actions">
       <button class="btn btn-red" onclick="deleteDateFromEdit()">刪除課日</button>
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
       <button class="btn" onclick="saveEditDate()">儲存</button>
     </div>
-  </div>
-</div>
-
   </div>
 </div>
 
@@ -1093,13 +1075,13 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>課程類型</label>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsTeam" onchange="document.getElementById('newTeamGroup').style.display=this.checked?'':\'none'"> <span style="color:#3aab6e;">● 團課</span>
+          <input type="checkbox" id="newIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsSmall" onchange="document.getElementById('newSmallGroup').style.display=this.checked?'':\'none'"> <span style="color:#fcc929;">◆ 小班課</span>
+          <input type="checkbox" id="newIsSmall" onchange="var g=document.getElementById('newSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsPrivate" onchange="document.getElementById('newPrivateGroup').style.display=this.checked?'':\'none'"> <span style="color:#a78bfa;">★ 私課</span>
+          <input type="checkbox" id="newIsPrivate" onchange="var g=document.getElementById('newPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 私課</span>
         </label>
       </div>
     </div>
@@ -1107,99 +1089,105 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <div style="display:flex;gap:6px;align-items:center;">
         <select id="newDateY" style="flex:2;">
           <option value="2026">2026</option>
-<option value="2027">2027</option>
-<option value="2028">2028</option>
-<option value="2029">2029</option>
-<option value="2030">2030</option>
+          <option value="2027">2027</option>
+          <option value="2028">2028</option>
+          <option value="2029">2029</option>
+          <option value="2030">2030</option>
+          <option value="2031">2031</option>
+          <option value="2032">2032</option>
+          <option value="2033">2033</option>
+          <option value="2034">2034</option>
+          <option value="2035">2035</option>
+          <option value="2036">2036</option>
         </select>
         <span style="color:var(--gray);">/</span>
         <select id="newDateM" style="flex:1.5;">
-          <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+          <option value="01">01</option><option value="02">02</option>
+          <option value="03">03</option><option value="04">04</option>
+          <option value="05">05</option><option value="06">06</option>
+          <option value="07">07</option><option value="08">08</option>
+          <option value="09">09</option><option value="10">10</option>
+          <option value="11">11</option><option value="12">12</option>
         </select>
         <span style="color:var(--gray);">/</span>
         <select id="newDateD" style="flex:1.5;">
-          <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
+          <option value="01">01</option><option value="02">02</option>
+          <option value="03">03</option><option value="04">04</option>
+          <option value="05">05</option><option value="06">06</option>
+          <option value="07">07</option><option value="08">08</option>
+          <option value="09">09</option><option value="10">10</option>
+          <option value="11">11</option><option value="12">12</option>
+          <option value="13">13</option><option value="14">14</option>
+          <option value="15">15</option><option value="16">16</option>
+          <option value="17">17</option><option value="18">18</option>
+          <option value="19">19</option><option value="20">20</option>
+          <option value="21">21</option><option value="22">22</option>
+          <option value="23">23</option><option value="24">24</option>
+          <option value="25">25</option><option value="26">26</option>
+          <option value="27">27</option><option value="28">28</option>
+          <option value="29">29</option><option value="30">30</option>
+          <option value="31">31</option>
         </select>
       </div>
     </div>
-    <!-- 團課區塊 -->
-    <div id="newTeamGroup" style="display:none;border:1px solid rgba(36,110,88,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#3aab6e;font-weight:700;margin-bottom:8px;">● 團課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#3aab6e;">場地</label>
-        <select id="newVenue" style="width:100%;">
+    <div class="form-group"><label>場地</label>
+      <select id="newVenue">
         <option value="">選擇場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
-        </select>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="newVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewVenue()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
-          <button type="button" onclick="deleteVenueFromSelect('newVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#3aab6e;">教練（可多選）</label>
-        <div id="newTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="newNewTeamCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('newNewTeamCoachInput','newTeamCoachList','newTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
+      </select>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewVenue()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
+        <button type="button" onclick="deleteVenueFromSelect('newVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
       </div>
     </div>
-    <!-- 小班課區塊 -->
-    <div id="newSmallGroup" style="display:none;border:1px solid rgba(252,201,41,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#fcc929;font-weight:700;margin-bottom:8px;">◆ 小班課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#fcc929;">場地</label>
-        <select id="newSmallVenue" style="width:100%;">
-        <option value="">選擇場地</option>
+    <div class="form-group">
+      <label style="color:#3aab6e;">● 團課教練（可多選）</label>
+      <div id="newTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newNewTeamCoachInput" placeholder="新增團課教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('newNewTeamCoachInput','newTeamCoachList','newTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label style="color:#fcc929;">◆ 小班教練（可多選）</label>
+      <div id="newSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newNewSmallCoachInput" placeholder="新增小班教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('newNewSmallCoachInput','newSmallCoachList','newSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+    </div>
+    <div class="form-group" id="newSmallVenueGroup" style="display:none;">
+      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <select id="newSmallVenue" style="width:100%;">
+        <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#fcc929;">教練（可多選）</label>
-        <div id="newSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="newNewSmallCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('newNewSmallCoachInput','newSmallCoachList','newSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
-      </div>
+      </select>
     </div>
-    <!-- 私課區塊 -->
-    <div id="newPrivateGroup" style="display:none;border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#a78bfa;font-weight:700;margin-bottom:8px;">★ 私課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#a78bfa;">場地</label>
-        <select id="newPrivateVenue" style="width:100%;">
-        <option value="">選擇場地</option>
+    <div class="form-group" id="newPrivateGroup" style="display:none;">
+      <label style="color:#a78bfa;">★ 私課教練（可多選）</label>
+      <div id="newPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
+      </div>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
+      <select id="newPrivateVenue" style="width:100%;margin-top:4px;">
+        <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#a78bfa;">教練（可多選）</label>
-        <div id="newPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
-      </div>
-    </div>
-    <div class="form-group"><label>備註（選填）</label>
-      <input type="text" id="newDateNote" placeholder="例：移訓、比賽、特訓…">
+      </select>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
       <button class="btn" onclick="addDate()">新增</button>
     </div>
   </div>
-</div>
-
 </div>
 
 <script>
@@ -3885,10 +3873,10 @@ function addDate() {
   const d = document.getElementById('newDateD').value;
   if (!y || !m || !d) return;
   const date = y + '-' + m + '-' + d;
-  const venue = (document.getElementById('newVenue') && document.getElementById('newIsTeam') && document.getElementById('newIsTeam').checked) ? document.getElementById('newVenue').value : '';
-  const smallVenue = (document.getElementById('newSmallVenue') && document.getElementById('newIsSmall') && document.getElementById('newIsSmall').checked) ? document.getElementById('newSmallVenue').value : '';
+  const venue = document.getElementById('newVenue').value;
+  const smallVenue = (document.getElementById('newSmallVenue') && document.getElementById('newIsSmall').checked) ? document.getElementById('newSmallVenue').value : '';
   const privateCoach = Array.from(document.querySelectorAll('input[name=newPrivateCoach]:checked')).map(x=>x.value).join('、');
-  const privateVenue = (document.getElementById('newPrivateVenue') && document.getElementById('newIsPrivate') && document.getElementById('newIsPrivate').checked) ? document.getElementById('newPrivateVenue').value : '';
+  const privateVenue = (document.getElementById('newPrivateVenue') && document.getElementById('newIsPrivate').checked) ? document.getElementById('newPrivateVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=newTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=newSmallCoach]:checked')).map(x=>x.value).join('、');
   const data = getCurrentMonthData();
@@ -3935,13 +3923,13 @@ function openEditDate(dateOrUid, fromManager) {
   document.getElementById('editDateNote').value = d.note || '';
   document.getElementById('editIsTeam').checked = d.isTeam === true;
   document.getElementById('editIsSmall').checked = d.isSmall === true;
-  document.getElementById('editIsPrivate').checked = d.isPrivate === true;
-  document.getElementById('editTeamGroup').style.display = d.isTeam ? '' : 'none';
-  document.getElementById('editSmallGroup').style.display = d.isSmall ? '' : 'none';
-  document.getElementById('editPrivateGroup').style.display = d.isPrivate ? '' : 'none';
-  { const _ev2 = document.getElementById('editVenue'); if (_ev2) _ev2.value = d.venue || ''; }
-  { const _esv2 = document.getElementById('editSmallVenue'); if (_esv2) _esv2.value = d.smallVenue || ''; }
-  { const _epv2 = document.getElementById('editPrivateVenue'); if (_epv2) _epv2.value = d.privateVenue || ''; }
+  if (document.getElementById('editIsPrivate')) {
+    document.getElementById('editIsPrivate').checked = d.isPrivate === true;
+    const _epg = document.getElementById('editPrivateGroup');
+    if (_epg) _epg.style.display = d.isPrivate ? '' : 'none';
+  }
+  const _epv = document.getElementById('editPrivateVenue');
+  if (_epv) _epv.value = d.privateVenue || '';
   const teamCoaches = (d.teamCoach || d.coach || '').split('、').filter(Boolean);
   const smallCoaches = (d.smallCoach || '').split('、').filter(Boolean);
   document.querySelectorAll('input[name=editTeamCoach]').forEach(c => { c.checked = teamCoaches.includes(c.value); });
@@ -3958,10 +3946,10 @@ function saveEditDate() {
   const m = document.getElementById('editDateM').value;
   const d = document.getElementById('editDateD').value;
   const newDate = y + '-' + m + '-' + d;
-  const venue = (document.getElementById('editVenue') && document.getElementById('editIsTeam') && document.getElementById('editIsTeam').checked) ? document.getElementById('editVenue').value : '';
-  const smallVenue = (document.getElementById('editSmallVenue') && document.getElementById('editIsSmall') && document.getElementById('editIsSmall').checked) ? document.getElementById('editSmallVenue').value : '';
+  const venue = document.getElementById('editVenue').value;
+  const smallVenue = (document.getElementById('editSmallVenue') && document.getElementById('editIsSmall').checked) ? document.getElementById('editSmallVenue').value : '';
   const privateCoach = Array.from(document.querySelectorAll('input[name=editPrivateCoach]:checked')).map(x=>x.value).join('、');
-  const privateVenue = (document.getElementById('editPrivateVenue') && document.getElementById('editIsPrivate') && document.getElementById('editIsPrivate').checked) ? document.getElementById('editPrivateVenue').value : '';
+  const privateVenue = (document.getElementById('editPrivateVenue') && document.getElementById('editIsPrivate').checked) ? document.getElementById('editPrivateVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=editTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=editSmallCoach]:checked')).map(x=>x.value).join('、');
   const note = (document.getElementById('editDateNote').value || '').trim();
