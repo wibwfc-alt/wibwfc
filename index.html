@@ -2076,6 +2076,11 @@ function toggleBatchSimple() {
 function toggleBatchTab(tab) {
   if (!state._batchTabs) state._batchTabs = { team: true, small: false, private: false };
   state._batchTabs[tab] = !state._batchTabs[tab];
+  // 不允許三個都取消，至少保留一個
+  if (!state._batchTabs.team && !state._batchTabs.small && !state._batchTabs.private) {
+    state._batchTabs[tab] = true;
+    return;
+  }
   updateBatchTabUI();
   renderBatch();
 }
