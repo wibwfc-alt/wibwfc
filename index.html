@@ -311,7 +311,7 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
 .batch-check.batch-small.checked { background:rgba(252,201,41,0.2); border-color:rgba(252,201,41,0.5); color:#fcc929; }
 .batch-check:hover { border-color:rgba(252,201,41,0.4); }
 .batch-group-row { background:rgba(252,201,41,0.15); }
-.batch-group-row td { padding:7px 14px; color:#010101; background:var(--yellow); font-size:0.75rem; font-weight:900; letter-spacing:3px; border:1px solid rgba(252,201,41,0.3); position:sticky; left:0; z-index:2; }
+.batch-group-row td { padding:7px 14px; color:#010101; background:var(--yellow); font-size:0.75rem; font-weight:900; letter-spacing:3px; border:1px solid rgba(252,201,41,0.3); }
 .batch-total-row td { background:#0a0a0a; color:var(--yellow); font-size:0.7rem; font-weight:700; text-align:center; border:1px solid rgba(255,255,255,0.05); padding:4px; }
 #batchTableWrap { scrollbar-width: thin; scrollbar-color: #fcc929 #111; }
 #batchTableWrap::-webkit-scrollbar { height: 8px; }
@@ -613,12 +613,11 @@ body.edit-mode .edit-only { display: inline-block !important; }
 
 <!-- BATCH ATTENDANCE MODAL -->
 <div class="modal-overlay" id="batchModal" style="align-items:flex-start;padding:0;overflow:auto;display:none;">
-  <div style="background:#0d0d0d;width:100%;min-height:100vh;padding:20px;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+  <div style="background:#0d0d0d;width:100%;min-height:100vh;">
+    <!-- 第一排：標題 + 月份 + 搜尋 + 年齡組 -->
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 8px;flex-wrap:wrap;position:sticky;top:0;background:#0d0d0d;z-index:10;border-bottom:1px solid rgba(255,255,255,0.06);">
       <div style="font-size:1rem;font-weight:900;color:var(--yellow);">✓ 批量點名</div>
-      <div id="batchMonthLabel" style="font-size:0.82rem;color:var(--gray);"></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;">
-        <select id="batchMonthSelect" onchange="changeBatchMonth(this.value)" style="background:#fcc929;border:none;color:#010101;padding:6px 10px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:900;font-size:0.8rem;cursor:pointer;">
+      <select id="batchMonthSelect" onchange="changeBatchMonth(this.value)" style="background:#fcc929;border:none;color:#010101;padding:6px 10px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:900;font-size:0.8rem;cursor:pointer;">
           <option value="2026-01">2026年 1月</option>
           <option value="2026-02">2026年 2月</option>
           <option value="2026-03">2026年 3月</option>
@@ -766,7 +765,8 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <button class="btn btn-outline batchGroupBtn" data-group="爸媽組" onclick="toggleGroupFilter('爸媽組')" style="font-size:0.75rem;padding:4px 8px;">爸媽</button>
         </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 16px 8px;border-top:1px solid rgba(255,255,255,0.06);">
+      <!-- 第二排：課程類型 + 篩選 + 功能 -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 16px 10px;border-top:1px solid rgba(255,255,255,0.06);">
         <button id="batchTabTeam" onclick="toggleBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(36,110,88,0.5);border-radius:4px;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;">● 團課</button>
         <button id="batchTabSmall" onclick="toggleBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
         <button id="batchTabPrivate" onclick="toggleBatchTab('private')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">★ 私課</button>
@@ -780,7 +780,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
       </div>
     </div>
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;" id="batchTableWrap"><div style="max-height:calc(100vh - 160px);overflow-y:auto;">
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;" id="batchTableWrap"><div style="max-height:calc(100vh - 120px);overflow-y:auto;">
       <table id="batchTable" style="border-collapse:collapse;font-size:0.78rem;white-space:nowrap;"></table>
     </div>
   </div>
@@ -2128,7 +2128,7 @@ function filterBatchDebt() {
 function renderBatch() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
-  document.getElementById('batchMonthLabel').textContent = monthLabel;
+  const _lbl = document.getElementById('batchMonthLabel'); if (_lbl) _lbl.textContent = monthLabel;
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
   const tabs = state._batchTabs || { team: true, small: false, private: false };
   const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
