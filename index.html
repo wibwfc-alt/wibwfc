@@ -2278,33 +2278,42 @@ function renderBatch() {
       // 合計
       const teamCount2 = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
       const scCount2 = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
+      const pvCount2 = (s.privateDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
+      const showTeam = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+private';
+      const showSmall = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private';
+      const showPrivate = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
       tbody += '<td class="batch-td" style="font-weight:700;">' +
-        (courseFilter !== 'small' ? '<div style="color:#3aab6e;font-size:0.72rem;">團' + teamCount2 + '</div>' : '') +
-        (courseFilter !== 'team' && scCount2 > 0 ? '<div style="color:#fcc929;font-size:0.72rem;">小' + scCount2 + '</div>' : '') +
+        (showTeam ? '<div style="color:#3aab6e;font-size:0.72rem;">團' + teamCount2 + '</div>' : '') +
+        (showSmall && scCount2 > 0 ? '<div style="color:#fcc929;font-size:0.72rem;">小' + scCount2 + '</div>' : '') +
+        (showPrivate && pvCount2 > 0 ? '<div style="color:#a78bfa;font-size:0.72rem;">雙' + pvCount2 + '</div>' : '') +
         '</td>';
       // 月底儲值
       if (!simpleMode) {
         if (state.isReadOnly) {
           tbody += '<td class="batch-td" style="text-align:center;">' +
-            '<div style="color:var(--white);font-size:0.72rem;">+' + (s.endTopup||0) + '</div>' +
-            ((s.scTopup||0) ? '<div style="color:#fcc929;font-size:0.68rem;">小+' + (s.scTopup||0) + '</div>' : '') +
+            (showTeam ? '<div style="color:var(--white);font-size:0.72rem;">+' + (s.endTopup||0) + '</div>' : '') +
+            (showSmall && (s.scTopup||0) ? '<div style="color:#fcc929;font-size:0.68rem;">小+' + (s.scTopup||0) + '</div>' : '') +
+            (showPrivate && (s.privateTopup||0) ? '<div style="color:#a78bfa;font-size:0.68rem;">雙+' + (s.privateTopup||0) + '</div>' : '') +
             '</td>';
         } else {
           tbody += '<td class="batch-td">' +
-            '<input type="number" value="' + (s.endTopup||0) + '" min="0" placeholder="團" ' +
+            (showTeam ? '<input type="number" value="' + (s.endTopup||0) + '" min="0" placeholder="團" ' +
             'style="width:48px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;margin-bottom:2px;" ' +
-            'data-name="' + s.name + '" data-type="end" onchange="batchUpdateTopup(this)">' +
-            '<input type="number" value="' + (s.scTopup||0) + '" min="0" placeholder="小" ' +
-            'style="width:48px;background:rgba(252,201,41,0.05);border:1px solid rgba(252,201,41,0.15);color:#a08010;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;" ' +
-            'data-name="' + s.name + '" data-type="scTopup" onchange="batchUpdateTopup(this)">' +
+            'data-name="' + s.name + '" data-type="end" onchange="batchUpdateTopup(this)">' : '') +
+            (showSmall ? '<input type="number" value="' + (s.scTopup||0) + '" min="0" placeholder="小" ' +
+            'style="width:48px;background:rgba(252,201,41,0.05);border:1px solid rgba(252,201,41,0.15);color:#a08010;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;margin-bottom:2px;" ' +
+            'data-name="' + s.name + '" data-type="scTopup" onchange="batchUpdateTopup(this)">' : '') +
+            (showPrivate ? '<input type="number" value="' + (s.privateTopup||0) + '" min="0" placeholder="雙" ' +
+            'style="width:48px;background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.2);color:#a78bfa;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;" ' +
+            'data-name="' + s.name + '" data-type="privateTopup" onchange="batchUpdateTopup(this)">' : '') +
             '</td>';
         }
       }
       // 月底剩餘
       if (!simpleMode) {
         let balCell = '';
-        if (courseFilter !== 'small') balCell += '<div style="' + balColor + 'font-size:0.72rem;">團' + (endBal>=0?'+':'') + endBal + '</div>';
-        if (courseFilter !== 'team') {
+        if (showTeam) balCell += '<div style="' + balColor + 'font-size:0.72rem;">團' + (endBal>=0?'+':'') + endBal + '</div>';
+        if (showSmall) {
           const hasSmallData = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
           if (hasSmallData) balCell += '<div style="' + scBalColor + 'font-size:0.72rem;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>';
         }
@@ -2359,6 +2368,8 @@ function batchUpdateTopup(input) {
   else if (type === 'end') s.endTopup = val;
   else if (type === 'scMid') s.scMidTopup = val;
   else if (type === 'scTopup') s.scTopup = val;
+  else if (type === 'privateMid') s.privateMidTopup = val;
+  else if (type === 'privateTopup') s.privateTopup = val;
   saveState();
   renderSidebar();
   // 即時更新該列的剩餘欄，不重繪整個表格
@@ -2729,9 +2740,13 @@ function exportBatchPDF() {
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const allDates = data.dates;
   let filteredDates = allDates.filter(d => {
+    if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
+    if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
+    if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
     if (courseFilter === 'team') return d.isTeam === true;
     if (courseFilter === 'small') return d.isSmall === true;
-    return true;
+    if (courseFilter === 'private') return d.isPrivate === true;
+    return d.isTeam || d.isSmall;
   });
   const days = ['日','一','二','三','四','五','六'];
 
