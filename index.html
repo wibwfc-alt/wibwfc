@@ -22,7 +22,7 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
   padding: 0 16px; min-height: 56px;
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
-.topbar-month { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+.topbar-month { display: flex; align-items: center; gap: 8px; }
 @media(max-width:600px) {
   .topbar { padding: 8px 12px; gap: 6px; }
   .topbar .btn, .topbar .btn-outline { font-size:0.72rem; padding:5px 10px; }
@@ -413,7 +413,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
   <div id="lockStatus" style="font-size:0.78rem;cursor:pointer;" onclick="toggleEdit()"></div>
   <button id="syncBtn" class="btn btn-green" onclick="syncToGist()" style="font-size:0.78rem;display:none;">☁ 同步給教練</button>
 
-  <button class="btn btn-outline" onclick="showBatch()" style="font-size:0.8rem;">✓ 批量點名</button>
+  <button class="btn btn-outline" onclick="showBatch()" style="font-size:0.8rem;" id="batchBtn">📋 本月總覽</button>
   <button class="btn btn-outline edit-only" onclick="showOverview()" style="font-size:0.8rem;">📊 月結總覽</button>
   <button class="btn btn-outline edit-only" onclick="recalcPrevBalance()" style="font-size:0.8rem;border-color:rgba(252,201,41,0.4);color:#fcc929;">🔄 重算上月結餘</button>
   <button class="btn edit-only" onclick="showTopupForm(state.selectedStudent || '')" style="font-size:0.8rem;background:var(--green);">💳 儲值</button>
@@ -3016,12 +3016,16 @@ function updateLockUI() {
     if (navIcon) navIcon.textContent = '🔒';
     if (navLabel) navLabel.textContent = '唯讀';
     document.body.classList.remove('edit-mode');
+    const bb = document.getElementById('batchBtn'); if (bb) bb.textContent = '📋 本月總覽';
+    const tm = document.querySelector('.topbar-month'); if (tm) { tm.style.width = 'auto'; tm.style.marginLeft = '0'; }
   } else {
     el.innerHTML = '🔓 <span style="color:#3aab6e;">編輯</span>';
     if (syncBtn) syncBtn.style.display = 'inline-block';
     if (navIcon) navIcon.textContent = '🔓';
     if (navLabel) navLabel.textContent = '編輯';
     document.body.classList.add('edit-mode');
+    const bb2 = document.getElementById('batchBtn'); if (bb2) bb2.textContent = '✓ 批量點名';
+    const tm = document.querySelector('.topbar-month'); if (tm) { tm.style.width = '100%'; tm.style.marginLeft = ''; }
   }
 }
 
