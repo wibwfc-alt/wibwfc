@@ -3806,6 +3806,10 @@ function showAddDate() {
   document.getElementById('newDateD').value = '01';
   document.getElementById('newIsTeam').checked = false;
   document.getElementById('newIsSmall').checked = false;
+  if (document.getElementById('newIsPrivate')) document.getElementById('newIsPrivate').checked = false;
+  document.getElementById('newTeamGroup').style.display = 'none';
+  document.getElementById('newSmallGroup').style.display = 'none';
+  if (document.getElementById('newPrivateGroup')) document.getElementById('newPrivateGroup').style.display = 'none';
   const _maddDateModal = document.getElementById('addDateModal'); document.body.appendChild(_maddDateModal); _maddDateModal.classList.add('show');
 }
 function closeModal() {
