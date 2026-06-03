@@ -20,8 +20,9 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
 .topbar {
   background: #0a0a0a; border-bottom: 1px solid rgba(252,201,41,0.15);
   padding: 0 16px; min-height: 56px;
-  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
+.topbar-month { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.06); }
 @media(max-width:600px) {
   .topbar { padding: 8px 12px; gap: 6px; }
   .topbar .btn, .topbar .btn-outline { font-size:0.72rem; padding:5px 10px; }
