@@ -767,7 +767,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </div>
         <button id="batchTabTeam" onclick="toggleBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(36,110,88,0.5);border-radius:4px;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;">● 團課</button>
         <button id="batchTabSmall" onclick="toggleBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
-        <button id="batchTabPrivate" onclick="toggleBatchTab('private')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">★ 個人/雙人</button>
+        <button id="batchTabPrivate" onclick="toggleBatchTab('private')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">★ 私課</button>
         <button class="btn btn-outline" id="batchAttendedBtn" onclick="toggleBatchAttended()" style="font-size:0.8rem;">有上課</button>
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         
@@ -793,7 +793,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <div style="display:flex;gap:10px;">
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsTeam" onchange="tpUpdate()"> <span style="color:#3aab6e;">● 團課</span></label>
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsSmall" onchange="tpUpdate()"> <span style="color:#fcc929;">◆ 小班</span></label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsPrivate" onchange="tpUpdate()"> <span style="color:#a78bfa;">★ 個人/雙人</span></label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsPrivate" onchange="tpUpdate()"> <span style="color:#a78bfa;">★ 私課</span></label>
       </div>
     </div>
     <div style="margin-bottom:12px;">
@@ -826,7 +826,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <input id="tpSmallAmount" type="number" placeholder="例：4" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
     <div id="tpPrivateSection" style="margin-bottom:12px;display:none;">
-      <div style="font-size:0.72rem;color:#a78bfa;margin-bottom:5px;">★ 個人/雙人儲值堂數</div>
+      <div style="font-size:0.72rem;color:#a78bfa;margin-bottom:5px;">★ 私課儲值堂數</div>
       <input id="tpPrivateAmount" type="number" placeholder="例：4" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(167,139,250,0.2);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
     <div style="margin-bottom:16px;">
@@ -931,7 +931,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="editIsSmall" onchange="var g=document.getElementById('editSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsPrivate" onchange="var g=document.getElementById('editPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
+          <input type="checkbox" id="editIsPrivate" onchange="var g=document.getElementById('editPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 私課</span>
         </label>
       </div>
     </div>
@@ -1043,13 +1043,13 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <input type="text" id="editDateNote" placeholder="例：移訓、比賽、特訓…">
     </div>
     <div class="form-group" id="editPrivateGroup" style="display:none;">
-      <label style="color:#a78bfa;">★ 個人/雙人課教練（可多選）</label>
+      <label style="color:#a78bfa;">★ 私課教練（可多選）</label>
       <div id="editPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       <div style="display:flex;gap:6px;margin-top:6px;">
         <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 個人/雙人課場地（留空同團課）</label>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
       <select id="editPrivateVenue" style="width:100%;margin-top:4px;">
         <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
@@ -1078,7 +1078,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="newIsSmall" onchange="var g=document.getElementById('newSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsPrivate" onchange="var g=document.getElementById('newPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 個人/雙人課</span>
+          <input type="checkbox" id="newIsPrivate" onchange="var g=document.getElementById('newPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 私課</span>
         </label>
       </div>
     </div>
@@ -1166,13 +1166,13 @@ body.edit-mode .edit-only { display: inline-block !important; }
       </select>
     </div>
     <div class="form-group" id="newPrivateGroup" style="display:none;">
-      <label style="color:#a78bfa;">★ 個人/雙人課教練（可多選）</label>
+      <label style="color:#a78bfa;">★ 私課教練（可多選）</label>
       <div id="newPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       <div style="display:flex;gap:6px;margin-top:6px;">
         <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 個人/雙人課場地（留空同團課）</label>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
       <select id="newPrivateVenue" style="width:100%;margin-top:4px;">
         <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
@@ -1382,7 +1382,7 @@ function tpUpdate() {
   const privateAmt = document.getElementById('tpPrivateAmount') ? document.getElementById('tpPrivateAmount').value : '';
   if (isTeam && teamAmt) lines.push('● 團課 +' + teamAmt + ' 堂');
   if (isSmall && smallAmt) lines.push('◆ 小班 +' + smallAmt + ' 堂');
-  if (isPrivate && privateAmt) lines.push('★ 個人/雙人 +' + privateAmt + ' 堂');
+  if (isPrivate && privateAmt) lines.push('★ 私課 +' + privateAmt + ' 堂');
   if (note) lines.push('備註：' + note);
   document.getElementById('tpPreview').textContent = lines.join('\n');
 }
@@ -1401,7 +1401,7 @@ function tpSave() {
   const privateAmt = isPrivateTp && document.getElementById('tpPrivateAmount') ? (parseInt(document.getElementById('tpPrivateAmount').value) || 0) : 0;
   if (isTeam && teamAmt === 0 && !isSmall && !isPrivateTp) { alert('請填寫團課儲值堂數'); return; }
   if (isSmall && smallAmt === 0 && !isTeam && !isPrivateTp) { alert('請填寫小班儲值堂數'); return; }
-  if (isPrivateTp && privateAmt === 0 && !isTeam && !isSmall) { alert('請填寫個人/雙人儲值堂數'); return; }
+  if (isPrivateTp && privateAmt === 0 && !isTeam && !isSmall) { alert('請填寫私課儲值堂數'); return; }
   const day = parseInt(date.split('-')[2]);
   const dateYM = date.slice(0,7);
   let period, targetMonth;
@@ -1512,7 +1512,7 @@ function _renderPaymentHistory() {
           + '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px;">'
           + '<span style="font-size:0.72rem;color:#3aab6e;">● 團課</span>' + inp(p.teamAmt||0, 'teamAmt', '48px', 'number')
           + '<span style="font-size:0.72rem;color:#fcc929;">◆ 小班</span>' + inp(p.smallAmt||0, 'smallAmt', '48px', 'number')
-          + '<span style="font-size:0.72rem;color:#a78bfa;">★ 雙人</span>' + inp(p.privateAmt||0, 'privateAmt', '48px', 'number')
+          + '<span style="font-size:0.72rem;color:#a78bfa;">★ 私課</span>' + inp(p.privateAmt||0, 'privateAmt', '48px', 'number')
           + '<span style="font-size:0.72rem;color:var(--gray);">備註</span>' + inp(p.note||'', 'note', '120px')
           + '</div>'
           + '</div>'
@@ -2294,7 +2294,7 @@ function renderBatch() {
       tbody += '<td class="batch-td" style="font-weight:700;">' +
         (showTeam ? '<div style="color:#3aab6e;font-size:0.72rem;">團' + teamCount2 + '</div>' : '') +
         (showSmall && scCount2 > 0 ? '<div style="color:#fcc929;font-size:0.72rem;">小' + scCount2 + '</div>' : '') +
-        (showPrivate && pvCount2 > 0 ? '<div style="color:#a78bfa;font-size:0.72rem;">雙' + pvCount2 + '</div>' : '') +
+        (showPrivate && pvCount2 > 0 ? '<div style="color:#a78bfa;font-size:0.72rem;">私' + pvCount2 + '</div>' : '') +
         '</td>';
       // 月底儲值
       if (!simpleMode) {
@@ -2302,7 +2302,7 @@ function renderBatch() {
           tbody += '<td class="batch-td" style="text-align:center;">' +
             (showTeam ? '<div style="color:var(--white);font-size:0.72rem;">+' + (s.endTopup||0) + '</div>' : '') +
             (showSmall && (s.scTopup||0) ? '<div style="color:#fcc929;font-size:0.68rem;">小+' + (s.scTopup||0) + '</div>' : '') +
-            (showPrivate && (s.privateTopup||0) ? '<div style="color:#a78bfa;font-size:0.68rem;">雙+' + (s.privateTopup||0) + '</div>' : '') +
+            (showPrivate && (s.privateTopup||0) ? '<div style="color:#a78bfa;font-size:0.68rem;">私+' + (s.privateTopup||0) + '</div>' : '') +
             '</td>';
         } else {
           tbody += '<td class="batch-td">' +
@@ -2312,7 +2312,7 @@ function renderBatch() {
             (showSmall ? '<input type="number" value="' + (s.scTopup||0) + '" min="0" placeholder="小" ' +
             'style="width:48px;background:rgba(252,201,41,0.05);border:1px solid rgba(252,201,41,0.15);color:#a08010;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;margin-bottom:2px;" ' +
             'data-name="' + s.name + '" data-type="scTopup" onchange="batchUpdateTopup(this)">' : '') +
-            (showPrivate ? '<input type="number" value="' + (s.privateTopup||0) + '" min="0" placeholder="雙" ' +
+            (showPrivate ? '<input type="number" value="' + (s.privateTopup||0) + '" min="0" placeholder="私" ' +
             'style="width:48px;background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.2);color:#a78bfa;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;" ' +
             'data-name="' + s.name + '" data-type="privateTopup" onchange="batchUpdateTopup(this)">' : '') +
             '</td>';
@@ -2331,7 +2331,7 @@ function renderBatch() {
           const hasPrivData = (s.privateDates||[]).length > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0 || (s.privateMidTopup||0) > 0;
           if (hasPrivData) {
             const privBalColor2 = privBal2 < 0 ? 'color:var(--red)' : 'color:#a78bfa';
-            balCell += '<div style="' + privBalColor2 + ';font-size:0.72rem;">雙' + (privBal2>=0?'+':'') + privBal2 + '</div>';
+            balCell += '<div style="' + privBalColor2 + ';font-size:0.72rem;">私' + (privBal2>=0?'+':'') + privBal2 + '</div>';
           }
         }
         tbody += '<td class="batch-td" data-bal-name="' + s.name + '">' + balCell + '</td>';
@@ -2358,7 +2358,7 @@ function renderBatch() {
     tbody += '<td style="color:#fcc929;font-weight:900;">' + totalSmall + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   }
   if (showPrivateRow) {
-    tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#a78bfa;">單雙人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
+    tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#a78bfa;">私課人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
     filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#a78bfa;">' + (datePrivateTotals[k]||0) + '</td>'; });
     tbody += '<td style="color:#a78bfa;font-weight:900;">' + totalPrivate + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   }
@@ -2620,7 +2620,7 @@ function _exportMultiMonthPDF(months) {
     const groupTitle = selectedGroups ? selectedGroups.join('、') : '全部';
 
     let theadHtml = '<tr><th>學員</th>';
-    if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小/雙</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小/雙</span></th>';
+    if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小/私</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小/私</span></th>';
     filteredDates.forEach(d => {
       const dt = new Date(d.date + 'T00:00:00');
       const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
@@ -2657,7 +2657,7 @@ function _exportMultiMonthPDF(months) {
           tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
         });
         if (!simpleMode) {
-          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') + (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">雙' + (s.privateTopup||0) + '</div>' : '') + '</td>';
+          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') + (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateTopup||0) + '</div>' : '') + '</td>';
         }
         const teamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
         const scCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
@@ -2791,19 +2791,24 @@ function exportBatchPDF() {
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
     (s.scDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
+    (s.privateDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
   });
   filteredDates = filteredDates.filter(d => _attendCount[d.uid||d.date] > 0);
 
+  const pdfShowTeam = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+  const pdfShowSmall = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
+  const pdfShowPrivate = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
+
   let theadHtml = '<tr><th>學員</th>';
-  if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小/雙</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小/雙</span></th>';
+  if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">' + (pdfShowTeam?'團':'') + (pdfShowSmall?'/小':'') + (pdfShowPrivate?'/私':'') + '</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">' + (pdfShowTeam?'團':'') + (pdfShowSmall?'/小':'') + (pdfShowPrivate?'/私':'') + '</span></th>';
   filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
     const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
-    const _vDisplay = (!_hasTeam && d.smallVenue) ? d.smallVenue : (d.venue||'');
+    const _vDisplay = (pdfShowSmall && !_hasTeam && d.smallVenue) ? d.smallVenue : (d.venue||'');
     theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + _vDisplay + '</span></th>';
   });
   theadHtml += '<th>合計</th>';
-  if (!simpleMode) theadHtml += '<th>月底儲值<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月底剩餘<br><span style="color:#888;font-weight:400;">團/小</span></th>';
+  if (!simpleMode) theadHtml += '<th>月底儲值</th><th>月底剩餘</th>';
   theadHtml += '</tr>';
 
   let tbodyHtml = '';
@@ -2813,9 +2818,13 @@ function exportBatchPDF() {
       const endBal = calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
       const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-      const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private') && scActual > 0;
+      const privActual = (s.privateDates||[]).length;
+      const privBal = calcPrivateBalance(s);
+      const hasSmall = pdfShowSmall && scActual > 0;
+      const hasPrivate = pdfShowPrivate && (privActual > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0);
       const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
       const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
+      const privBalStyle = privBal < 0 ? 'color:#cc3300;font-weight:700;' : privBal > 0 ? 'color:#a78bfa;' : '';
 
       tbodyHtml += '<tr>';
       // 學員
@@ -2823,15 +2832,17 @@ function exportBatchPDF() {
       // 上月結餘
       if (!simpleMode) {
       tbodyHtml += '<td style="text-align:center;">' +
-        '<div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' +
+        (pdfShowTeam ? '<div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' : '') +
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') +
+        (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privatePrevBal>=0?'+':'') + (s.privatePrevBal||0) + '</div>' : '') +
         '</td>';
       }
       if (!simpleMode) {
       // 月中儲值
       tbodyHtml += '<td style="text-align:center;">' +
-        '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' +
+        (pdfShowTeam ? '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' : '') +
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scMidTopup||0) + '</div>' : '') +
+        (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateMidTopup||0) + '</div>' : '') +
         '</td>';
       }
       // 課日
@@ -2839,24 +2850,31 @@ function exportBatchPDF() {
         const dKey = d.uid || d.date;
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
+        const isPrivate = (s.privateDates||[]).includes(dKey);
         let cell = '';
-        if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
+        if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆</div>';
+        else if (isTeam && isPrivate) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#a78bfa;font-size:9px;">★</div>';
+        else if (isSmall && isPrivate) cell = '<div style="color:#c8a000;">◆</div><div style="color:#a78bfa;font-size:9px;">★</div>';
         else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
         else if (isSmall) cell = '<span style="color:#c8a000;">◆</span>';
+        else if (isPrivate) cell = '<span style="color:#a78bfa;">★</span>';
         tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
       });
       // 合計
       const pdfTeamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
       const pdfScCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
+      const pdfPvCount = (s.privateDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
       tbodyHtml += '<td style="text-align:center;">' +
-        (courseFilter !== 'small' ? '<div style="font-weight:700;color:#1a7a50;font-size:9px;">團' + pdfTeamCount + '</div>' : '') +
-        (courseFilter !== 'team' && hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + pdfScCount + '</div>' : '') +
+        (pdfShowTeam ? '<div style="font-weight:700;color:#1a7a50;font-size:9px;">團' + pdfTeamCount + '</div>' : '') +
+        (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + pdfScCount + '</div>' : '') +
+        (hasPrivate && pdfPvCount > 0 ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + pdfPvCount + '</div>' : '') +
         '</td>';
       if (!simpleMode) {
       // 月底儲值
       tbodyHtml += '<td style="text-align:center;">' +
-        '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' +
+        (pdfShowTeam ? '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' : '') +
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') +
+        (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateTopup||0) + '</div>' : '') +
         '</td>';
       // 月底剩餘
       const privEndBal = calcPrivateBalance(s);
@@ -2864,7 +2882,7 @@ function exportBatchPDF() {
       tbodyHtml += '<td style="text-align:center;">' +
         '<div style="' + balStyle + 'font-weight:700;font-size:9px;">團' + (endBal>=0?'+':'') + endBal + '</div>' +
         (hasSmall ? '<div style="' + scBalStyle + 'font-size:9px;font-weight:700;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>' : '') +
-        (hasPrivate ? '<div style="' + privBalStyle + 'font-size:9px;font-weight:700;">雙' + (privEndBal>=0?'+':'') + privEndBal + '</div>' : '') +
+        (hasPrivate ? '<div style="' + privBalStyle + 'font-size:9px;font-weight:700;">私' + (privEndBal>=0?'+':'') + privEndBal + '</div>' : '') +
         '</td>';
       } // end !simpleMode
       tbodyHtml += '</tr>';
@@ -2893,7 +2911,7 @@ function exportBatchPDF() {
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
   if (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all') {
-    tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">單雙人數</td>';
+    tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">私課人數</td>';
     filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (datePrivateTotals2[k]||0) + '</td>'; });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
@@ -3380,7 +3398,7 @@ function renderPanel() {
             ${isSmall ? '<span>✓</span>' : ''}
           </div>` : ''}
           ${d.isPrivate ? `<div class="date-check-box ${isPrivate ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${dKey}','private')" style="${isPrivate ? 'background:rgba(167,139,250,0.25);border-color:rgba(167,139,250,0.6);' : 'border-color:rgba(167,139,250,0.3);'}">
-            <span class="check-label" style="color:#a78bfa;">個人/雙人</span>
+            <span class="check-label" style="color:#a78bfa;">私課</span>
             ${isPrivate ? '<span style="color:#a78bfa;">✓</span>' : ''}
           </div>` : ''}
         </div>
@@ -3574,7 +3592,7 @@ function renderPanel() {
           const privActual = (s.privateDates||[]).length;
           const privBal = calcPrivateBalance(s);
           if (privActual === 0 && (s.privateTopup||0) === 0 && (s.privatePrevBal||0) === 0) return '';
-          return '<div style="font-size:0.68rem;color:#a78bfa;letter-spacing:2px;margin:12px 0 6px;">個人/雙人課</div>' +
+          return '<div style="font-size:0.68rem;color:#a78bfa;letter-spacing:2px;margin:12px 0 6px;">私課課</div>' +
             '<div class="preview-stats">' +
               '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">' + ((s.privatePrevBal||0)>=0?'+':'') + (s.privatePrevBal||0) + '</div><div class="preview-stat-label">上月結餘</div></div>' +
               '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">' + privActual + '</div><div class="preview-stat-label">本月上課</div></div>' +
@@ -3699,7 +3717,7 @@ function showDateManager() {
       const tags = [];
       if (d.isTeam) tags.push('<span style="background:var(--green);color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">團課</span>');
       if (d.isSmall) tags.push('<span style="background:#b07c0b;color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">小班</span>');
-      if (d.isPrivate) tags.push('<span style="background:rgba(167,139,250,0.25);color:#a78bfa;font-size:0.7rem;padding:2px 7px;border-radius:99px;">個人/雙人</span>');
+      if (d.isPrivate) tags.push('<span style="background:rgba(167,139,250,0.25);color:#a78bfa;font-size:0.7rem;padding:2px 7px;border-radius:99px;">私課</span>');
       const tc = d.teamCoach || d.coach || '';
       const sc = d.smallCoach || '';
       const pc = d.privateCoach || '';
