@@ -311,7 +311,7 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
 .batch-check.batch-small.checked { background:rgba(252,201,41,0.2); border-color:rgba(252,201,41,0.5); color:#fcc929; }
 .batch-check:hover { border-color:rgba(252,201,41,0.4); }
 .batch-group-row { background:rgba(252,201,41,0.15); }
-.batch-group-row td { padding:7px 14px; color:#010101; background:var(--yellow); font-size:0.75rem; font-weight:900; letter-spacing:3px; border:1px solid rgba(252,201,41,0.3); }
+.batch-group-row td { padding:7px 14px; color:#010101; background:var(--yellow); font-size:0.75rem; font-weight:900; letter-spacing:3px; border:1px solid rgba(252,201,41,0.3); position:sticky; left:0; z-index:2; }
 .batch-total-row td { background:#0a0a0a; color:var(--yellow); font-size:0.7rem; font-weight:700; text-align:center; border:1px solid rgba(255,255,255,0.05); padding:4px; }
 #batchTableWrap { scrollbar-width: thin; scrollbar-color: #fcc929 #111; }
 #batchTableWrap::-webkit-scrollbar { height: 8px; }
@@ -412,10 +412,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
   <button id="syncBtn" class="btn btn-green" onclick="syncToGist()" style="font-size:0.78rem;display:none;">☁ 同步給教練</button>
 
   <button class="btn btn-outline" onclick="showBatch()" style="font-size:0.8rem;">✓ 批量點名</button>
-  <button class="btn btn-outline edit-only" onclick="showOverview()" style="font-size:0.8rem;">📊 月結總覽</button>
-  <button class="btn btn-outline edit-only" onclick="recalcPrevBalance()" style="font-size:0.8rem;border-color:rgba(252,201,41,0.4);color:#fcc929;">🔄 重算上月結餘</button>
-  <button class="btn edit-only" onclick="showTopupForm(state.selectedStudent || '')" style="font-size:0.8rem;background:var(--green);">💳 儲值</button>
-  <button class="btn btn-outline edit-only" onclick="showPaymentHistory()" style="font-size:0.8rem;">📋 匯款紀錄</button>
+  <button class="btn" onclick="showTopupForm(state.selectedStudent || '')" style="font-size:0.8rem;background:var(--green);">💳 儲值</button>
   <div class="topbar-month">
     <input type="month" id="currentMonth" value="2026-04" onchange="changeMonth()" style="display:none;">
     <select id="monthSelect" onchange="changeMonthSelect(this.value)" style="background:#fcc929;border:none;color:#010101;padding:7px 14px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:900;font-size:0.85rem;cursor:pointer;">
@@ -599,11 +596,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <h3 id="overviewTitle">月結總覽</h3>
       <div style="display:flex;gap:8px;">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <label style="font-size:0.75rem;color:#3aab6e;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterTeam" checked> 團課</label>
-          <label style="font-size:0.75rem;color:#fcc929;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterSmall" checked> 小班</label>
-          <button class="btn btn-outline" onclick="copyDebtList()" style="font-size:0.75rem;border-color:rgba(224,92,42,0.4);color:var(--red);">📋 複製催繳名單</button>
-        </div>
+        <button class="btn btn-outline" onclick="copyDebtList()" style="font-size:0.75rem;border-color:rgba(224,92,42,0.4);color:var(--red);">📋 複製催繳名單</button>
         <button class="btn btn-outline" onclick="closeModal()" style="font-size:0.75rem;">關閉</button>
       </div>
     </div>
@@ -612,12 +605,13 @@ body.edit-mode .edit-only { display: inline-block !important; }
 </div>
 
 <!-- BATCH ATTENDANCE MODAL -->
-<div class="modal-overlay" id="batchModal" style="align-items:flex-start;padding:0;overflow:hidden;display:none;height:100vh;">
-  <div style="background:#0d0d0d;width:100%;height:100%;display:flex;flex-direction:column;">
-    <!-- 第一排：標題 + 月份 + 搜尋 + 年齡組 -->
-    <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 8px;flex-wrap:wrap;background:#0d0d0d;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+<div class="modal-overlay" id="batchModal" style="align-items:flex-start;padding:0;overflow:auto;display:none;">
+  <div style="background:#0d0d0d;width:100%;min-height:100vh;padding:20px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
       <div style="font-size:1rem;font-weight:900;color:var(--yellow);">✓ 批量點名</div>
-      <select id="batchMonthSelect" onchange="changeBatchMonth(this.value)" style="background:#fcc929;border:none;color:#010101;padding:6px 10px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:900;font-size:0.8rem;cursor:pointer;">
+      <div id="batchMonthLabel" style="font-size:0.82rem;color:var(--gray);"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;">
+        <select id="batchMonthSelect" onchange="changeBatchMonth(this.value)" style="background:#fcc929;border:none;color:#010101;padding:6px 10px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:900;font-size:0.8rem;cursor:pointer;">
           <option value="2026-01">2026年 1月</option>
           <option value="2026-02">2026年 2月</option>
           <option value="2026-03">2026年 3月</option>
@@ -764,85 +758,58 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <button class="btn btn-outline batchGroupBtn" data-group="國中" onclick="toggleGroupFilter('國中')" style="font-size:0.75rem;padding:4px 8px;">國中</button>
           <button class="btn btn-outline batchGroupBtn" data-group="爸媽組" onclick="toggleGroupFilter('爸媽組')" style="font-size:0.75rem;padding:4px 8px;">爸媽</button>
         </div>
-      </div>
-      <!-- 第二排：課程類型 + 篩選 + 功能 -->
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 16px 10px;border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
         <button id="batchTabTeam" onclick="toggleBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(36,110,88,0.5);border-radius:4px;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;">● 團課</button>
         <button id="batchTabSmall" onclick="toggleBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
-        <button id="batchTabPrivate" onclick="toggleBatchTab('private')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">★ 私課</button>
-        <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
         <button class="btn btn-outline" id="batchAttendedBtn" onclick="toggleBatchAttended()" style="font-size:0.8rem;">有上課</button>
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
-        <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
-        <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.8rem;">📅 本月課日</button>
+        
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
-        <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
       </div>
     </div>
-    <div style="flex:1;overflow:auto;" id="batchTableWrap">
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;" id="batchTableWrap"><div style="max-height:calc(100vh - 160px);overflow-y:auto;">
       <table id="batchTable" style="border-collapse:collapse;font-size:0.78rem;white-space:nowrap;"></table>
+    </div>
     </div>
   </div>
 </div>
 
 <!-- TOPUP FORM MODAL -->
-<div id="topupModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:999;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;">
-  <div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:420px;max-width:90vw;">
-    <h3 style="font-size:1rem;font-weight:700;margin-bottom:4px;">💳 儲值登錄</h3>
+<div id="topupModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:380px;max-width:90vw;max-height:90vh;overflow-y:auto;">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:12px;">💳 儲值回報</h3>
     <div id="topupStudentName" style="font-size:0.82rem;color:#fcc929;margin-bottom:16px;"></div>
     <div style="margin-bottom:12px;">
-      <div style="font-size:0.72rem;color:#666;margin-bottom:6px;">課程類型</div>
-      <div style="display:flex;gap:10px;">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsTeam" onchange="tpUpdate()"> <span style="color:#3aab6e;">● 團課</span></label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsSmall" onchange="tpUpdate()"> <span style="color:#fcc929;">◆ 小班</span></label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="checkbox" id="tpIsPrivate" onchange="tpUpdate()"> <span style="color:#a78bfa;">★ 私課</span></label>
-      </div>
-    </div>
-    <div style="margin-bottom:12px;">
-      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">匯款日期</div>
-      <input id="tpDate" type="date" onchange="tpUpdate()" style="width:100%;background:#0d0d0d;border:2px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
-      <div id="tpPeriodHint" style="font-size:0.72rem;color:#fcc929;margin-top:4px;"></div>
-    </div>
-    <div style="margin-bottom:12px;">
       <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">付款方式</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="轉帳" checked onchange="tpUpdate()"> 轉帳</label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="LINE PAY" onchange="tpUpdate()"> LINE PAY</label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="現金" onchange="tpUpdate()"> 現金</label>
+      <div style="display:flex;gap:12px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="轉帳" checked onchange="tpUpdateHint()"> 轉帳</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="LINE PAY" onchange="tpUpdateHint()"> LINE PAY</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="tpMethod" value="現金" onchange="tpUpdateHint()"> 現金</label>
       </div>
     </div>
     <div id="tpRefGroup" style="margin-bottom:12px;">
       <div id="tpRefLabel" style="font-size:0.72rem;color:#666;margin-bottom:5px;">後五碼</div>
-      <input id="tpRef" type="text" placeholder="請輸入轉帳後五碼" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+      <input id="tpRef" type="text" placeholder="請輸入轉帳後五碼" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
     <div style="margin-bottom:12px;">
-      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">匯款金額（元）</div>
-      <input id="tpMoney" type="number" placeholder="例：3000" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">堂數</div>
+      <input id="tpAmount" type="number" placeholder="例：10" min="1" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
-    <div id="tpTeamSection" style="margin-bottom:12px;display:none;">
-      <div style="font-size:0.72rem;color:#3aab6e;margin-bottom:5px;">● 團課儲值堂數</div>
-      <input id="tpTeamAmount" type="number" placeholder="例：10" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(52,171,110,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">日期</div>
+      <input id="tpDate" type="date" onchange="tpGenPreview()" style="width:100%;background:#0d0d0d;border:2px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
-    <div id="tpSmallSection" style="margin-bottom:12px;display:none;">
-      <div style="font-size:0.72rem;color:#fcc929;margin-bottom:5px;">◆ 小班儲值堂數</div>
-      <input id="tpSmallAmount" type="number" placeholder="例：4" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(252,201,41,0.4);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
-    </div>
-    <div id="tpPrivateSection" style="margin-bottom:12px;display:none;">
-      <div style="font-size:0.72rem;color:#a78bfa;margin-bottom:5px;">★ 私課儲值堂數</div>
-      <input id="tpPrivateAmount" type="number" placeholder="例：4" min="0" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(167,139,250,0.2);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
-    </div>
-    <div style="margin-bottom:16px;">
+    <div style="margin-bottom:12px;">
       <div style="font-size:0.72rem;color:#666;margin-bottom:5px;">備註（選填）</div>
-      <input id="tpNote" type="text" placeholder="例：五月份儲值" oninput="tpUpdate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
+      <input id="tpNote" type="text" placeholder="例：四月份儲值" oninput="tpGenPreview()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#f5f5f0;padding:8px 12px;border-radius:4px;font-size:0.85rem;">
     </div>
     <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:12px;margin-bottom:16px;">
-      <div style="font-size:0.68rem;color:#666;margin-bottom:6px;">儲值摘要</div>
-      <div id="tpPreview" style="font-size:0.82rem;color:#f5f5f0;line-height:1.9;white-space:pre-wrap;"></div>
+      <div style="font-size:0.68rem;color:#666;margin-bottom:6px;">預覽訊息</div>
+      <div id="tpPreview" style="font-size:0.82rem;color:#f5f5f0;line-height:1.8;white-space:pre-wrap;"></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="tpClose()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#aaa;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-size:0.8rem;cursor:pointer;">取消</button>
-      <button onclick="tpSave()" style="background:#246e58;color:white;border:none;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;">✓ 確認儲值</button>
+      <button onclick="tpClose()" style="background:none;border:1px solid rgba(252,201,41,0.35);color:#fcc929;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-size:0.8rem;cursor:pointer;">關閉</button>
+      <button onclick="tpCopy()" style="background:#246e58;color:white;border:none;padding:7px 16px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;">📋 複製訊息</button>
     </div>
   </div>
 </div>
@@ -873,7 +840,6 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>備註</label><input type="text" id="editNote" placeholder="例：長期請假、體驗中、待確認費用…"></div>
     <div class="modal-actions">
       <button class="btn btn-red" onclick="deleteStudentFromEdit()">永久刪除</button>
-      <button class="btn btn-outline" onclick="mergeStudentFromEdit()" style="border-color:#a78bfa;color:#a78bfa;font-size:0.78rem;">合併至其他學員</button>
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
       <button class="btn" onclick="saveEditStudent()">儲存</button>
     </div>
@@ -928,13 +894,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>課程類型</label>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsTeam" onchange="document.getElementById('editTeamGroup').style.display=this.checked?'':'none'"> <span style="color:#3aab6e;">● 團課</span>
+          <input type="checkbox" id="editIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsSmall" onchange="document.getElementById('editSmallGroup').style.display=this.checked?'':'none'"> <span style="color:#fcc929;">◆ 小班課</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsPrivate" onchange="document.getElementById('editPrivateGroup').style.display=this.checked?'':'none'"> <span style="color:#a78bfa;">★ 私課</span>
+          <input type="checkbox" id="editIsSmall"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
       </div>
     </div>
@@ -1004,72 +967,33 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </select>
       </div>
     </div>
-    <!-- 團課區塊 -->
-    <div id="editTeamGroup" style="display:none;border:1px solid rgba(36,110,88,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#3aab6e;font-weight:700;margin-bottom:8px;">● 團課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#3aab6e;">場地</label>
-        <select id="editVenue" style="width:100%;">
+    <div class="form-group"><label>場地</label>
+      <select id="editVenue">
         <option value="">選擇場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
-        </select>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="editNewVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewVenueEdit()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
-          <button type="button" onclick="deleteVenueFromSelect('editVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#3aab6e;">教練（可多選）</label>
-        <div id="editTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="editNewTeamCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('editNewTeamCoachInput','editTeamCoachList','editTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
+      </select>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewVenueEdit()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
+        <button type="button" onclick="deleteVenueFromSelect('editVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
       </div>
     </div>
-    <!-- 小班課區塊 -->
-    <div id="editSmallGroup" style="display:none;border:1px solid rgba(252,201,41,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#fcc929;font-weight:700;margin-bottom:8px;">◆ 小班課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#fcc929;">場地</label>
-        <select id="editSmallVenue" style="width:100%;">
-        <option value="">選擇場地</option>
-        <option value="黎光">黎光</option>
-        <option value="朝馬">朝馬</option>
-        <option value="台體大">台體大</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#fcc929;">教練（可多選）</label>
-        <div id="editSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="editNewSmallCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('editNewSmallCoachInput','editSmallCoachList','editSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
+    <div class="form-group">
+      <label style="color:#3aab6e;">● 團課教練（可多選）</label>
+      <div id="editTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewTeamCoachInput" placeholder="新增團課教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('editNewTeamCoachInput','editTeamCoachList','editTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
     </div>
-    <!-- 私課區塊 -->
-    <div id="editPrivateGroup" style="display:none;border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#a78bfa;font-weight:700;margin-bottom:8px;">★ 私課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#a78bfa;">場地</label>
-        <select id="editPrivateVenue" style="width:100%;">
-        <option value="">選擇場地</option>
-        <option value="黎光">黎光</option>
-        <option value="朝馬">朝馬</option>
-        <option value="台體大">台體大</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#a78bfa;">教練（可多選）</label>
-        <div id="editPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
+    <div class="form-group">
+      <label style="color:#fcc929;">◆ 小班教練（可多選）</label>
+      <div id="editSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="editNewSmallCoachInput" placeholder="新增小班教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('editNewSmallCoachInput','editSmallCoachList','editSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
     </div>
     <div class="form-group"><label>備註（選填）</label>
@@ -1083,9 +1007,6 @@ body.edit-mode .edit-only { display: inline-block !important; }
   </div>
 </div>
 
-  </div>
-</div>
-
 <!-- ADD DATE MODAL -->
 <div class="modal-overlay" id="addDateModal" onclick="event.target===this&&closeModal()">
   <div class="modal" style="max-height:88vh;overflow-y:auto;width:380px;">
@@ -1093,13 +1014,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>課程類型</label>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsTeam" onchange="document.getElementById('newTeamGroup').style.display=this.checked?'':'none'"> <span style="color:#3aab6e;">● 團課</span>
+          <input type="checkbox" id="newIsTeam"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsSmall" onchange="document.getElementById('newSmallGroup').style.display=this.checked?'':'none'"> <span style="color:#fcc929;">◆ 小班課</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsPrivate" onchange="document.getElementById('newPrivateGroup').style.display=this.checked?'':'none'"> <span style="color:#a78bfa;">★ 私課</span>
+          <input type="checkbox" id="newIsSmall"> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
       </div>
     </div>
@@ -1107,99 +1025,81 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <div style="display:flex;gap:6px;align-items:center;">
         <select id="newDateY" style="flex:2;">
           <option value="2026">2026</option>
-<option value="2027">2027</option>
-<option value="2028">2028</option>
-<option value="2029">2029</option>
-<option value="2030">2030</option>
+          <option value="2027">2027</option>
+          <option value="2028">2028</option>
+          <option value="2029">2029</option>
+          <option value="2030">2030</option>
+          <option value="2031">2031</option>
+          <option value="2032">2032</option>
+          <option value="2033">2033</option>
+          <option value="2034">2034</option>
+          <option value="2035">2035</option>
+          <option value="2036">2036</option>
         </select>
         <span style="color:var(--gray);">/</span>
         <select id="newDateM" style="flex:1.5;">
-          <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+          <option value="01">01</option><option value="02">02</option>
+          <option value="03">03</option><option value="04">04</option>
+          <option value="05">05</option><option value="06">06</option>
+          <option value="07">07</option><option value="08">08</option>
+          <option value="09">09</option><option value="10">10</option>
+          <option value="11">11</option><option value="12">12</option>
         </select>
         <span style="color:var(--gray);">/</span>
         <select id="newDateD" style="flex:1.5;">
-          <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
+          <option value="01">01</option><option value="02">02</option>
+          <option value="03">03</option><option value="04">04</option>
+          <option value="05">05</option><option value="06">06</option>
+          <option value="07">07</option><option value="08">08</option>
+          <option value="09">09</option><option value="10">10</option>
+          <option value="11">11</option><option value="12">12</option>
+          <option value="13">13</option><option value="14">14</option>
+          <option value="15">15</option><option value="16">16</option>
+          <option value="17">17</option><option value="18">18</option>
+          <option value="19">19</option><option value="20">20</option>
+          <option value="21">21</option><option value="22">22</option>
+          <option value="23">23</option><option value="24">24</option>
+          <option value="25">25</option><option value="26">26</option>
+          <option value="27">27</option><option value="28">28</option>
+          <option value="29">29</option><option value="30">30</option>
+          <option value="31">31</option>
         </select>
       </div>
     </div>
-    <!-- 團課區塊 -->
-    <div id="newTeamGroup" style="display:none;border:1px solid rgba(36,110,88,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#3aab6e;font-weight:700;margin-bottom:8px;">● 團課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#3aab6e;">場地</label>
-        <select id="newVenue" style="width:100%;">
+    <div class="form-group"><label>場地</label>
+      <select id="newVenue">
         <option value="">選擇場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
-        </select>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="newVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewVenue()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
-          <button type="button" onclick="deleteVenueFromSelect('newVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#3aab6e;">教練（可多選）</label>
-        <div id="newTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="newNewTeamCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('newNewTeamCoachInput','newTeamCoachList','newTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
+      </select>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewVenue()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
+        <button type="button" onclick="deleteVenueFromSelect('newVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
       </div>
     </div>
-    <!-- 小班課區塊 -->
-    <div id="newSmallGroup" style="display:none;border:1px solid rgba(252,201,41,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#fcc929;font-weight:700;margin-bottom:8px;">◆ 小班課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#fcc929;">場地</label>
-        <select id="newSmallVenue" style="width:100%;">
-        <option value="">選擇場地</option>
-        <option value="黎光">黎光</option>
-        <option value="朝馬">朝馬</option>
-        <option value="台體大">台體大</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#fcc929;">教練（可多選）</label>
-        <div id="newSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="newNewSmallCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('newNewSmallCoachInput','newSmallCoachList','newSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
+    <div class="form-group">
+      <label style="color:#3aab6e;">● 團課教練（可多選）</label>
+      <div id="newTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newNewTeamCoachInput" placeholder="新增團課教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('newNewTeamCoachInput','newTeamCoachList','newTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
     </div>
-    <!-- 私課區塊 -->
-    <div id="newPrivateGroup" style="display:none;border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:0.75rem;color:#a78bfa;font-weight:700;margin-bottom:8px;">★ 私課</div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="color:#a78bfa;">場地</label>
-        <select id="newPrivateVenue" style="width:100%;">
-        <option value="">選擇場地</option>
-        <option value="黎光">黎光</option>
-        <option value="朝馬">朝馬</option>
-        <option value="台體大">台體大</option>
-        </select>
+    <div class="form-group">
+      <label style="color:#fcc929;">◆ 小班教練（可多選）</label>
+      <div id="newSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" id="newNewSmallCoachInput" placeholder="新增小班教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
+        <button type="button" onclick="addNewCoachToList('newNewSmallCoachInput','newSmallCoachList','newSmallCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label style="color:#a78bfa;">教練（可多選）</label>
-        <div id="newPrivateCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
-          <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
-        </div>
-      </div>
-    </div>
-    <div class="form-group"><label>備註（選填）</label>
-      <input type="text" id="newDateNote" placeholder="例：移訓、比賽、特訓…">
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
       <button class="btn" onclick="addDate()">新增</button>
     </div>
   </div>
-</div>
-
 </div>
 
 <script>
@@ -1325,330 +1225,72 @@ function loadState() {
 }
 
 function showTopupForm(name) {
+  // Close any other open modals first
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
   document.getElementById('batchModal').style.display = 'none';
   const modal = document.getElementById('topupModal');
+  // Move modal to body level to avoid z-index stacking issues
   document.body.appendChild(modal);
   modal.style.display = 'flex';
-  const displayName = name || (state.selectedStudent || '');
-  document.getElementById('topupStudentName').textContent = displayName ? '學員：' + displayName : '（請從左側選擇學員）';
+  document.getElementById('topupStudentName').textContent = '學員：' + name;
   document.getElementById('tpRef').value = '';
-  document.getElementById('tpMoney').value = '';
-  document.getElementById('tpTeamAmount').value = '';
-  document.getElementById('tpSmallAmount').value = '';
+  document.getElementById('tpAmount').value = '';
   document.getElementById('tpNote').value = '';
   document.getElementById('tpDate').value = new Date().toISOString().split('T')[0];
-  document.getElementById('tpIsTeam').checked = false;
-  document.getElementById('tpIsSmall').checked = false;
-  if (document.getElementById('tpIsPrivate')) document.getElementById('tpIsPrivate').checked = false;
-  if (document.getElementById('tpPrivateAmount')) document.getElementById('tpPrivateAmount').value = '';
   document.querySelector('input[name=tpMethod][value="轉帳"]').checked = true;
-  tpUpdate();
+  tpUpdateHint();
 }
 
 function tpClose() {
   document.getElementById('topupModal').style.display = 'none';
 }
 
-function tpUpdate() {
-  const isTeam = document.getElementById('tpIsTeam').checked;
-  const isSmall = document.getElementById('tpIsSmall').checked;
-  const isPrivate = document.getElementById('tpIsPrivate') ? document.getElementById('tpIsPrivate').checked : false;
-  document.getElementById('tpTeamSection').style.display = isTeam ? '' : 'none';
-  document.getElementById('tpSmallSection').style.display = isSmall ? '' : 'none';
-  if (document.getElementById('tpPrivateSection')) document.getElementById('tpPrivateSection').style.display = isPrivate ? '' : 'none';
+function tpUpdateHint() {
   const method = document.querySelector('input[name=tpMethod]:checked').value;
   const refGroup = document.getElementById('tpRefGroup');
   const refLabel = document.getElementById('tpRefLabel');
   const refInput = document.getElementById('tpRef');
-  if (method === '轉帳') { refGroup.style.display=''; refLabel.textContent='後五碼'; refInput.placeholder='請輸入轉帳後五碼'; }
-  else if (method === 'LINE PAY') { refGroup.style.display=''; refLabel.textContent='LINE 名字'; refInput.placeholder='請輸入 LINE 顯示名稱'; }
-  else { refGroup.style.display='none'; }
-  const date = document.getElementById('tpDate').value;
-  const periodHint = document.getElementById('tpPeriodHint');
-  if (date) {
-    const day = parseInt(date.split('-')[2]);
-    const _ym = document.getElementById('tpDate').value.slice(0,7);
-    let _hint = '';
-    if (day <= 5) {
-      const _prev = _ym === state.currentMonth
-        ? (() => { const d = new Date(_ym+'-01'); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,7); })()
-        : _ym.slice(0,7);
-      _hint = '→ 將計入「' + _prev.replace('-','年') + '月 月底儲值」';
-    } else if (day <= 15) {
-      _hint = '→ 將計入「本月月中儲值」';
-    } else {
-      _hint = '→ 將計入「本月月底儲值」';
-    }
-    periodHint.textContent = _hint;
-  } else { periodHint.textContent = ''; }
-  const name = document.getElementById('topupStudentName').textContent.replace('學員：','');
-  const ref = document.getElementById('tpRef').value.trim();
-  const money = document.getElementById('tpMoney').value;
-  const teamAmt = document.getElementById('tpTeamAmount').value;
-  const smallAmt = document.getElementById('tpSmallAmount').value;
-  const note = document.getElementById('tpNote').value.trim();
-  const days = ['日','一','二','三','四','五','六'];
-  let lines = [];
-  if (name) lines.push('學員：' + name);
-  if (date) { const dt = new Date(date+'T00:00:00'); lines.push('日期：' + date.replace(/-/g,'/') + '（週' + days[dt.getDay()] + '）'); }
-  lines.push('方式：' + method + (ref ? '（' + ref + '）' : ''));
-  if (money) lines.push('金額：NT$' + money);
-  const privateAmt = document.getElementById('tpPrivateAmount') ? document.getElementById('tpPrivateAmount').value : '';
-  if (isTeam && teamAmt) lines.push('● 團課 +' + teamAmt + ' 堂');
-  if (isSmall && smallAmt) lines.push('◆ 小班 +' + smallAmt + ' 堂');
-  if (isPrivate && privateAmt) lines.push('★ 私課 +' + privateAmt + ' 堂');
-  if (note) lines.push('備註：' + note);
-  document.getElementById('tpPreview').textContent = lines.join('\n');
+  if (method === '轉帳') {
+    refGroup.style.display = 'block';
+    refLabel.textContent = '後五碼';
+    refInput.placeholder = '請輸入轉帳後五碼';
+  } else if (method === 'LINE PAY') {
+    refGroup.style.display = 'block';
+    refLabel.textContent = 'LINE 名字';
+    refInput.placeholder = '請輸入 LINE 顯示名稱';
+  } else {
+    refGroup.style.display = 'none';
+  }
+  tpGenPreview();
 }
 
-function tpSave() {
-  const nameEl = document.getElementById('topupStudentName').textContent.replace('學員：','').trim();
-  if (!nameEl) { alert('請選擇學員'); return; }
-  const date = document.getElementById('tpDate').value;
-  if (!date) { alert('請填寫匯款日期'); return; }
-  const isTeam = document.getElementById('tpIsTeam').checked;
-  const isSmall = document.getElementById('tpIsSmall').checked;
-  const isPrivateTp = document.getElementById('tpIsPrivate') ? document.getElementById('tpIsPrivate').checked : false;
-  if (!isTeam && !isSmall && !isPrivateTp) { alert('請選擇課程類型'); return; }
-  const teamAmt = parseInt(document.getElementById('tpTeamAmount').value) || 0;
-  const smallAmt = parseInt(document.getElementById('tpSmallAmount').value) || 0;
-  const privateAmt = isPrivateTp && document.getElementById('tpPrivateAmount') ? (parseInt(document.getElementById('tpPrivateAmount').value) || 0) : 0;
-  if (isTeam && teamAmt === 0 && !isSmall && !isPrivateTp) { alert('請填寫團課儲值堂數'); return; }
-  if (isSmall && smallAmt === 0 && !isTeam && !isPrivateTp) { alert('請填寫小班儲值堂數'); return; }
-  if (isPrivateTp && privateAmt === 0 && !isTeam && !isSmall) { alert('請填寫私課儲值堂數'); return; }
-  const day = parseInt(date.split('-')[2]);
-  const dateYM = date.slice(0,7);
-  let period, targetMonth;
-  if (day <= 5) {
-    // previous month end
-    const d = new Date(dateYM+'-01');
-    d.setMonth(d.getMonth()-1);
-    targetMonth = d.toISOString().slice(0,7);
-    period = 'end';
-  } else if (day <= 15) {
-    targetMonth = dateYM;
-    period = 'mid';
-  } else {
-    targetMonth = dateYM;
-    period = 'end';
-  }
+function tpGenPreview() {
+  const name = document.getElementById('topupStudentName').textContent.replace('學員：','');
   const method = document.querySelector('input[name=tpMethod]:checked').value;
   const ref = document.getElementById('tpRef').value.trim();
-  const money = parseInt(document.getElementById('tpMoney').value) || 0;
+  const amount = document.getElementById('tpAmount').value;
+  const date = document.getElementById('tpDate').value;
   const note = document.getElementById('tpNote').value.trim();
-  // Use targetMonth (may be previous month if date ≤ 5)
-  if (!state.months[targetMonth]) state.months[targetMonth] = { dates: [], students: [] };
-  const targetData = state.months[targetMonth];
-  let ts = targetData.students.find(x => x.name === nameEl);
-  if (!ts) {
-    // 找其他月份的學員資料作為參考
-    const refMonths = Object.keys(state.months).sort().reverse();
-    let refStudent = null;
-    for (const m of refMonths) {
-      refStudent = state.months[m].students.find(x => x.name === nameEl);
-      if (refStudent) break;
-    }
-    if (!refStudent) { alert('找不到學員'); return; }
-    // 加入 targetMonth，保留現有的 topup 欄位
-    targetData.students.push(Object.assign({}, refStudent, {
-      attended: [], midTopup: 0, endTopup: 0,
-      scMidTopup: 0, scTopup: 0, scDates: [],
-      prevBalance: refStudent.prevBalance || 0,
-      scPrevBal: refStudent.scPrevBal || 0,
-    }));
-    ts = targetData.students.find(x => x.name === nameEl);
+  let msg = '【儲值回報】\n';
+  msg += '學員：' + name + '\n';
+  msg += '方式：' + method;
+  if (ref) msg += '（' + ref + '）';
+  msg += '\n';
+  if (amount) msg += '堂數：' + amount + ' 堂\n';
+  if (date) {
+    const dt = new Date(date + 'T00:00:00');
+    const days = ['日','一','二','三','四','五','六'];
+    msg += '日期：' + date.replace(/-/g,'/') + '（週' + days[dt.getDay()] + '）\n';
   }
-  if (isTeam && teamAmt > 0) {
-    if (period === 'mid') ts.midTopup = (ts.midTopup||0) + teamAmt;
-    else ts.endTopup = (ts.endTopup||0) + teamAmt;
-  }
-  if (isSmall && smallAmt > 0) {
-    if (period === 'mid') ts.scMidTopup = (ts.scMidTopup||0) + smallAmt;
-    else ts.scTopup = (ts.scTopup||0) + smallAmt;
-  }
-  if (isPrivateTp && privateAmt > 0) {
-    if (period === 'mid') ts.privateMidTopup = (ts.privateMidTopup||0) + privateAmt;
-    else ts.privateTopup = (ts.privateTopup||0) + privateAmt;
-  }
-  if (!state.paymentHistory) state.paymentHistory = [];
-  state.paymentHistory.push({ id: Date.now(), name: nameEl, date, method, ref, money, teamAmt: isTeam ? teamAmt : 0, smallAmt: isSmall ? smallAmt : 0, privateAmt: isPrivateTp ? privateAmt : 0, period, month: targetMonth, note });
-  saveState();
-  tpClose();
-  renderSidebar();
-  renderPanel();
-  alert('✓ 儲值已登錄！');
+  if (note) msg += '備註：' + note + '\n';
+  document.getElementById('tpPreview').textContent = msg;
 }
 
-function showPaymentHistory() {
-  const isRO = state.isReadOnly;
-  _renderPaymentHistory();
-}
-
-function _renderPaymentHistory() {
-  const isRO = state.isReadOnly;
-  const history = (state.paymentHistory || []).slice().reverse();
-  const months = [...new Set(history.map(p => p.month))].sort().reverse();
-  const _days = ['日','一','二','三','四','五','六'];
-
-  let html = '<div id="phList">';
-  if (history.length === 0) {
-    html += '<div style="color:var(--gray);text-align:center;padding:20px;">尚無匯款紀錄</div>';
-  } else {
-    months.forEach(m => {
-      const recs = history.filter(p => p.month === m);
-      html += '<div style="font-size:0.72rem;font-weight:700;color:var(--yellow);letter-spacing:2px;margin:12px 0 6px;">' + m.replace('-','年') + '月</div>';
-      recs.forEach(p => {
-        const dt = new Date(p.date+'T00:00:00');
-        const pl = p.period === 'mid' ? '月中' : '月底';
-        const dis = isRO ? 'disabled' : '';
-        const inp = (val, field, w, type) =>
-          '<input type="' + (type||'text') + '" value="' + (val||'') + '" ' + dis + ' data-id="' + p.id + '" data-field="' + field + '"'
-          + ' style="width:' + w + ';background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--white);border-radius:3px;padding:2px 5px;font-size:0.78rem;font-family:\'Noto Sans TC\',sans-serif;"'
-          + ' onchange="phUpdateRecord(this)">';
-        html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;">'
-          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
-          + '<div style="flex:1;min-width:0;">'
-          + '<div style="font-size:0.88rem;font-weight:700;margin-bottom:6px;">' + p.name + '</div>'
-          + '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px;">'
-          + '<span style="font-size:0.72rem;color:var(--yellow);">計入月份</span>'
-          + '<select data-id="' + p.id + '" data-field="month" ' + dis + ' style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);color:var(--white);border-radius:3px;padding:2px 5px;font-size:0.78rem;" onchange="phUpdateRecord(this)">'
-          + Object.keys(state.months).sort().map(m => '<option value="' + m + '"' + (m === p.month ? ' selected' : '') + '>' + m.replace('-','年') + '月</option>').join('')
-          + '</select>'
-          + '<select data-id="' + p.id + '" data-field="period" ' + dis + ' style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);color:var(--white);border-radius:3px;padding:2px 5px;font-size:0.78rem;" onchange="phUpdateRecord(this)">'
-          + '<option value="mid"' + (p.period==='mid'?' selected':'') + '>月中</option>'
-          + '<option value="end"' + (p.period==='end'?' selected':'') + '>月底</option>'
-          + '</select>'
-          + '<span style="font-size:0.72rem;color:var(--gray);">日期</span>' + inp(p.date, 'date', '110px', 'date')
-          + '<span style="font-size:0.72rem;color:var(--gray);">NT$</span>' + inp(p.money||'', 'money', '70px', 'number')
-          + '<span style="font-size:0.72rem;color:var(--gray);">方式</span>' + inp(p.method, 'method', '70px')
-          + inp(p.ref||'', 'ref', '80px')
-          + '</div>'
-          + '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px;">'
-          + '<span style="font-size:0.72rem;color:#3aab6e;">● 團課</span>' + inp(p.teamAmt||0, 'teamAmt', '48px', 'number')
-          + '<span style="font-size:0.72rem;color:#fcc929;">◆ 小班</span>' + inp(p.smallAmt||0, 'smallAmt', '48px', 'number')
-          + '<span style="font-size:0.72rem;color:#a78bfa;">★ 私課</span>' + inp(p.privateAmt||0, 'privateAmt', '48px', 'number')
-          + '<span style="font-size:0.72rem;color:var(--gray);">備註</span>' + inp(p.note||'', 'note', '120px')
-          + '</div>'
-          + '</div>'
-          + '<button onclick="phDeleteRecord(' + p.id + ')" ' + dis + ' style="background:none;border:1px solid rgba(224,92,42,0.4);color:var(--red);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;flex-shrink:0;">✕</button>'
-          + '</div>'
-          + '</div>';
-      });
-    });
-  }
-  html += '</div>';
-
-  // Check if overlay already open
-  let overlay = document.getElementById('phOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'phOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;';
-    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = '<div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:min(92vw,600px);">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
-    + '<h3 style="margin:0;font-size:1rem;">💳 匯款紀錄</h3>'
-    + '<button onclick="document.getElementById(\'phOverlay\').remove()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#aaa;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.8rem;">關閉</button>'
-    + '</div>'
-    + '<div style="max-height:72vh;overflow-y:auto;">' + html + '</div>'
-    + '</div>';
-}
-
-function phUpdateRecord(el) {
-  if (state.isReadOnly) return;
-  const id = parseInt(el.dataset.id);
-  const field = el.dataset.field;
-  const val = el.type === 'number' ? (parseInt(el.value)||0) : el.value;
-  const rec = (state.paymentHistory||[]).find(p => p.id === id);
-  if (!rec) return;
-
-  const oldTeamAmt = rec.teamAmt || 0;
-  const oldSmallAmt = rec.smallAmt || 0;
-  const oldPrivateAmt = rec.privateAmt || 0;
-  const oldPeriod = rec.period;
-  const oldMonth = rec.month;
-
-  // Reverse old topup from old month
-  const oldData = state.months[oldMonth];
-  if (oldData) {
-    const s = oldData.students.find(x => x.name === rec.name);
-    if (s) {
-      if (oldPeriod === 'mid') { s.midTopup = Math.max(0,(s.midTopup||0)-oldTeamAmt); s.scMidTopup = Math.max(0,(s.scMidTopup||0)-oldSmallAmt); s.privateMidTopup = Math.max(0,(s.privateMidTopup||0)-oldPrivateAmt); }
-      else { s.endTopup = Math.max(0,(s.endTopup||0)-oldTeamAmt); s.scTopup = Math.max(0,(s.scTopup||0)-oldSmallAmt); s.privateTopup = Math.max(0,(s.privateTopup||0)-oldPrivateAmt); }
-    }
-  }
-
-  // Update record field
-  rec[field] = val;
-
-  // If date changed, recalculate period (unless period was manually set)
-  if (field === 'date') {
-    const day = parseInt(val.split('-')[2]);
-    rec.period = day <= 5 ? 'end' : day <= 15 ? 'mid' : 'end';
-  }
-
-  // Apply new topup to new month
-  const newData = state.months[rec.month];
-  if (newData) {
-    let s = newData.students.find(x => x.name === rec.name);
-    if (!s) {
-      // Try to find student from any month and add to target month
-      const refMonths = Object.keys(state.months).sort().reverse();
-      let ref = null;
-      for (const m of refMonths) {
-        ref = state.months[m].students.find(x => x.name === rec.name);
-        if (ref) break;
-      }
-      if (ref) {
-        newData.students.push(Object.assign({}, ref, { attended:[], midTopup:0, endTopup:0, scMidTopup:0, scTopup:0, scDates:[] }));
-        s = newData.students.find(x => x.name === rec.name);
-      }
-    }
-    if (s) {
-      const newTeam = rec.teamAmt || 0;
-      const newSmall = rec.smallAmt || 0;
-      const newPrivate = rec.privateAmt || 0;
-      if (rec.period === 'mid') { s.midTopup = (s.midTopup||0)+newTeam; s.scMidTopup = (s.scMidTopup||0)+newSmall; s.privateMidTopup = (s.privateMidTopup||0)+newPrivate; }
-      else { s.endTopup = (s.endTopup||0)+newTeam; s.scTopup = (s.scTopup||0)+newSmall; s.privateTopup = (s.privateTopup||0)+newPrivate; }
-    }
-  }
-
-  saveState();
-  renderSidebar();
-  _renderPaymentHistory();
-}
-
-function phDeleteRecord(id) {
-  if (state.isReadOnly) return;
-  if (!confirm('確定刪除這筆匯款紀錄？')) return;
-  const rec = (state.paymentHistory||[]).find(p => p.id === id);
-  if (rec) {
-    // Reverse the topup from student data
-    const data = state.months[rec.month];
-    if (data) {
-      const s = data.students.find(x => x.name === rec.name);
-      if (s) {
-        if (rec.period === 'mid') { s.midTopup = Math.max(0,(s.midTopup||0)-(rec.teamAmt||0)); s.scMidTopup = Math.max(0,(s.scMidTopup||0)-(rec.smallAmt||0)); s.privateMidTopup = Math.max(0,(s.privateMidTopup||0)-(rec.privateAmt||0)); }
-        else { s.endTopup = Math.max(0,(s.endTopup||0)-(rec.teamAmt||0)); s.scTopup = Math.max(0,(s.scTopup||0)-(rec.smallAmt||0)); s.privateTopup = Math.max(0,(s.privateTopup||0)-(rec.privateAmt||0)); }
-      }
-    }
-    state.paymentHistory = state.paymentHistory.filter(p => p.id !== id);
-  }
-  saveState();
-  renderSidebar();
-  _renderPaymentHistory();
-}
-
-function tpGenPreview() { tpUpdate(); }
 function tpCopy() {
   const msg = document.getElementById('tpPreview').textContent;
   if (!msg.trim()) { alert('請先填寫儲值資料'); return; }
-  navigator.clipboard.writeText(msg).then(() => alert('已複製！'));
+  navigator.clipboard.writeText(msg).then(() => alert('已複製！請傳送給教練確認 🙏'));
 }
-function tpUpdateHint() { tpUpdate(); }
 
 function addNewCoachToList(inputId, listId, inputName) {
   const input = document.getElementById(inputId);
@@ -1656,21 +1298,17 @@ function addNewCoachToList(inputId, listId, inputName) {
   if (!name) return;
   // Add to all coach lists with same inputName pattern across both modals
   const allListIds = {
-    'newTeamCoach':     ['newTeamCoachList',    'editTeamCoachList'],
-    'editTeamCoach':    ['newTeamCoachList',    'editTeamCoachList'],
-    'newSmallCoach':    ['newSmallCoachList',   'editSmallCoachList'],
-    'editSmallCoach':   ['newSmallCoachList',   'editSmallCoachList'],
-    'newPrivateCoach':  ['newPrivateCoachList', 'editPrivateCoachList'],
-    'editPrivateCoach': ['newPrivateCoachList', 'editPrivateCoachList'],
+    'newTeamCoach':  ['newTeamCoachList',  'editTeamCoachList'],
+    'editTeamCoach': ['newTeamCoachList',  'editTeamCoachList'],
+    'newSmallCoach': ['newSmallCoachList', 'editSmallCoachList'],
+    'editSmallCoach':['newSmallCoachList', 'editSmallCoachList'],
   };
   const targets = allListIds[inputName] || [listId];
   targets.forEach(lid => {
     const list = document.getElementById(lid);
     if (!list) return;
-    let resolvedName;
-    if (inputName.includes('Team')) resolvedName = lid.startsWith('new') ? 'newTeamCoach' : 'editTeamCoach';
-    else if (inputName.includes('Small')) resolvedName = lid.startsWith('new') ? 'newSmallCoach' : 'editSmallCoach';
-    else resolvedName = lid.startsWith('new') ? 'newPrivateCoach' : 'editPrivateCoach';
+    const targetInputName = lid.startsWith('new') ? inputName.replace('edit','new') : inputName.replace('new','edit');
+    const resolvedName = lid.startsWith('new') ? (inputName.includes('Team') ? 'newTeamCoach' : 'newSmallCoach') : (inputName.includes('Team') ? 'editTeamCoach' : 'editSmallCoach');
     if (list.querySelector('[data-coach="' + name + '"]')) return;
     list.appendChild(makeCoachLabel(name, resolvedName, lid === listId));
   });
@@ -1702,14 +1340,14 @@ function addNewVenueEdit() {
   const input = document.getElementById('editNewVenueInput');
   const name = input.value.trim();
   if (!name) return;
-  ['newVenue', 'editVenue', 'newSmallVenue', 'editSmallVenue', 'newPrivateVenue', 'editPrivateVenue'].forEach(id => {
+  ['newVenue', 'editVenue'].forEach(id => {
     const sel = document.getElementById(id);
     if (sel && ![...sel.options].some(o => o.value === name)) {
       const opt = document.createElement('option');
       opt.value = name; opt.textContent = name;
       sel.appendChild(opt);
     }
-    if (sel && id === 'editVenue') sel.value = name;
+    if (sel) sel.value = name;
   });
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '["黎光","朝馬","台體大"]');
   if (!venues.includes(name)) { venues.push(name); localStorage.setItem('bw_venues', JSON.stringify(venues)); }
@@ -1775,14 +1413,14 @@ function addNewVenue() {
   const input = document.getElementById('newVenueInput');
   const name = input.value.trim();
   if (!name) return;
-  ['newVenue', 'editVenue', 'newSmallVenue', 'editSmallVenue', 'newPrivateVenue', 'editPrivateVenue'].forEach(id => {
+  ['newVenue', 'editVenue'].forEach(id => {
     const sel = document.getElementById(id);
     if (sel && ![...sel.options].some(o => o.value === name)) {
       const opt = document.createElement('option');
       opt.value = name; opt.textContent = name;
       sel.appendChild(opt);
     }
-    if (sel && id === 'newVenue') sel.value = name;
+    if (sel) sel.value = name;
   });
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '["黎光","朝馬","台體大"]');
   if (!venues.includes(name)) { venues.push(name); localStorage.setItem('bw_venues', JSON.stringify(venues)); }
@@ -1801,14 +1439,12 @@ function loadCustomCoachesVenues() {
   const customCoaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
   const allCoaches = [...defaultCoaches.filter(c => !deletedCoaches.includes(c)), ...customCoaches.filter(c => !defaultCoaches.includes(c))];
 
-  // Populate all 6 coach lists
+  // Populate all 4 coach lists
   [
-    ['newTeamCoachList',    'newTeamCoach'],
-    ['editTeamCoachList',   'editTeamCoach'],
-    ['newSmallCoachList',   'newSmallCoach'],
-    ['editSmallCoachList',  'editSmallCoach'],
-    ['newPrivateCoachList', 'newPrivateCoach'],
-    ['editPrivateCoachList','editPrivateCoach'],
+    ['newTeamCoachList',   'newTeamCoach'],
+    ['editTeamCoachList',  'editTeamCoach'],
+    ['newSmallCoachList',  'newSmallCoach'],
+    ['editSmallCoachList', 'editSmallCoach'],
   ].forEach(([listId, inputName]) => {
     const list = document.getElementById(listId);
     if (!list) return;
@@ -1822,7 +1458,7 @@ function loadCustomCoachesVenues() {
   const venues = JSON.parse(localStorage.getItem('bw_venues') || '[]');
   const defaultVenues = ['黎光','朝馬','台體大'];
   venues.filter(v => !defaultVenues.includes(v)).forEach(name => {
-    ['newVenue','editVenue','newSmallVenue','editSmallVenue','newPrivateVenue','editPrivateVenue'].forEach(id => {
+    ['newVenue','editVenue'].forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
       if ([...sel.options].some(o => o.value === name)) return;
@@ -1839,48 +1475,11 @@ function overviewUpdateTopup(name, type, val) {
   const s = data.students.find(x => x.name === name);
   if (!s) return;
   const n = parseInt(val) || 0;
-  if (type === 'prevBalance') s.prevBalance = n;
-  else if (type === 'mid') s.midTopup = n;
-  else if (type === 'end') s.endTopup = n;
-  else if (type === 'scMid') s.scMidTopup = n;
-  else if (type === 'scTopup') s.scTopup = n;
-  else if (type === 'scPrevBal') s.scPrevBal = n;
-  else if (type === 'privatePrevBal') s.privatePrevBal = n;
-  else if (type === 'privateMid') s.privateMidTopup = n;
-  else if (type === 'privateTopup') s.privateTopup = n;
+  if (type === 'mid') s.midTopup = n;
+  else s.endTopup = n;
   saveState();
+  // Update balance display without re-rendering whole overview
   renderSidebar();
-}
-
-function recalcPrevBalance() {
-  if (state.isReadOnly) return;
-  const allMonths = Object.keys(state.months).sort();
-  const curIdx = allMonths.indexOf(state.currentMonth);
-  if (curIdx <= 0) { alert('目前是最早的月份，沒有上個月可以計算。'); return; }
-  const prevMonth = allMonths[curIdx - 1];
-  const prevData = state.months[prevMonth];
-  const curData = state.months[state.currentMonth];
-  if (!prevData || !curData) return;
-
-  let updated = 0;
-  curData.students.forEach(s => {
-    const prev = prevData.students.find(x => x.name === s.name);
-    if (!prev) return;
-    const newTeamBal = calcEndBalance(prev);
-    const newScBal = (prev.scPrevBal||0) + (prev.scMidTopup||0) + (prev.scTopup||0) + (prev.scGiftTopup||0) - (prev.scDates ? prev.scDates.length : (prev.scAttended||0));
-    const newPrivBal = calcPrivateBalance(prev);
-    if (s.prevBalance !== newTeamBal || s.scPrevBal !== newScBal || s.privatePrevBal !== newPrivBal) {
-      s.prevBalance = newTeamBal;
-      s.scPrevBal = newScBal;
-      s.privatePrevBal = newPrivBal;
-      updated++;
-    }
-  });
-
-  saveState();
-  renderSidebar();
-  showOverview();
-  alert('✓ 已重算完成！共更新 ' + updated + ' 位學員的上月結餘。\n（依據 ' + prevMonth.replace('-','年') + '月 的資料）');
 }
 
 function showOverview() {
@@ -1915,9 +1514,9 @@ function showOverview() {
     groups[s.group].push(s);
   });
 
-  let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>上月結餘<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>團課</th><th>小班</th><th>月中儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月底儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月中儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底結餘</th><th>小班結餘</th><th>備註</th></tr></thead><tbody>';
+  let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘</th><th>團課</th><th>小班</th><th>月中儲值</th><th>月底儲值</th><th>月底結餘</th><th>小班結餘</th><th>備註</th></tr></thead><tbody>';
   Object.entries(groups).forEach(([g, list]) => {
-    tableHtml += '<tr class="overview-group-row"><td colspan="16">' + g + '</td></tr>';
+    tableHtml += '<tr class="overview-group-row"><td colspan="10">' + g + '</td></tr>';
     list.forEach(s => {
       const bal = calcEndBalance(s);
       const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : Object.keys(s.scDates).length) : (s.scAttended||0);
@@ -1926,28 +1525,16 @@ function showOverview() {
       const scColor = scBal < 0 ? 'color:var(--red);font-weight:700;' : scBal > 0 ? 'color:#3aab6e;' : 'color:var(--gray);';
       const teamCount = Array.isArray(s.attended) ? s.attended.length : Object.keys(s.attended||{}).length;
       const isRO = state.isReadOnly;
-      const inp = (val, type) => '<input type="number" value="' + val + '" ' + (isRO?'disabled':'') + ' style="width:48px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.78rem;" onclick="event.stopPropagation()" onchange="overviewUpdateTopup(\'' + s.name + '\',\'' + type + '\',this.value)">';
-      const privateActual = (s.privateDates||[]).length;
-      const privBal = calcPrivateBalance(s);
-      const privColor = privBal < 0 ? 'color:var(--red);font-weight:700;' : privBal > 0 ? 'color:#a78bfa;' : '';
       tableHtml += '<tr onclick="closeModal();selectStudent(\'' + s.name + '\')">' +
         '<td>' + s.name + (s.bib ? ' <span style="color:var(--gray);font-size:0.72rem;">#' + s.bib + '</span>' : '') + '</td>' +
         '<td style="color:var(--gray);">' + s.group + '</td>' +
-        '<td>' + inp(s.prevBalance||0, 'prevBalance') + '</td>' +
-        '<td>' + inp(s.scPrevBal||0, 'scPrevBal') + '</td>' +
-        '<td>' + inp(s.privatePrevBal||0, 'privatePrevBal') + '</td>' +
+        '<td style="color:var(--yellow);">' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</td>' +
         '<td style="color:#3aab6e;">' + teamCount + '</td>' +
         '<td style="color:#fcc929;">' + (scActual > 0 ? scActual : '—') + '</td>' +
-        '<td style="color:#a78bfa;">' + (privateActual > 0 ? privateActual : '—') + '</td>' +
-        '<td>' + inp(s.midTopup||0, 'mid') + '</td>' +
-        '<td>' + inp(s.endTopup||0, 'end') + '</td>' +
-        '<td>' + inp(s.scMidTopup||0, 'scMid') + '</td>' +
-        '<td>' + inp(s.scTopup||0, 'scTopup') + '</td>' +
-        '<td>' + inp(s.privateMidTopup||0, 'privateMid') + '</td>' +
-        '<td>' + inp(s.privateTopup||0, 'privateTopup') + '</td>' +
+        '<td><input type="number" value="' + (s.midTopup||0) + '" min="0" ' + (isRO?'disabled':'') + ' style="width:52px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.78rem;" onchange="overviewUpdateTopup(\'' + s.name + '\',\'mid\',this.value)"></td>' +
+        '<td><input type="number" value="' + (s.endTopup||0) + '" min="0" ' + (isRO?'disabled':'') + ' style="width:52px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.78rem;" onchange="overviewUpdateTopup(\'' + s.name + '\',\'end\',this.value)"></td>' +
         '<td style="' + balColor + '">' + (bal>=0?'+':'') + bal + '</td>' +
         '<td style="' + scColor + '">' + (scActual>0||(s.scTopup||0)>0||(s.scPrevBal||0)!==0 ? (scBal>=0?'+':'')+scBal : '—') + '</td>' +
-        '<td style="' + privColor + '">' + (privateActual>0||(s.privateTopup||0)>0||(s.privatePrevBal||0)!==0 ? (privBal>=0?'+':'')+privBal : '—') + '</td>' +
         '<td style="color:var(--gray);font-size:0.78rem;">' + (s.note||'') + '</td>' +
         '</tr>';
     });
@@ -1961,43 +1548,14 @@ function showOverview() {
 function copyDebtList() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
-  const showTeam = document.getElementById('debtFilterTeam') ? document.getElementById('debtFilterTeam').checked : true;
-  const showSmall = document.getElementById('debtFilterSmall') ? document.getElementById('debtFilterSmall').checked : true;
-  const groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國中','爸媽組'];
-
-  const debtStudents = data.students
-    .filter(s => {
-      if (s.group === '已離隊') return false;
-      const teamBal = calcEndBalance(s);
-      const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : 0) : (s.scAttended||0);
-      const scBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-      if (showTeam && teamBal < 0) return true;
-      if (showSmall && scBal < 0) return true;
-      return false;
-    })
-    .sort((a, b) => {
-      const ai = groupOrder.indexOf(a.group);
-      const bi = groupOrder.indexOf(b.group);
-      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-    });
-
+  const debtStudents = data.students.filter(s => {
+    return calcEndBalance(s) < 0 && s.group !== '已離隊';
+  });
   if (debtStudents.length === 0) { alert('本月沒有堂數不足的學員！'); return; }
-
   const lines = ['[' + monthLabel + ' 堂數不足名單]', ''];
-  let lastGroup = '';
   debtStudents.forEach(s => {
-    const teamBal = calcEndBalance(s);
-    const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : 0) : (s.scAttended||0);
-    const scBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-    if (s.group !== lastGroup) {
-      if (lastGroup) lines.push('');
-      lines.push('【' + s.group + '】');
-      lastGroup = s.group;
-    }
-    const parts = [];
-    if (showTeam && teamBal < 0) parts.push('團課差 ' + Math.abs(teamBal) + ' 堂');
-    if (showSmall && scBal < 0) parts.push('小班差 ' + Math.abs(scBal) + ' 堂');
-    lines.push('・' + s.name + '　' + parts.join(' / '));
+    const bal = calcEndBalance(s);
+    lines.push('・' + s.name + '(' + s.group + ') 差 ' + Math.abs(bal) + ' 堂');
   });
   lines.push('');
   lines.push('請盡快完成儲值，謝謝！');
@@ -2007,7 +1565,7 @@ function copyDebtList() {
 function showBatch() {
   document.getElementById('batchModal').style.display = 'flex';
   document.getElementById('batchMonthSelect').value = state.currentMonth;
-  if (!state._batchTabs) state._batchTabs = { team: true, small: false, private: false };
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
   updateBatchTabUI();
   renderBatch();
 }
@@ -2074,22 +1632,16 @@ function toggleBatchSimple() {
 }
 
 function toggleBatchTab(tab) {
-  if (!state._batchTabs) state._batchTabs = { team: true, small: false, private: false };
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
   state._batchTabs[tab] = !state._batchTabs[tab];
-  // 不允許三個都取消，至少保留一個
-  if (!state._batchTabs.team && !state._batchTabs.small && !state._batchTabs.private) {
-    state._batchTabs[tab] = true;
-    return;
-  }
   updateBatchTabUI();
   renderBatch();
 }
 
 function updateBatchTabUI() {
-  if (!state._batchTabs) state._batchTabs = { team: true, small: false, private: false };
+  if (!state._batchTabs) state._batchTabs = { team: true, small: false };
   const teamBtn = document.getElementById('batchTabTeam');
   const smallBtn = document.getElementById('batchTabSmall');
-  const privateBtn = document.getElementById('batchTabPrivate');
   if (!teamBtn || !smallBtn) return;
   if (state._batchTabs.team) {
     teamBtn.style.background = 'rgba(36,110,88,0.35)';
@@ -2108,17 +1660,6 @@ function updateBatchTabUI() {
     smallBtn.style.background = 'none';
     smallBtn.style.color = 'var(--gray)';
     smallBtn.style.borderColor = 'rgba(255,255,255,0.1)';
-  }
-  if (privateBtn) {
-    if (state._batchTabs.private) {
-      privateBtn.style.background = 'rgba(167,139,250,0.2)';
-      privateBtn.style.color = '#a78bfa';
-      privateBtn.style.borderColor = 'rgba(167,139,250,0.5)';
-    } else {
-      privateBtn.style.background = 'none';
-      privateBtn.style.color = 'var(--gray)';
-      privateBtn.style.borderColor = 'rgba(255,255,255,0.1)';
-    }
   }
 }
 
@@ -2143,33 +1684,14 @@ function filterBatchDebt() {
 }
 
 function renderBatch() {
-  try {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
-  const _lbl = document.getElementById('batchMonthLabel'); if (_lbl) _lbl.textContent = monthLabel;
+  document.getElementById('batchMonthLabel').textContent = monthLabel;
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const noneSelected = !tabs.team && !tabs.small && !tabs.private;
-  const courseFilter = noneSelected ? 'all'
-    : (tabs.team && tabs.small && tabs.private) ? 'all'
-    : (tabs.team && tabs.private) ? 'team+private'
-    : (tabs.small && tabs.private) ? 'small+private'
-    : (tabs.team && tabs.small) ? 'team+small'
-    : tabs.private ? 'private'
-    : tabs.small ? 'small'
-    : 'team';
+  const tabs = state._batchTabs || { team: true, small: false };
+  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
-  const filteredDates = dates.filter(d => {
-    if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
-    if (courseFilter === 'team+small') return d.isTeam || d.isSmall;
-    if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
-    if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
-    if (courseFilter === 'team') return d.isTeam === true;
-    if (courseFilter === 'small') return d.isSmall === true;
-    if (courseFilter === 'private') return d.isPrivate === true;
-    return d.isTeam || d.isSmall;
-  });
   const batchSearchEl = document.getElementById('batchSearch');
   const searchVal = batchSearchEl ? batchSearchEl.value.toLowerCase() : '';
   const debtOnly = document.getElementById('batchDebtBtn') && document.getElementById('batchDebtBtn').classList.contains('active');
@@ -2179,16 +1701,11 @@ function renderBatch() {
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
   if (attendedOnly) {
     students = students.filter(s => {
-      const teamCount = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
-      const scCount = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
-      const pvCount = (s.privateDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
+      const teamCount = (s.attended||[]).filter(a => dates.find(d => (d.uid||d.date) === a)).length;
+      const scCount = (s.scDates||[]).filter(a => dates.find(d => (d.uid||d.date) === a)).length;
       if (courseFilter === 'team') return teamCount > 0;
       if (courseFilter === 'small') return scCount > 0;
-      if (courseFilter === 'private') return pvCount > 0;
-      if (courseFilter === 'team+private') return teamCount > 0 || pvCount > 0;
-      if (courseFilter === 'small+private') return scCount > 0 || pvCount > 0;
-      if (courseFilter === 'team+small') return teamCount > 0 || scCount > 0;
-      return teamCount > 0 || scCount > 0 || pvCount > 0;
+      return teamCount > 0 || scCount > 0;
     });
   }
 
@@ -2199,29 +1716,19 @@ function renderBatch() {
   thead += '<th class="batch-name-th" style="min-width:120px;">學員</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#fcc929;">上月結餘</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月中儲值</th>';
+  const filteredDates = dates.filter(d => {
+    if (courseFilter === 'team') return d.isTeam === true;
+    if (courseFilter === 'small') return d.isSmall === true;
+    return true;
+  });
   filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
     const tc = d.teamCoach || d.coach || '';
     const sc = d.smallCoach || '';
-    const showTeamCoach = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
-    const showSmallCoach = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
-    const showPrivateCoach = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
     let coachHtml = '';
-    if (showTeamCoach) {
-      if (d.venue) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + d.venue + '</span>';
-      if (tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
-    }
-    if (showSmallCoach) {
-      const sv = d.smallVenue || (showTeamCoach ? '' : d.venue) || '';
-      if (sv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + sv + '</span>';
-      if (sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
-    }
-    if (showPrivateCoach) {
-      const pv = d.privateVenue || (showTeamCoach ? '' : d.venue) || '';
-      if (pv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + pv + '</span>';
-      if (d.privateCoach) coachHtml += '<br><span style="color:#a78bfa;font-size:0.6rem;">★ ' + d.privateCoach + '</span>';
-    }
-    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span>' + coachHtml + '</th>';
+    if (courseFilter !== 'small' && tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
+    if (courseFilter !== 'team' && sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
+    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + (d.venue||'') + '</span>' + coachHtml + '</th>';
   });
   thead += '<th class="batch-th" style="min-width:50px;">合計</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月底儲值</th>';
@@ -2238,12 +1745,10 @@ function renderBatch() {
   // Date totals
   const dateTotals = {};
   const dateSmallTotals = {};
-  const datePrivateTotals = {};
-  filteredDates.forEach(d => { const k = d.uid||d.date; dateTotals[k] = 0; dateSmallTotals[k] = 0; datePrivateTotals[k] = 0; });
+  filteredDates.forEach(d => { const k = d.uid||d.date; dateTotals[k] = 0; dateSmallTotals[k] = 0; });
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if (dateTotals[a] !== undefined) dateTotals[a]++; });
     (s.scDates||[]).forEach(a => { if (dateSmallTotals[a] !== undefined) dateSmallTotals[a]++; });
-    (s.privateDates||[]).forEach(a => { if (datePrivateTotals[a] !== undefined) datePrivateTotals[a]++; });
   });
 
   const totalCols = filteredDates.length + 5; // name + 上月 + 月中 + dates + 合計 + 月底 + 月底剩餘
@@ -2295,67 +1800,47 @@ function renderBatch() {
         const dKey = d.uid || d.date;
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
-        const isPrivate = (s.privateDates||[]).includes(dKey);
-        const dateIsTeam = d.isTeam === true && (courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private');
-        const dateIsSmall = d.isSmall === true && (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private');
-        const dateIsPrivate = d.isPrivate === true && (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all');
+        const dateIsTeam = d.isTeam === true && courseFilter !== 'small';
+        const dateIsSmall = d.isSmall === true && courseFilter !== 'team';
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
         if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
         if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
-        if (dateIsPrivate) cell += '<div class="batch-check ' + (isPrivate?'checked':'') + '" style="font-size:0.65rem;border-color:rgba(167,139,250,0.4);' + (isPrivate?'background:rgba(167,139,250,0.25);color:#a78bfa;':'color:#a78bfa;') + '" data-name="' + s.name + '" data-date="' + dKey + '" data-type="private" onclick="toggleBatchCell(this)">' + (isPrivate?'★':'') + '</div>';
-        if (!dateIsTeam && !dateIsSmall && !dateIsPrivate) cell += '<div style="color:var(--gray);font-size:0.65rem;text-align:center;">—</div>';
+        if (!dateIsTeam && !dateIsSmall) cell += '<div style="color:var(--gray);font-size:0.65rem;text-align:center;">—</div>';
         cell += '</td>';
         tbody += cell;
       });
       // 合計
       const teamCount2 = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
       const scCount2 = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
-      const pvCount2 = (s.privateDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
-      const showTeam = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
-      const showSmall = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
-      const showPrivate = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
       tbody += '<td class="batch-td" style="font-weight:700;">' +
-        (showTeam ? '<div style="color:#3aab6e;font-size:0.72rem;">團' + teamCount2 + '</div>' : '') +
-        (showSmall && scCount2 > 0 ? '<div style="color:#fcc929;font-size:0.72rem;">小' + scCount2 + '</div>' : '') +
-        (showPrivate && pvCount2 > 0 ? '<div style="color:#a78bfa;font-size:0.72rem;">私' + pvCount2 + '</div>' : '') +
+        (courseFilter !== 'small' ? '<div style="color:#3aab6e;font-size:0.72rem;">團' + teamCount2 + '</div>' : '') +
+        (courseFilter !== 'team' && scCount2 > 0 ? '<div style="color:#fcc929;font-size:0.72rem;">小' + scCount2 + '</div>' : '') +
         '</td>';
       // 月底儲值
       if (!simpleMode) {
         if (state.isReadOnly) {
           tbody += '<td class="batch-td" style="text-align:center;">' +
-            (showTeam ? '<div style="color:var(--white);font-size:0.72rem;">+' + (s.endTopup||0) + '</div>' : '') +
-            (showSmall && (s.scTopup||0) ? '<div style="color:#fcc929;font-size:0.68rem;">小+' + (s.scTopup||0) + '</div>' : '') +
-            (showPrivate && (s.privateTopup||0) ? '<div style="color:#a78bfa;font-size:0.68rem;">私+' + (s.privateTopup||0) + '</div>' : '') +
+            '<div style="color:var(--white);font-size:0.72rem;">+' + (s.endTopup||0) + '</div>' +
+            ((s.scTopup||0) ? '<div style="color:#fcc929;font-size:0.68rem;">小+' + (s.scTopup||0) + '</div>' : '') +
             '</td>';
         } else {
           tbody += '<td class="batch-td">' +
-            (showTeam ? '<input type="number" value="' + (s.endTopup||0) + '" min="0" placeholder="團" ' +
+            '<input type="number" value="' + (s.endTopup||0) + '" min="0" placeholder="團" ' +
             'style="width:48px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;margin-bottom:2px;" ' +
-            'data-name="' + s.name + '" data-type="end" onchange="batchUpdateTopup(this)">' : '') +
-            (showSmall ? '<input type="number" value="' + (s.scTopup||0) + '" min="0" placeholder="小" ' +
-            'style="width:48px;background:rgba(252,201,41,0.05);border:1px solid rgba(252,201,41,0.15);color:#a08010;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;margin-bottom:2px;" ' +
-            'data-name="' + s.name + '" data-type="scTopup" onchange="batchUpdateTopup(this)">' : '') +
-            (showPrivate ? '<input type="number" value="' + (s.privateTopup||0) + '" min="0" placeholder="私" ' +
-            'style="width:48px;background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.2);color:#a78bfa;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;" ' +
-            'data-name="' + s.name + '" data-type="privateTopup" onchange="batchUpdateTopup(this)">' : '') +
+            'data-name="' + s.name + '" data-type="end" onchange="batchUpdateTopup(this)">' +
+            '<input type="number" value="' + (s.scTopup||0) + '" min="0" placeholder="小" ' +
+            'style="width:48px;background:rgba(252,201,41,0.05);border:1px solid rgba(252,201,41,0.15);color:#a08010;text-align:center;border-radius:3px;padding:2px;font-size:0.72rem;display:block;" ' +
+            'data-name="' + s.name + '" data-type="scTopup" onchange="batchUpdateTopup(this)">' +
             '</td>';
         }
       }
-      // 月底剩餘
+      // 月底剩餘（根據 courseFilter 顯示對應剩餘）
       if (!simpleMode) {
         let balCell = '';
-        if (showTeam) balCell += '<div style="' + balColor + 'font-size:0.72rem;">團' + (endBal>=0?'+':'') + endBal + '</div>';
-        if (showSmall) {
+        if (courseFilter !== 'small') balCell += '<div style="' + balColor + 'font-size:0.72rem;">團' + (endBal>=0?'+':'') + endBal + '</div>';
+        if (courseFilter !== 'team') {
           const hasSmallData = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
           if (hasSmallData) balCell += '<div style="' + scBalColor + 'font-size:0.72rem;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>';
-        }
-        const privBal2 = calcPrivateBalance(s);
-        if (showPrivate) {
-          const hasPrivData = (s.privateDates||[]).length > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0 || (s.privateMidTopup||0) > 0;
-          if (hasPrivData) {
-            const privBalColor2 = privBal2 < 0 ? 'color:var(--red)' : 'color:#a78bfa';
-            balCell += '<div style="' + privBalColor2 + ';font-size:0.72rem;">私' + (privBal2>=0?'+':'') + privBal2 + '</div>';
-          }
         }
         tbody += '<td class="batch-td" data-bal-name="' + s.name + '">' + balCell + '</td>';
       }
@@ -2366,35 +1851,19 @@ function renderBatch() {
   // 出席人數列 — 跟著 courseFilter 決定顯示哪幾列，合計欄加總
   const totalTeam = filteredDates.reduce((sum, d) => sum + (dateTotals[d.uid||d.date]||0), 0);
   const totalSmall = filteredDates.reduce((sum, d) => sum + (dateSmallTotals[d.uid||d.date]||0), 0);
-  const totalPrivate = filteredDates.reduce((sum, d) => sum + (datePrivateTotals[d.uid||d.date]||0), 0);
-  const showTeamRow = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
-  const showSmallRow = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
-  const showPrivateRow = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
-  if (showTeamRow) {
+  if (courseFilter !== 'small') {
     tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#3aab6e;">團課人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
     filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#3aab6e;">' + (dateTotals[k]||0) + '</td>'; });
     tbody += '<td style="color:#3aab6e;font-weight:900;">' + totalTeam + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   }
-  if (showSmallRow) {
+  if (courseFilter !== 'team') {
     tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#fcc929;">小班人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
     filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#fcc929;">' + (dateSmallTotals[k]||0) + '</td>'; });
     tbody += '<td style="color:#fcc929;font-weight:900;">' + totalSmall + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   }
-  if (showPrivateRow) {
-    tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#a78bfa;">私課人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
-    filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#a78bfa;">' + (datePrivateTotals[k]||0) + '</td>'; });
-    tbody += '<td style="color:#a78bfa;font-weight:900;">' + totalPrivate + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
-  }
   tbody += '</tbody>';
 
   document.getElementById('batchTable').innerHTML = thead + tbody;
-  if (!students.length) {
-    document.getElementById('batchTable').innerHTML = '<tr><td style="color:orange;padding:20px;">學員數：' + (getCurrentMonthData().students||[]).length + '，篩選後：0，courseFilter：' + courseFilter + '</td></tr>';
-  }
-  } catch(e) {
-    console.error('renderBatch error:', e);
-    document.getElementById('batchTable').innerHTML = '<tr><td style="color:red;padding:20px;">錯誤：' + e.message + '</td></tr>';
-  }
 }
 
 function batchUpdateTopup(input) {
@@ -2409,21 +1878,11 @@ function batchUpdateTopup(input) {
   else if (type === 'end') s.endTopup = val;
   else if (type === 'scMid') s.scMidTopup = val;
   else if (type === 'scTopup') s.scTopup = val;
-  else if (type === 'privateMid') s.privateMidTopup = val;
-  else if (type === 'privateTopup') s.privateTopup = val;
   saveState();
   renderSidebar();
   // 即時更新該列的剩餘欄，不重繪整個表格
-  const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const noneSelected = !tabs.team && !tabs.small && !tabs.private;
-  const courseFilter = noneSelected ? 'all'
-    : (tabs.team && tabs.small && tabs.private) ? 'all'
-    : (tabs.team && tabs.private) ? 'team+private'
-    : (tabs.small && tabs.private) ? 'small+private'
-    : (tabs.team && tabs.small) ? 'team+small'
-    : tabs.private ? 'private'
-    : tabs.small ? 'small'
-    : 'team';
+  const tabs = state._batchTabs || { team: true, small: false };
+  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const endBal = calcEndBalance(s);
   const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
   const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
@@ -2461,11 +1920,6 @@ function toggleBatchCell(el) {
     if (idx === -1) s.scDates.push(date);
     else s.scDates.splice(idx, 1);
     s.scAttended = s.scDates.length;
-  } else if (type === 'private') {
-    if (!s.privateDates) s.privateDates = [];
-    const idx = s.privateDates.indexOf(date);
-    if (idx === -1) s.privateDates.push(date);
-    else s.privateDates.splice(idx, 1);
   } else {
     if (!s.attended) s.attended = [];
     const idx = s.attended.indexOf(date);
@@ -2584,236 +2038,19 @@ ${card.outerHTML}
   printWin.document.close();
 }
 
-function exportDualMonthPDF() {
-  const availableMonths = Object.keys(state.months).sort();
-  if (availableMonths.length < 2) { alert('資料中只有一個月份，無法雙月匯出'); return; }
-  const otherMonths = availableMonths.filter(m => m !== state.currentMonth);
-
-  // Show a small inline picker instead of prompt
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:center;justify-content:center;';
-  overlay.innerHTML = `
-    <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:24px;width:280px;">
-      <div style="font-size:0.9rem;font-weight:700;margin-bottom:12px;">📄 雙月 PDF</div>
-      <div style="font-size:0.78rem;color:var(--gray);margin-bottom:6px;">目前月份：${state.currentMonth.replace('-','年')}月</div>
-      <div style="font-size:0.78rem;color:var(--gray);margin-bottom:6px;">選擇第二個月份</div>
-      <select id="_dualMonthSel" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);color:var(--white);padding:8px;border-radius:4px;font-size:0.85rem;margin-bottom:16px;">
-        ${otherMonths.map(m => `<option value="${m}"${m===otherMonths[otherMonths.length-1]?' selected':''}>${m.replace('-','年')}月</option>`).join('')}
-      </select>
-      <div style="display:flex;gap:8px;justify-content:flex-end;">
-        <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#aaa;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:0.8rem;">取消</button>
-        <button onclick="
-          const sel = document.getElementById('_dualMonthSel');
-          const second = sel.value;
-          this.closest('[style*=fixed]').remove();
-          const months = ['${state.currentMonth}', second].sort();
-          _exportMultiMonthPDF(months);
-        " style="background:#246e58;color:white;border:none;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:700;">匯出</button>
-      </div>
-    </div>`;
-  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-  document.body.appendChild(overlay);
-}
-
-function _exportMultiMonthPDF(months) {
-  const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const noneSelected = !tabs.team && !tabs.small && !tabs.private;
-  const courseFilter = noneSelected ? 'all'
-    : (tabs.team && tabs.small && tabs.private) ? 'all'
-    : (tabs.team && tabs.private) ? 'team+private'
-    : (tabs.small && tabs.private) ? 'small+private'
-    : (tabs.team && tabs.small) ? 'team+small'
-    : tabs.private ? 'private'
-    : tabs.small ? 'small'
-    : 'team';
-  const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
-  const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
-  const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const days = ['日','一','二','三','四','五','六'];
-
-  // Build one section per month
-  let allSections = '';
-
-  months.forEach((month, mIdx) => {
-    const data = state.months[month];
-    if (!data) return;
-    const monthLabel = month.replace('-', '年') + '月';
-
-    let filteredDates = (data.dates||[]).filter(d => {
-      if (courseFilter === 'team') return d.isTeam === true;
-      if (courseFilter === 'small') return d.isSmall === true;
-      return true;
-    });
-
-    let students = (data.students||[]).filter(s => s.group !== '已離隊' && !s.isTrial);
-    if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
-    // 僅上課：只顯示該月有出席的學員
-    if (attendedOnly) {
-      students = students.filter(s => {
-        const tc = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
-        const sc = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
-        if (courseFilter === 'team') return tc > 0;
-        if (courseFilter === 'small') return sc > 0;
-        return tc > 0 || sc > 0;
-      });
-    }
-
-    const groups = {};
-    students.forEach(s => { if (!groups[s.group]) groups[s.group] = []; groups[s.group].push(s); });
-
-    // Filter dates with 0 attendance
-    const _ac = {};
-    filteredDates.forEach(d => { _ac[d.uid||d.date] = 0; });
-    students.forEach(s => {
-      (s.attended||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
-      (s.scDates||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
-    });
-    filteredDates = filteredDates.filter(d => _ac[d.uid||d.date] > 0);
-
-    const groupTitle = selectedGroups ? selectedGroups.join('、') : '全部';
-
-    let theadHtml = '<tr><th>學員</th>';
-    if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小/私</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小/私</span></th>';
-    filteredDates.forEach(d => {
-      const dt = new Date(d.date + 'T00:00:00');
-      const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
-      const _vDisplay = (!_hasTeam && d.smallVenue) ? d.smallVenue : (d.venue||'');
-      theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + _vDisplay + '</span></th>';
-    });
-    if (!simpleMode) theadHtml += '<th>月底儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
-    theadHtml += '<th>合計</th></tr>';
-
-    let tbodyHtml = '';
-    Object.entries(groups).forEach(([g, list]) => {
-      tbodyHtml += '<tr class="group-row"><td colspan="' + (filteredDates.length + (simpleMode ? 2 : 5)) + '">' + g + '</td></tr>';
-      list.forEach(s => {
-        const endBal = calcEndBalance(s);
-        const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
-        const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-        const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private') && scActual > 0;
-        const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
-        const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
-        tbodyHtml += '<tr>';
-        tbodyHtml += '<td class="name-cell">' + s.name + (s.bib ? ' <span style="color:#888;font-size:9px;">#'+s.bib+'</span>' : '') + '</td>';
-        if (!simpleMode) {
-          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') + '</td>';
-          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scMidTopup||0) + '</div>' : '') + '</td>';
-        }
-        filteredDates.forEach(d => {
-          const dKey = d.uid||d.date;
-          const isTeam = (s.attended||[]).includes(dKey);
-          const isSmall = (s.scDates||[]).includes(dKey);
-          let cell = '';
-          if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
-          else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
-          else if (isSmall) cell = '<span style="color:#c8a000;">◆</span>';
-          tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
-        });
-        if (!simpleMode) {
-          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') + (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateTopup||0) + '</div>' : '') + '</td>';
-        }
-        const teamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
-        const scCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
-        tbodyHtml += '<td style="text-align:right;"><div style="font-size:11px;">團' + teamCount + '</div>' + (hasSmall ? '<div style="font-size:10px;color:#888;">小' + scCount + '</div>' : '') + '</td>';
-        tbodyHtml += '</tr>';
-      });
-    });
-
-    // 全月合計（移出 groups 迴圈）
-    const totalRow = Array(filteredDates.length).fill(0);
-    const scTotalRow = Array(filteredDates.length).fill(0);
-    students.forEach(s => {
-      filteredDates.forEach((d,i) => {
-        if ((s.attended||[]).includes(d.uid||d.date)) totalRow[i]++;
-        if ((s.scDates||[]).includes(d.uid||d.date)) scTotalRow[i]++;
-      });
-    });
-    const colSpan = simpleMode ? 1 : 3;
-    const extraCol = simpleMode ? '' : '<td></td>';
-    if (courseFilter !== 'small') tbodyHtml += '<tr class="total-row"><td colspan="' + colSpan + '">團課人數</td>' + totalRow.map(n=>'<td>'+(n||'')+'</td>').join('') + extraCol + '<td></td></tr>';
-    if (courseFilter !== 'team') tbodyHtml += '<tr class="total-row"><td colspan="' + colSpan + '">小班人數</td>' + scTotalRow.map(n=>'<td>'+(n||'')+'</td>').join('') + extraCol + '<td></td></tr>';
-
-    const pageBreak = mIdx > 0 ? 'style="page-break-before:always;"' : '';
-    allSections += `<div ${pageBreak}>
-<div class="header">
-  <div>
-    <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
-    <div class="header-sub">${groupTitle} · 共 ${students.length} 人 · ${filteredDates.length} 個課日</div>
-  </div>
-  <div class="header-right">列印日期：${new Date().toLocaleDateString('zh-TW')}</div>
-</div>
-<table class="attendance-table">
-  <thead>${theadHtml}</thead>
-  <tbody>${tbodyHtml}</tbody>
-</table>
-<div class="legend">
-  <span><span style="color:#1a7a50;">●</span> 團課出席</span>
-  <span><span style="color:#1a7a50;">◆</span> 小班課出席</span>
-  <span style="color:#cc3300;">紅色 = 堂數不足</span>
-  <span style="color:#888;">小 = 小班課數值</span>
-</div>
-</div>`;
-  });
-
-  // Get CSS from the single-month export (reuse same styles)
-  const singleWin = window.open('', '_blank');
-  if (!singleWin) { alert('請允許彈出視窗'); return; }
-
-  // Reuse same CSS as exportBatchPDF - extract it inline
-  singleWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>雙月出席紀錄</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Noto Sans TC', sans-serif; font-size: 11px; background: white; color: #111; padding: 8px; }
-  .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #fcc929; }
-  .header-title { font-size: 16px; font-weight: 900; color: #111; }
-  .header-title span { color: #246e58; }
-  .header-sub { font-size: 11px; color: #555; margin-top: 3px; }
-  .header-right { font-size: 10px; color: #888; }
-  .attendance-table { width: 100%; border-collapse: collapse; font-size: 10px; }
-  .attendance-table th { background: #f5f5f5; border: 1px solid #ddd; padding: 4px 3px; text-align: center; font-weight: 700; font-size: 9px; line-height: 1.3; }
-  .attendance-table td { border: 1px solid #eee; padding: 3px; text-align: center; line-height: 1.4; }
-  .name-cell { white-space: nowrap; font-weight: 700; min-width: 60px; text-align: left !important; }
-  .group-row td { background: #fcc929; color: #111; font-weight: 900; font-size: 11px; letter-spacing: 2px; padding: 5px 8px; }
-  .total-row td { background: #f0f0f0; color: #333; font-weight: 700; text-align: center; }
-  .legend { margin-top: 16px; display: flex; gap: 20px; font-size: 10px; color: #666; }
-  @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0; }
-    @page { margin: 5mm; size: landscape; }
-  }
-</style>
-</head>
-<body onload="(function(){ var b=document.body; var pw=(297-10)*3.78; var sw=b.scrollWidth; if(sw>pw){ b.style.zoom=pw/sw; } setTimeout(function(){window.print();},800); })()">
-${allSections}
-</body></html>`);
-  singleWin.document.close();
-}
-
 function exportBatchPDF() {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
-  const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const noneSelected = !tabs.team && !tabs.small && !tabs.private;
-  const courseFilter = noneSelected ? 'all'
-    : (tabs.team && tabs.small && tabs.private) ? 'all'
-    : (tabs.team && tabs.private) ? 'team+private'
-    : (tabs.small && tabs.private) ? 'small+private'
-    : (tabs.team && tabs.small) ? 'team+small'
-    : tabs.private ? 'private'
-    : tabs.small ? 'small'
-    : 'team';
+  const tabs = state._batchTabs || { team: true, small: false };
+  const courseFilter = (tabs.team && tabs.small) ? 'all' : tabs.small ? 'small' : 'team';
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const allDates = data.dates;
   let filteredDates = allDates.filter(d => {
-    if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
-    if (courseFilter === 'team+small') return d.isTeam || d.isSmall;
-    if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
-    if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
     if (courseFilter === 'team') return d.isTeam === true;
     if (courseFilter === 'small') return d.isSmall === true;
-    if (courseFilter === 'private') return d.isPrivate === true;
-    return d.isTeam || d.isSmall;
+    return true;
   });
   const days = ['日','一','二','三','四','五','六'];
 
@@ -2846,24 +2083,17 @@ function exportBatchPDF() {
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
     (s.scDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
-    (s.privateDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
   });
   filteredDates = filteredDates.filter(d => _attendCount[d.uid||d.date] > 0);
 
-  const pdfShowTeam = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
-  const pdfShowSmall = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
-  const pdfShowPrivate = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
-
   let theadHtml = '<tr><th>學員</th>';
-  if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">' + (pdfShowTeam?'團':'') + (pdfShowSmall?'/小':'') + (pdfShowPrivate?'/私':'') + '</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">' + (pdfShowTeam?'團':'') + (pdfShowSmall?'/小':'') + (pdfShowPrivate?'/私':'') + '</span></th>';
+  if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
   filteredDates.forEach(d => {
     const dt = new Date(d.date + 'T00:00:00');
-    const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
-    const _vDisplay = (pdfShowSmall && !_hasTeam && d.smallVenue) ? d.smallVenue : (d.venue||'');
-    theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + _vDisplay + '</span></th>';
+    theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + (d.venue||'') + '</span></th>';
   });
   theadHtml += '<th>合計</th>';
-  if (!simpleMode) theadHtml += '<th>月底儲值</th><th>月底剩餘</th>';
+  if (!simpleMode) theadHtml += '<th>月底儲值<br><span style="color:#888;font-weight:400;">團/小</span></th><th>月底剩餘<br><span style="color:#888;font-weight:400;">團/小</span></th>';
   theadHtml += '</tr>';
 
   let tbodyHtml = '';
@@ -2873,13 +2103,9 @@ function exportBatchPDF() {
       const endBal = calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
       const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-      const privActual = (s.privateDates||[]).length;
-      const privBal = calcPrivateBalance(s);
-      const hasSmall = pdfShowSmall && scActual > 0;
-      const hasPrivate = pdfShowPrivate && (privActual > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0);
+      const hasSmall = courseFilter !== 'team' && scActual > 0;
       const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
       const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
-      const privBalStyle = privBal < 0 ? 'color:#cc3300;font-weight:700;' : privBal > 0 ? 'color:#a78bfa;' : '';
 
       tbodyHtml += '<tr>';
       // 學員
@@ -2887,17 +2113,15 @@ function exportBatchPDF() {
       // 上月結餘
       if (!simpleMode) {
       tbodyHtml += '<td style="text-align:center;">' +
-        (pdfShowTeam ? '<div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' : '') +
+        '<div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' +
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') +
-        (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privatePrevBal>=0?'+':'') + (s.privatePrevBal||0) + '</div>' : '') +
         '</td>';
       }
       if (!simpleMode) {
       // 月中儲值
       tbodyHtml += '<td style="text-align:center;">' +
-        (pdfShowTeam ? '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' : '') +
+        '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' +
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scMidTopup||0) + '</div>' : '') +
-        (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateMidTopup||0) + '</div>' : '') +
         '</td>';
       }
       // 課日
@@ -2905,39 +2129,29 @@ function exportBatchPDF() {
         const dKey = d.uid || d.date;
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
-        const isPrivate = (s.privateDates||[]).includes(dKey);
         let cell = '';
-        if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆</div>';
-        else if (isTeam && isPrivate) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#a78bfa;font-size:9px;">★</div>';
-        else if (isSmall && isPrivate) cell = '<div style="color:#c8a000;">◆</div><div style="color:#a78bfa;font-size:9px;">★</div>';
+        if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
         else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
         else if (isSmall) cell = '<span style="color:#c8a000;">◆</span>';
-        else if (isPrivate) cell = '<span style="color:#a78bfa;">★</span>';
         tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
       });
       // 合計
       const pdfTeamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
       const pdfScCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
-      const pdfPvCount = (s.privateDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
       tbodyHtml += '<td style="text-align:center;">' +
-        (pdfShowTeam ? '<div style="font-weight:700;color:#1a7a50;font-size:9px;">團' + pdfTeamCount + '</div>' : '') +
-        (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + pdfScCount + '</div>' : '') +
-        (hasPrivate && pdfPvCount > 0 ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + pdfPvCount + '</div>' : '') +
+        (courseFilter !== 'small' ? '<div style="font-weight:700;color:#1a7a50;font-size:9px;">團' + pdfTeamCount + '</div>' : '') +
+        (courseFilter !== 'team' && hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + pdfScCount + '</div>' : '') +
         '</td>';
       if (!simpleMode) {
       // 月底儲值
       tbodyHtml += '<td style="text-align:center;">' +
-        (pdfShowTeam ? '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' : '') +
+        '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' +
         (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') +
-        (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateTopup||0) + '</div>' : '') +
         '</td>';
       // 月底剩餘
-      const privEndBal = calcPrivateBalance(s);
-      const privBalStyle = privEndBal < 0 ? 'color:#cc3300;font-weight:700;' : privEndBal > 0 ? 'color:#a78bfa;' : '';
       tbodyHtml += '<td style="text-align:center;">' +
         '<div style="' + balStyle + 'font-weight:700;font-size:9px;">團' + (endBal>=0?'+':'') + endBal + '</div>' +
         (hasSmall ? '<div style="' + scBalStyle + 'font-size:9px;font-weight:700;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>' : '') +
-        (hasPrivate ? '<div style="' + privBalStyle + 'font-size:9px;font-weight:700;">私' + (privEndBal>=0?'+':'') + privEndBal + '</div>' : '') +
         '</td>';
       } // end !simpleMode
       tbodyHtml += '</tr>';
@@ -2947,27 +2161,20 @@ function exportBatchPDF() {
   // 出席人數列
   const dateTotals = {};
   const dateSmallTotals2 = {};
-  const datePrivateTotals2 = {};
-  filteredDates.forEach(d => { const k=d.uid||d.date; dateTotals[k]=0; dateSmallTotals2[k]=0; datePrivateTotals2[k]=0; });
+  filteredDates.forEach(d => { const k=d.uid||d.date; dateTotals[k]=0; dateSmallTotals2[k]=0; });
   students.forEach(s => {
     (s.attended||[]).forEach(a => { if(dateTotals[a]!==undefined) dateTotals[a]++; });
     (s.scDates||[]).forEach(a => { if(dateSmallTotals2[a]!==undefined) dateSmallTotals2[a]++; });
-    (s.privateDates||[]).forEach(a => { if(datePrivateTotals2[a]!==undefined) datePrivateTotals2[a]++; });
   });
   const extraCols = simpleMode ? 1 : 3;
-  if (courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private') {
+  if (courseFilter !== 'small') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">團課人數</td>';
     filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateTotals[k]||0) + '</td>'; });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
-  if (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private') {
+  if (courseFilter !== 'team') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">小班人數</td>';
     filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateSmallTotals2[k]||0) + '</td>'; });
-    tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
-  }
-  if (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all') {
-    tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">私課人數</td>';
-    filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (datePrivateTotals2[k]||0) + '</td>'; });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
 
@@ -2996,12 +2203,11 @@ function exportBatchPDF() {
   .legend span { display: flex; align-items: center; gap: 4px; }
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    @page { margin: 5mm; size: landscape; }
-    .no-print { display: none; }
+    @page { margin: 10mm; size: landscape; }
   }
 </style>
 </head>
-<body onload="(function(){ var b=document.body; var pw=(297-16)*3.78; var sw=b.scrollWidth; if(sw>pw){ var z=pw/sw; b.style.zoom=z; } setTimeout(function(){window.print();},800); })()">
+<body>
 <div class="header">
   <div>
     <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
@@ -3025,10 +2231,22 @@ function exportBatchPDF() {
 }
 
 function toggleEdit() {
-  state.isReadOnly = !state.isReadOnly;
-  updateLockUI();
-  renderSidebar();
-  renderPanel();
+  if (!state.isReadOnly) {
+    state.isReadOnly = true;
+    updateLockUI();
+    renderSidebar();
+    renderPanel();
+    return;
+  }
+  const pwd = prompt('請輸入編輯密碼：');
+  if (pwd === EDIT_PASSWORD) {
+    state.isReadOnly = false;
+    updateLockUI();
+    renderSidebar();
+    renderPanel();
+  } else if (pwd !== null) {
+    alert('密碼錯誤');
+  }
 }
 
 function updateLockUI() {
@@ -3240,7 +2458,7 @@ function getCurrentMonthData() {
     if (latestPrev) {
       (state.months[latestPrev].students || []).forEach(s => { latestStudentMap[s.name] = s; });
     }
-    const students = Object.values(masterMap).filter(s => !s.isTrial && s.group !== '已離隊').map(s => {
+    const students = Object.values(masterMap).filter(s => !s.isTrial).map(s => {
       const prev = latestStudentMap[s.name] || s;
       return {
         ...s,
@@ -3266,7 +2484,7 @@ function getCurrentMonthData() {
     allMonths.forEach(ym => {
       if (ym === state.currentMonth) return;
       (state.months[ym].students || []).forEach(s => {
-        if (!existingNames.has(s.name) && s.group !== '已離隊') {
+        if (!existingNames.has(s.name)) {
           existingNames.add(s.name);
           state.months[state.currentMonth].students.push({
             ...s,
@@ -3291,11 +2509,6 @@ function getCurrentMonthData() {
     }
   }
   return state.months[state.currentMonth];
-}
-
-function calcPrivateBalance(s) {
-  const actual = (s.privateDates||[]).length;
-  return (s.privatePrevBal||0) + (s.privateMidTopup||0) + (s.privateTopup||0) - actual;
 }
 
 function calcEndBalance(s) {
@@ -3333,12 +2546,11 @@ function renderSidebar() {
       html += `<div class="student-item ${active}" onclick="selectStudent('${s.name}')">
         <div>
           <div class="student-name">${s.name}</div>
-          <div class="student-meta">${s.group}${s.bib ? ' · #' + s.bib : ''} · 團${s.attended.length}堂${scActualSB > 0 ? ' 小' + scActualSB + '堂' : ''}${(s.privateDates||[]).length > 0 ? ' ★' + s.privateDates.length + '堂' : ''}${s.note ? ' · ' + s.note : ''}</div>
+          <div class="student-meta">${s.group}${s.bib ? ' · #' + s.bib : ''} · 團${s.attended.length}堂${scActualSB > 0 ? ' 小' + scActualSB + '堂' : ''}${s.note ? ' · ' + s.note : ''}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
           <div class="balance-badge ${balClass}">${bal > 0 ? '+' : ''}${bal}</div>
           ${hasSmallClass ? `<div class="balance-badge ${scBalClass}" style="font-size:0.62rem;">${scBal > 0 ? '+' : ''}${scBal}</div>` : ''}
-          ${(s.privateDates||[]).length > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0 ? '<div class="balance-badge ' + (calcPrivateBalance(s) < 0 ? 'balance-neg' : calcPrivateBalance(s) > 0 ? 'balance-pos' : 'balance-zero') + '" style="font-size:0.62rem;border-color:rgba(167,139,250,0.5);">' + (calcPrivateBalance(s) > 0 ? '+' : '') + calcPrivateBalance(s) + '</div>' : ''}
         </div>
       </div>`;
     });
@@ -3431,7 +2643,6 @@ function renderPanel() {
     const dKey = d.uid || d.date;
     const isTeam = (s.attended||[]).includes(dKey);
     const isSmall = (s.scDates||[]).includes(dKey);
-    const isPrivate = (s.privateDates||[]).includes(dKey);
     const dt = new Date(d.date + 'T00:00:00');
     const days = ['日','一','二','三','四','五','六'];
     const dayName = days[dt.getDay()];
@@ -3440,22 +2651,18 @@ function renderPanel() {
       <div class="date-btn-new">
         <div class="date-header-row">
           <span class="date-num">${dateNum}</span>
-          <span class="date-day-venue">週${dayName}・${d.venue}${d.smallVenue && d.smallVenue !== d.venue ? '<span style="color:#b07c0b;">　◆'+d.smallVenue+'</span>' : ''}${d.privateVenue && d.privateVenue !== d.venue ? '<span style="color:#a78bfa;">　★'+d.privateVenue+'</span>' : ''}${d.teamCoach||d.coach ? '<br><span style="color:#3aab6e;font-size:0.7rem;">● ' + (d.teamCoach||d.coach||'') + '</span>' : ''}${d.smallCoach ? '<br><span style="color:#fcc929;font-size:0.7rem;">◆ ' + d.smallCoach + '</span>' : ''}${d.privateCoach ? '<br><span style="color:#a78bfa;font-size:0.7rem;">★ ' + d.privateCoach + '</span>' : ''}</span>
+          <span class="date-day-venue">週${dayName}・${d.venue}${d.teamCoach||d.coach ? '<br><span style="color:#3aab6e;font-size:0.7rem;">● ' + (d.teamCoach||d.coach||'') + '</span>' : ''}${d.smallCoach ? '<br><span style="color:#fcc929;font-size:0.7rem;">◆ ' + d.smallCoach + '</span>' : ''}</span>
           <button class="date-del-btn" class="edit-only" style="position:relative;opacity:1;top:auto;right:auto;" onclick="event.stopPropagation();openEditDate('${d.date}')" title="編輯課日">✎</button>
         </div>
         <div class="date-check-row">
-          ${d.isTeam ? `<div class="date-check-box ${isTeam ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${dKey}','team')">
+          <div class="date-check-box ${isTeam ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${dKey}','team')">
             <span class="check-label">團課</span>
             ${isTeam ? '<span>✓</span>' : ''}
-          </div>` : ''}
-          ${d.isSmall ? `<div class="date-check-box ${isSmall ? 'checked-small' : ''}" onclick="toggleDate('${s.name}','${dKey}','small')">
+          </div>
+          <div class="date-check-box ${isSmall ? 'checked-small' : ''}" onclick="toggleDate('${s.name}','${dKey}','small')">
             <span class="check-label">小班</span>
             ${isSmall ? '<span>✓</span>' : ''}
-          </div>` : ''}
-          ${d.isPrivate ? `<div class="date-check-box ${isPrivate ? 'checked-team' : ''}" onclick="toggleDate('${s.name}','${dKey}','private')" style="${isPrivate ? 'background:rgba(167,139,250,0.25);border-color:rgba(167,139,250,0.6);' : 'border-color:rgba(167,139,250,0.3);'}">
-            <span class="check-label" style="color:#a78bfa;">私課</span>
-            ${isPrivate ? '<span style="color:#a78bfa;">✓</span>' : ''}
-          </div>` : ''}
+          </div>
         </div>
       </div>
     </div>`;
@@ -3643,18 +2850,6 @@ function renderPanel() {
               '<div class=\"preview-stat\"><div class=\"preview-stat-val ' + (scBal<0?'val-red':'val-green') + '\">' + (scBal>=0?'+':'') + scBal + '</div><div class=\"preview-stat-label\">月底剩餘</div></div>' +
             '</div>';
         })()}
-        ${(() => {
-          const privActual = (s.privateDates||[]).length;
-          const privBal = calcPrivateBalance(s);
-          if (privActual === 0 && (s.privateTopup||0) === 0 && (s.privatePrevBal||0) === 0) return '';
-          return '<div style="font-size:0.68rem;color:#a78bfa;letter-spacing:2px;margin:12px 0 6px;">私課課</div>' +
-            '<div class="preview-stats">' +
-              '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">' + ((s.privatePrevBal||0)>=0?'+':'') + (s.privatePrevBal||0) + '</div><div class="preview-stat-label">上月結餘</div></div>' +
-              '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">' + privActual + '</div><div class="preview-stat-label">本月上課</div></div>' +
-              '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">+' + ((s.privateMidTopup||0)+(s.privateTopup||0)) + '</div><div class="preview-stat-label">本月儲值</div></div>' +
-              '<div class="preview-stat"><div class="preview-stat-val ' + (privBal<0?'val-red':'val-green') + '">' + (privBal>=0?'+':'') + privBal + '</div><div class="preview-stat-label">月底剩餘</div></div>' +
-            '</div>';
-        })()}
         <div class="preview-footer">灣島黑狼 FC · 足球 × 教育 × 成長</div>
       </div>
 
@@ -3675,12 +2870,8 @@ function toggleDate(studentName, date, type) {
     const idx = s.scDates.indexOf(date);
     if (idx === -1) s.scDates.push(date);
     else s.scDates.splice(idx, 1);
+    // Auto-update scAttended count
     s.scAttended = s.scDates.length;
-  } else if (type === 'private') {
-    if (!s.privateDates) s.privateDates = [];
-    const idx = s.privateDates.indexOf(date);
-    if (idx === -1) s.privateDates.push(date);
-    else s.privateDates.splice(idx, 1);
   } else {
     if (!s.attended) s.attended = [];
     const idx = s.attended.indexOf(date);
@@ -3690,6 +2881,7 @@ function toggleDate(studentName, date, type) {
   saveState();
   renderSidebar();
   renderPanel();
+  // Restore tab after re-render
   const tab = state._activeTab || 'attendance';
   const tabBtn = document.querySelector(`.tab-btn[onclick*="${tab}"]`);
   const tabContent = document.getElementById('tab-' + tab);
@@ -3772,14 +2964,11 @@ function showDateManager() {
       const tags = [];
       if (d.isTeam) tags.push('<span style="background:var(--green);color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">團課</span>');
       if (d.isSmall) tags.push('<span style="background:#b07c0b;color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">小班</span>');
-      if (d.isPrivate) tags.push('<span style="background:rgba(167,139,250,0.25);color:#a78bfa;font-size:0.7rem;padding:2px 7px;border-radius:99px;">私課</span>');
       const tc = d.teamCoach || d.coach || '';
       const sc = d.smallCoach || '';
-      const pc = d.privateCoach || '';
       const coachHtml = [
         tc ? '<span style="color:#3aab6e;">● ' + tc + '</span>' : '',
-        sc ? '<span style="color:#fcc929;">◆ ' + sc + '</span>' : '',
-        pc ? '<span style="color:#a78bfa;">★ ' + pc + '</span>' : ''
+        sc ? '<span style="color:#fcc929;">◆ ' + sc + '</span>' : ''
       ].filter(Boolean).join('<span style="color:var(--border);margin:0 4px;">|</span>');
       content +=
         '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;">' +
@@ -3827,19 +3016,10 @@ function showAddDate() {
   document.getElementById('newDateD').value = '01';
   document.getElementById('newIsTeam').checked = false;
   document.getElementById('newIsSmall').checked = false;
-  if (document.getElementById('newIsPrivate')) document.getElementById('newIsPrivate').checked = false;
-  document.getElementById('newTeamGroup').style.display = 'none';
-  document.getElementById('newSmallGroup').style.display = 'none';
-  if (document.getElementById('newPrivateGroup')) document.getElementById('newPrivateGroup').style.display = 'none';
   const _maddDateModal = document.getElementById('addDateModal'); document.body.appendChild(_maddDateModal); _maddDateModal.classList.add('show');
 }
 function closeModal() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
-  // 如果批量點名開著，重新 render
-  const batchModal = document.getElementById('batchModal');
-  if (batchModal && batchModal.style.display === 'flex') {
-    renderBatch();
-  }
 }
 
 function setNewStudentType(type) {
@@ -3910,10 +3090,7 @@ function addDate() {
   const d = document.getElementById('newDateD').value;
   if (!y || !m || !d) return;
   const date = y + '-' + m + '-' + d;
-  const venue = (document.getElementById('newVenue') && document.getElementById('newIsTeam') && document.getElementById('newIsTeam').checked) ? document.getElementById('newVenue').value : '';
-  const smallVenue = (document.getElementById('newSmallVenue') && document.getElementById('newIsSmall') && document.getElementById('newIsSmall').checked) ? document.getElementById('newSmallVenue').value : '';
-  const privateCoach = Array.from(document.querySelectorAll('input[name=newPrivateCoach]:checked')).map(x=>x.value).join('、');
-  const privateVenue = (document.getElementById('newPrivateVenue') && document.getElementById('newIsPrivate') && document.getElementById('newIsPrivate').checked) ? document.getElementById('newPrivateVenue').value : '';
+  const venue = document.getElementById('newVenue').value;
   const teamCoach = Array.from(document.querySelectorAll('input[name=newTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=newSmallCoach]:checked')).map(x=>x.value).join('、');
   const data = getCurrentMonthData();
@@ -3922,12 +3099,10 @@ function addDate() {
   const noteVal2 = noteEl ? noteEl.value.trim() : '';
   const isTeamEl = document.getElementById('newIsTeam');
   const isSmallEl = document.getElementById('newIsSmall');
-  const isPrivateEl2 = document.getElementById('newIsPrivate');
   const isTeam2 = isTeamEl ? isTeamEl.checked : false;
   const isSmall2 = isSmallEl ? isSmallEl.checked : false;
-  const isPrivate2 = isPrivateEl2 ? isPrivateEl2.checked : false;
   const uid = date + '_' + Date.now();
-  data.dates.push({ date, venue, smallVenue, privateVenue, teamCoach, smallCoach, privateCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, isPrivate: isPrivate2, uid });
+  data.dates.push({ date, venue, teamCoach, smallCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, uid });
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   closeModal();
@@ -3953,20 +3128,9 @@ function openEditDate(dateOrUid, fromManager) {
   document.getElementById('editDateM').value = parts[1];
   document.getElementById('editDateD').value = parts[2];
   document.getElementById('editVenue').value = d.venue || '';
-  const _esvg = document.getElementById('editSmallVenueGroup');
-  if (_esvg) _esvg.style.display = d.isSmall ? '' : 'none';
-  const _esv = document.getElementById('editSmallVenue');
-  if (_esv) _esv.value = d.smallVenue || '';
   document.getElementById('editDateNote').value = d.note || '';
   document.getElementById('editIsTeam').checked = d.isTeam === true;
   document.getElementById('editIsSmall').checked = d.isSmall === true;
-  document.getElementById('editIsPrivate').checked = d.isPrivate === true;
-  document.getElementById('editTeamGroup').style.display = d.isTeam ? '' : 'none';
-  document.getElementById('editSmallGroup').style.display = d.isSmall ? '' : 'none';
-  document.getElementById('editPrivateGroup').style.display = d.isPrivate ? '' : 'none';
-  { const _ev2 = document.getElementById('editVenue'); if (_ev2) _ev2.value = d.venue || ''; }
-  { const _esv2 = document.getElementById('editSmallVenue'); if (_esv2) _esv2.value = d.smallVenue || ''; }
-  { const _epv2 = document.getElementById('editPrivateVenue'); if (_epv2) _epv2.value = d.privateVenue || ''; }
   const teamCoaches = (d.teamCoach || d.coach || '').split('、').filter(Boolean);
   const smallCoaches = (d.smallCoach || '').split('、').filter(Boolean);
   document.querySelectorAll('input[name=editTeamCoach]').forEach(c => { c.checked = teamCoaches.includes(c.value); });
@@ -3983,16 +3147,12 @@ function saveEditDate() {
   const m = document.getElementById('editDateM').value;
   const d = document.getElementById('editDateD').value;
   const newDate = y + '-' + m + '-' + d;
-  const venue = (document.getElementById('editVenue') && document.getElementById('editIsTeam') && document.getElementById('editIsTeam').checked) ? document.getElementById('editVenue').value : '';
-  const smallVenue = (document.getElementById('editSmallVenue') && document.getElementById('editIsSmall') && document.getElementById('editIsSmall').checked) ? document.getElementById('editSmallVenue').value : '';
-  const privateCoach = Array.from(document.querySelectorAll('input[name=editPrivateCoach]:checked')).map(x=>x.value).join('、');
-  const privateVenue = (document.getElementById('editPrivateVenue') && document.getElementById('editIsPrivate') && document.getElementById('editIsPrivate').checked) ? document.getElementById('editPrivateVenue').value : '';
+  const venue = document.getElementById('editVenue').value;
   const teamCoach = Array.from(document.querySelectorAll('input[name=editTeamCoach]:checked')).map(x=>x.value).join('、');
   const smallCoach = Array.from(document.querySelectorAll('input[name=editSmallCoach]:checked')).map(x=>x.value).join('、');
   const note = (document.getElementById('editDateNote').value || '').trim();
   const isTeam = document.getElementById('editIsTeam').checked;
   const isSmall = document.getElementById('editIsSmall').checked;
-  const isPrivate = document.getElementById('editIsPrivate') ? document.getElementById('editIsPrivate').checked : false;
   const data = getCurrentMonthData();
   const idx = data.dates.findIndex(x => (x.uid||x.date) === orig);
   if (idx === -1) return;
@@ -4009,7 +3169,7 @@ function saveEditDate() {
       if (si !== -1) s.scDates[si] = oldUid || newDate;
     });
   }
-  data.dates[idx] = { date: newDate, venue, smallVenue, privateVenue, teamCoach, smallCoach, privateCoach, note, isTeam, isSmall, isPrivate, uid: oldUid || (newDate + '_' + Date.now()) };
+  data.dates[idx] = { date: newDate, venue, teamCoach, smallCoach, note, isTeam, isSmall, uid: oldUid || (newDate + '_' + Date.now()) };
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   // If opened from dateManager, go back to it
@@ -4021,9 +3181,6 @@ function saveEditDate() {
     renderPanel();
   }
   renderSidebar();
-  // 批量點名開著的話也要更新
-  const batchModal = document.getElementById('batchModal');
-  if (batchModal && batchModal.style.display === 'flex') renderBatch();
 }
 
 function deleteDateFromEdit() {
@@ -4066,46 +3223,11 @@ function openEditStudent(name) {
   modal.classList.add('show');
 }
 
-function mergeStudentFromEdit() {
-  const orig = document.getElementById('editStudentOrig').value;
-  // Get all student names across all months
-  const allNames = new Set();
-  Object.values(state.months).forEach(m => (m.students||[]).forEach(s => { if (s.name !== orig) allNames.add(s.name); }));
-  const target = prompt('將「' + orig + '」的所有出席紀錄合併到哪個學員？\n\n請輸入目標學員姓名：\n（可用：' + [...allNames].slice(0,10).join('、') + (allNames.size > 10 ? '...' : '') + '）');
-  if (!target || !allNames.has(target)) { if (target) alert('找不到學員「' + target + '」'); return; }
-  if (!confirm('確定將「' + orig + '」的所有出席紀錄合併到「' + target + '」？\n合併後「' + orig + '」將被永久刪除。')) return;
-
-  // Merge attended, scDates, privateDates from orig to target in each month
-  Object.values(state.months).forEach(m => {
-    const from = (m.students||[]).find(s => s.name === orig);
-    const to = (m.students||[]).find(s => s.name === target);
-    if (from && to) {
-      // Merge attended
-      (from.attended||[]).forEach(d => { if (!(to.attended||[]).includes(d)) { if (!to.attended) to.attended=[]; to.attended.push(d); } });
-      // Merge scDates
-      (from.scDates||[]).forEach(d => { if (!(to.scDates||[]).includes(d)) { if (!to.scDates) to.scDates=[]; to.scDates.push(d); } });
-      // Merge privateDates
-      (from.privateDates||[]).forEach(d => { if (!(to.privateDates||[]).includes(d)) { if (!to.privateDates) to.privateDates=[]; to.privateDates.push(d); } });
-    }
-    // Delete orig from this month
-    if (m.students) m.students = m.students.filter(s => s.name !== orig);
-  });
-
-  if (state.selectedStudent === orig) state.selectedStudent = target;
-  saveState();
-  closeModal();
-  renderSidebar();
-  renderPanel();
-  alert('✓ 合併完成！');
-}
-
 function deleteStudentFromEdit() {
   const orig = document.getElementById('editStudentOrig').value;
-  if (!confirm('確定永久刪除「' + orig + '」？\n將從所有月份的資料中移除，此動作無法復原。')) return;
-  // Delete from all months
-  Object.values(state.months).forEach(m => {
-    if (m.students) m.students = m.students.filter(s => s.name !== orig);
-  });
+  if (!confirm('確定永久刪除 ' + orig + '？此動作無法復原。')) return;
+  const data = getCurrentMonthData();
+  data.students = data.students.filter(s => s.name !== orig);
   if (state.selectedStudent === orig) state.selectedStudent = null;
   saveState();
   closeModal();
