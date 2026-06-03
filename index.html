@@ -20,7 +20,7 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
 .topbar {
   background: #0a0a0a; border-bottom: 1px solid rgba(252,201,41,0.15);
   padding: 0 16px; min-height: 56px;
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
 }
 @media(max-width:600px) {
   .topbar { padding: 8px 12px; gap: 6px; }
@@ -1994,7 +1994,11 @@ function copyDebtList() {
 }
 
 function showBatch() {
-  document.getElementById('batchModal').style.display = 'flex';
+  const bm = document.getElementById('batchModal');
+  bm.style.display = 'flex';
+  bm.style.justifyContent = 'flex-start';
+  bm.style.alignItems = 'flex-start';
+  bm.style.padding = '0';
   document.getElementById('batchMonthSelect').value = state.currentMonth;
   if (!state._batchTabs) state._batchTabs = { team: true, small: false, private: false };
   updateBatchTabUI();
