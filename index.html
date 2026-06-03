@@ -2232,6 +2232,18 @@ function renderBatch() {
     (s.privateDates||[]).forEach(a => { if (datePrivateTotals[a] !== undefined) datePrivateTotals[a]++; });
   });
 
+  // 過濾掉選定學員中沒人出席的課日
+  const showTeamF = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+  const showSmallF = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
+  const showPrivateF = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
+  filteredDates = filteredDates.filter(d => {
+    const k = d.uid||d.date;
+    if (showTeamF && dateTotals[k] > 0) return true;
+    if (showSmallF && dateSmallTotals[k] > 0) return true;
+    if (showPrivateF && datePrivateTotals[k] > 0) return true;
+    return false;
+  });
+
   const totalCols = filteredDates.length + 5; // name + 上月 + 月中 + dates + 合計 + 月底 + 月底剩餘
 
   let tbody = '<tbody>';
@@ -2816,10 +2828,13 @@ function exportBatchPDF() {
   // 過濾掉該組所有人都沒出席的課日
   const _attendCount = {};
   filteredDates.forEach(d => { _attendCount[d.uid||d.date] = 0; });
+  const _pdfShowTeam2 = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+  const _pdfShowSmall2 = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
+  const _pdfShowPrivate2 = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
   students.forEach(s => {
-    (s.attended||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
-    (s.scDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
-    (s.privateDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
+    if (_pdfShowTeam2) (s.attended||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
+    if (_pdfShowSmall2) (s.scDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
+    if (_pdfShowPrivate2) (s.privateDates||[]).forEach(a => { if (_attendCount[a] !== undefined) _attendCount[a]++; });
   });
   filteredDates = filteredDates.filter(d => _attendCount[d.uid||d.date] > 0);
 
