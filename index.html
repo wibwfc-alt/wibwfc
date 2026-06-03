@@ -221,7 +221,7 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
   padding: 24px 16px; overflow-y: auto;
 }
 .modal-overlay.show { display: flex; }
-#batchModal { justify-content: flex-start; padding: 0; overflow-y: auto; }
+#batchModal { justify-content: flex-start !important; padding: 0 !important; overflow: auto !important; }
 .modal {
   background: #111; border: 1px solid var(--border);
   border-radius: 8px; padding: 24px; width: 360px; max-width: 90vw;
@@ -604,6 +604,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <label style="font-size:0.75rem;color:#3aab6e;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterTeam" checked> 團課</label>
           <label style="font-size:0.75rem;color:#fcc929;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterSmall" checked> 小班</label>
+          <label style="font-size:0.75rem;color:#a78bfa;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="debtFilterPrivate" checked> 私課</label>
           <button class="btn btn-outline" onclick="copyDebtList()" style="font-size:0.75rem;border-color:rgba(224,92,42,0.4);color:var(--red);">📋 複製催繳名單</button>
         </div>
         <button class="btn btn-outline" onclick="closeModal()" style="font-size:0.75rem;">關閉</button>
@@ -614,7 +615,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
 </div>
 
 <!-- BATCH ATTENDANCE MODAL -->
-<div class="modal-overlay" id="batchModal" style="align-items:flex-start;padding:0;overflow:auto;display:none;justify-content:flex-start;align-items:flex-start;">
+<div class="modal-overlay" id="batchModal" style="padding:0;overflow:auto;display:none;">
   <div style="background:#0d0d0d;width:100%;min-height:100vh;">
     <!-- 第一排：標題 + 月份 + 搜尋 + 年齡組 -->
     <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 8px;flex-wrap:wrap;background:#0d0d0d;border-bottom:1px solid rgba(255,255,255,0.06);">
@@ -1869,7 +1870,6 @@ function recalcPrevBalance() {
 
   saveState();
   renderSidebar();
-  showOverview();
   alert('✓ 已重算完成！共更新 ' + updated + ' 位學員的上月結餘。\n（依據 ' + prevMonth.replace('-','年') + '月 的資料）');
 }
 
@@ -1905,7 +1905,7 @@ function showOverview() {
     groups[s.group].push(s);
   });
 
-  let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>上月結餘<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>團課</th><th>小班</th><th>月中儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月底儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月中儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底結餘</th><th>小班結餘</th><th>備註</th></tr></thead><tbody>';
+  let tableHtml = '<table class="overview-table"><thead><tr><th>姓名</th><th>組別</th><th>上月結餘<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>上月結餘<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>上月結餘<br><span style="color:#a78bfa;font-size:0.7rem;">私課</span></th><th>團課</th><th>小班</th><th>私課</th><th>月中儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月底儲值<br><span style="color:#3aab6e;font-size:0.7rem;">團</span></th><th>月中儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月底儲值<br><span style="color:#fcc929;font-size:0.7rem;">小班</span></th><th>月中儲值<br><span style="color:#a78bfa;font-size:0.7rem;">私課</span></th><th>月底儲值<br><span style="color:#a78bfa;font-size:0.7rem;">私課</span></th><th>月底結餘</th><th>小班結餘</th><th>私課結餘</th><th>備註</th></tr></thead><tbody>';
   Object.entries(groups).forEach(([g, list]) => {
     tableHtml += '<tr class="overview-group-row"><td colspan="16">' + g + '</td></tr>';
     list.forEach(s => {
@@ -1953,6 +1953,7 @@ function copyDebtList() {
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const showTeam = document.getElementById('debtFilterTeam') ? document.getElementById('debtFilterTeam').checked : true;
   const showSmall = document.getElementById('debtFilterSmall') ? document.getElementById('debtFilterSmall').checked : true;
+  const showPrivate = document.getElementById('debtFilterPrivate') ? document.getElementById('debtFilterPrivate').checked : true;
   const groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國中','爸媽組'];
 
   const debtStudents = data.students
@@ -1961,8 +1962,10 @@ function copyDebtList() {
       const teamBal = calcEndBalance(s);
       const scActual = s.scDates ? (Array.isArray(s.scDates) ? s.scDates.length : 0) : (s.scAttended||0);
       const scBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
+      const privBal = calcPrivateBalance(s);
       if (showTeam && teamBal < 0) return true;
       if (showSmall && scBal < 0) return true;
+      if (showPrivate && privBal < 0) return true;
       return false;
     })
     .sort((a, b) => {
