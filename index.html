@@ -3160,7 +3160,7 @@ function getCurrentMonthData() {
     if (latestPrev) {
       (state.months[latestPrev].students || []).forEach(s => { latestStudentMap[s.name] = s; });
     }
-    const students = Object.values(masterMap).filter(s => !s.isTrial).map(s => {
+    const students = Object.values(masterMap).filter(s => !s.isTrial && s.group !== '已離隊').map(s => {
       const prev = latestStudentMap[s.name] || s;
       return {
         ...s,
@@ -3186,7 +3186,7 @@ function getCurrentMonthData() {
     allMonths.forEach(ym => {
       if (ym === state.currentMonth) return;
       (state.months[ym].students || []).forEach(s => {
-        if (!existingNames.has(s.name)) {
+        if (!existingNames.has(s.name) && s.group !== '已離隊') {
           existingNames.add(s.name);
           state.months[state.currentMonth].students.push({
             ...s,
