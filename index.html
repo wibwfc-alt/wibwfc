@@ -2143,6 +2143,7 @@ function filterBatchDebt() {
 }
 
 function renderBatch() {
+  try {
   const data = getCurrentMonthData();
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const _lbl = document.getElementById('batchMonthLabel'); if (_lbl) _lbl.textContent = monthLabel;
@@ -2387,6 +2388,10 @@ function renderBatch() {
   tbody += '</tbody>';
 
   document.getElementById('batchTable').innerHTML = thead + tbody;
+  } catch(e) {
+    console.error('renderBatch error:', e);
+    document.getElementById('batchTable').innerHTML = '<tr><td style="color:red;padding:20px;">錯誤：' + e.message + '</td></tr>';
+  }
 }
 
 function batchUpdateTopup(input) {
