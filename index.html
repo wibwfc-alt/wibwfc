@@ -2180,18 +2180,25 @@ function renderBatch() {
     const dt = new Date(d.date + 'T00:00:00');
     const tc = d.teamCoach || d.coach || '';
     const sc = d.smallCoach || '';
-    let coachHtml = '';
     const showTeamCoach = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
     const showSmallCoach = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
     const showPrivateCoach = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
-    if (showTeamCoach && tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
-    if (showSmallCoach && sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
-    if (showPrivateCoach && d.privateCoach) coachHtml += '<br><span style="color:#a78bfa;font-size:0.6rem;">★ ' + d.privateCoach + '</span>';
-    const hasTeamAttendance = students.some(s => (s.attended||[]).includes(d.uid||d.date));
-    const venueDisplay = (showSmallCoach && !hasTeamAttendance && d.smallVenue) ? d.smallVenue : (d.venue||'');
-    const smallVenueExtra = (showSmallCoach && hasTeamAttendance && d.smallVenue && d.smallVenue !== d.venue) ? '<br><span style="color:#b07c0b;font-size:0.6rem;">◆' + d.smallVenue + '</span>' : '';
-    const privateVenueExtra = (showPrivateCoach && d.privateVenue && d.privateVenue !== d.venue) ? '<br><span style="color:#a78bfa;font-size:0.6rem;">★' + d.privateVenue + '</span>' : '';
-    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span><br><span style="color:#444;font-size:0.6rem;">' + venueDisplay + '</span>' + smallVenueExtra + privateVenueExtra + coachHtml + '</th>';
+    let coachHtml = '';
+    if (showTeamCoach) {
+      if (d.venue) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + d.venue + '</span>';
+      if (tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
+    }
+    if (showSmallCoach) {
+      const sv = d.smallVenue || (showTeamCoach ? '' : d.venue) || '';
+      if (sv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + sv + '</span>';
+      if (sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
+    }
+    if (showPrivateCoach) {
+      const pv = d.privateVenue || (showTeamCoach ? '' : d.venue) || '';
+      if (pv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + pv + '</span>';
+      if (d.privateCoach) coachHtml += '<br><span style="color:#a78bfa;font-size:0.6rem;">★ ' + d.privateCoach + '</span>';
+    }
+    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span>' + coachHtml + '</th>';
   });
   thead += '<th class="batch-th" style="min-width:50px;">合計</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月底儲值</th>';
@@ -2266,8 +2273,8 @@ function renderBatch() {
         const isTeam = (s.attended||[]).includes(dKey);
         const isSmall = (s.scDates||[]).includes(dKey);
         const isPrivate = (s.privateDates||[]).includes(dKey);
-        const dateIsTeam = d.isTeam === true && (courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+private');
-        const dateIsSmall = d.isSmall === true && (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private');
+        const dateIsTeam = d.isTeam === true && (courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private');
+        const dateIsSmall = d.isSmall === true && (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private');
         const dateIsPrivate = d.isPrivate === true && (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all');
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
         if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
