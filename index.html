@@ -2146,7 +2146,7 @@ function renderBatch() {
     : 'team';
   const attendedOnly = document.getElementById('batchAttendedBtn') && document.getElementById('batchAttendedBtn').classList.contains('active');
   const dates = data.dates;
-  const filteredDates = dates.filter(d => {
+  let filteredDates = dates.filter(d => {
     if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
     if (courseFilter === 'team+small') return d.isTeam || d.isSmall;
     if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
@@ -2181,6 +2181,37 @@ function renderBatch() {
   // Header: 學員 | 上月結餘 | 月中儲值 | [課日...] | 合計 | 月底儲值 | 月底剩餘
   const days = ['日','一','二','三','四','五','六'];
   const simpleMode = document.getElementById('batchSimpleBtn') && document.getElementById('batchSimpleBtn').classList.contains('active');
+
+  // Group students
+  const groups = {};
+  students.forEach(s => {
+    if (!groups[s.group]) groups[s.group] = [];
+    groups[s.group].push(s);
+  });
+
+  // Date totals
+  const dateTotals = {};
+  const dateSmallTotals = {};
+  const datePrivateTotals = {};
+  filteredDates.forEach(d => { const k = d.uid||d.date; dateTotals[k] = 0; dateSmallTotals[k] = 0; datePrivateTotals[k] = 0; });
+  students.forEach(s => {
+    (s.attended||[]).forEach(a => { if (dateTotals[a] !== undefined) dateTotals[a]++; });
+    (s.scDates||[]).forEach(a => { if (dateSmallTotals[a] !== undefined) dateSmallTotals[a]++; });
+    (s.privateDates||[]).forEach(a => { if (datePrivateTotals[a] !== undefined) datePrivateTotals[a]++; });
+  });
+
+  // 只顯示選定學員中有人出席的課日
+  const showTeamF = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+  const showSmallF = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
+  const showPrivateF = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
+  filteredDates = filteredDates.filter(d => {
+    const k = d.uid||d.date;
+    if (showTeamF && dateTotals[k] > 0) return true;
+    if (showSmallF && dateSmallTotals[k] > 0) return true;
+    if (showPrivateF && datePrivateTotals[k] > 0) return true;
+    return false;
+  });
+
   let thead = '<thead><tr>';
   thead += '<th class="batch-name-th" style="min-width:120px;">學員</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#fcc929;">上月結餘</th>';
@@ -2214,23 +2245,6 @@ function renderBatch() {
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;">月底剩餘</th>';
   thead += '</tr></thead>';
 
-  // Group students
-  const groups = {};
-  students.forEach(s => {
-    if (!groups[s.group]) groups[s.group] = [];
-    groups[s.group].push(s);
-  });
-
-  // Date totals
-  const dateTotals = {};
-  const dateSmallTotals = {};
-  const datePrivateTotals = {};
-  filteredDates.forEach(d => { const k = d.uid||d.date; dateTotals[k] = 0; dateSmallTotals[k] = 0; datePrivateTotals[k] = 0; });
-  students.forEach(s => {
-    (s.attended||[]).forEach(a => { if (dateTotals[a] !== undefined) dateTotals[a]++; });
-    (s.scDates||[]).forEach(a => { if (dateSmallTotals[a] !== undefined) dateSmallTotals[a]++; });
-    (s.privateDates||[]).forEach(a => { if (datePrivateTotals[a] !== undefined) datePrivateTotals[a]++; });
-  });
 
   const totalCols = filteredDates.length + 5; // name + 上月 + 月中 + dates + 合計 + 月底 + 月底剩餘
 
@@ -2801,9 +2815,14 @@ function exportBatchPDF() {
     students = students.filter(s => {
       const tc = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
       const sc = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
+      const pv = (s.privateDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
       if (courseFilter === 'team') return tc > 0;
       if (courseFilter === 'small') return sc > 0;
-      return tc > 0 || sc > 0;
+      if (courseFilter === 'private') return pv > 0;
+      if (courseFilter === 'team+small') return tc > 0 || sc > 0;
+      if (courseFilter === 'team+private') return tc > 0 || pv > 0;
+      if (courseFilter === 'small+private') return sc > 0 || pv > 0;
+      return tc > 0 || sc > 0 || pv > 0;
     });
   }
 
@@ -2908,7 +2927,7 @@ function exportBatchPDF() {
       const privEndBal = calcPrivateBalance(s);
       const privBalStyle = privEndBal < 0 ? 'color:#cc3300;font-weight:700;' : privEndBal > 0 ? 'color:#a78bfa;' : '';
       tbodyHtml += '<td style="text-align:center;">' +
-        '<div style="' + balStyle + 'font-weight:700;font-size:9px;">團' + (endBal>=0?'+':'') + endBal + '</div>' +
+        (pdfShowTeam ? '<div style="' + balStyle + 'font-weight:700;font-size:9px;">團' + (endBal>=0?'+':'') + endBal + '</div>' : '') +
         (hasSmall ? '<div style="' + scBalStyle + 'font-size:9px;font-weight:700;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>' : '') +
         (hasPrivate ? '<div style="' + privBalStyle + 'font-size:9px;font-weight:700;">私' + (privEndBal>=0?'+':'') + privEndBal + '</div>' : '') +
         '</td>';
