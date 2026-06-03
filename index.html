@@ -2723,9 +2723,9 @@ function _exportMultiMonthPDF(months) {
 </table>
 <div class="legend">
   <span><span style="color:#1a7a50;">●</span> 團課出席</span>
-  <span><span style="color:#1a7a50;">◆</span> 小班課出席</span>
-  <span style="color:#cc3300;">紅色 = 堂數不足</span>
-  <span style="color:#888;">小 = 小班課數值</span>
+  <span><span style="color:#c8a000;">◆</span> 小班課出席</span>
+  <span><span style="color:#a78bfa;">★</span> 私課出席</span>
+  ${simpleMode ? '' : '<span style="color:#cc3300;">紅色 = 堂數不足</span>'}
 </div>
 </div>`;
   });
@@ -2876,9 +2876,9 @@ function exportBatchPDF() {
       // 課日
       filteredDates.forEach(d => {
         const dKey = d.uid || d.date;
-        const isTeam = (s.attended||[]).includes(dKey);
-        const isSmall = (s.scDates||[]).includes(dKey);
-        const isPrivate = (s.privateDates||[]).includes(dKey);
+        const isTeam = pdfShowTeam && (s.attended||[]).includes(dKey);
+        const isSmall = pdfShowSmall && (s.scDates||[]).includes(dKey);
+        const isPrivate = pdfShowPrivate && (s.privateDates||[]).includes(dKey);
         let cell = '';
         if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆</div>';
         else if (isTeam && isPrivate) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#a78bfa;font-size:9px;">★</div>';
@@ -2988,9 +2988,9 @@ function exportBatchPDF() {
 </table>
 <div class="legend">
   <span><span style="color:#1a7a50;">●</span> 團課出席</span>
-  <span><span style="color:#1a7a50;">◆</span> 小班課出席</span>
-  <span style="color:#cc3300;">紅色 = 堂數不足</span>
-  <span style="color:#888;">小 = 小班課數值</span>
+  <span><span style="color:#c8a000;">◆</span> 小班課出席</span>
+  <span><span style="color:#a78bfa;">★</span> 私課出席</span>
+  ${simpleMode ? '' : '<span style="color:#cc3300;">紅色 = 堂數不足</span>'}
 </div>
 \x3cscript\x3ewindow.onload=function(){setTimeout(function(){window.print();},600);}\x3c/script\x3e
 </body></html>`);
