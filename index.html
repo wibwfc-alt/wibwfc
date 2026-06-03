@@ -2131,7 +2131,7 @@ function renderBatch() {
   const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
     : (tabs.team && tabs.private) ? 'team+private'
     : (tabs.small && tabs.private) ? 'small+private'
-    : (tabs.team && tabs.small) ? 'all'
+    : (tabs.team && tabs.small) ? 'team+small'
     : tabs.private ? 'private'
     : tabs.small ? 'small'
     : 'team';
@@ -2139,6 +2139,7 @@ function renderBatch() {
   const dates = data.dates;
   const filteredDates = dates.filter(d => {
     if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
+    if (courseFilter === 'team+small') return d.isTeam || d.isSmall;
     if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
     if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
     if (courseFilter === 'team') return d.isTeam === true;
@@ -2163,6 +2164,7 @@ function renderBatch() {
       if (courseFilter === 'private') return pvCount > 0;
       if (courseFilter === 'team+private') return teamCount > 0 || pvCount > 0;
       if (courseFilter === 'small+private') return scCount > 0 || pvCount > 0;
+      if (courseFilter === 'team+small') return teamCount > 0 || scCount > 0;
       return teamCount > 0 || scCount > 0 || pvCount > 0;
     });
   }
@@ -2179,8 +2181,8 @@ function renderBatch() {
     const tc = d.teamCoach || d.coach || '';
     const sc = d.smallCoach || '';
     let coachHtml = '';
-    const showTeamCoach = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+private';
-    const showSmallCoach = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private';
+    const showTeamCoach = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+    const showSmallCoach = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
     const showPrivateCoach = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
     if (showTeamCoach && tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
     if (showSmallCoach && sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
@@ -2279,8 +2281,8 @@ function renderBatch() {
       const teamCount2 = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
       const scCount2 = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
       const pvCount2 = (s.privateDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date)===a)).length;
-      const showTeam = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+private';
-      const showSmall = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private';
+      const showTeam = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+      const showSmall = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
       const showPrivate = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
       tbody += '<td class="batch-td" style="font-weight:700;">' +
         (showTeam ? '<div style="color:#3aab6e;font-size:0.72rem;">團' + teamCount2 + '</div>' : '') +
@@ -2318,10 +2320,12 @@ function renderBatch() {
           if (hasSmallData) balCell += '<div style="' + scBalColor + 'font-size:0.72rem;">小' + (scEndBal>=0?'+':'') + scEndBal + '</div>';
         }
         const privBal2 = calcPrivateBalance(s);
-        const hasPrivData = (s.privateDates||[]).length > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0 || (s.privateMidTopup||0) > 0;
-        if (hasPrivData) {
-          const privBalColor2 = privBal2 < 0 ? 'color:var(--red)' : 'color:#a78bfa';
-          balCell += '<div style="' + privBalColor2 + ';font-size:0.72rem;">雙' + (privBal2>=0?'+':'') + privBal2 + '</div>';
+        if (showPrivate) {
+          const hasPrivData = (s.privateDates||[]).length > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0 || (s.privateMidTopup||0) > 0;
+          if (hasPrivData) {
+            const privBalColor2 = privBal2 < 0 ? 'color:var(--red)' : 'color:#a78bfa';
+            balCell += '<div style="' + privBalColor2 + ';font-size:0.72rem;">雙' + (privBal2>=0?'+':'') + privBal2 + '</div>';
+          }
         }
         tbody += '<td class="batch-td" data-bal-name="' + s.name + '">' + balCell + '</td>';
       }
@@ -2333,8 +2337,8 @@ function renderBatch() {
   const totalTeam = filteredDates.reduce((sum, d) => sum + (dateTotals[d.uid||d.date]||0), 0);
   const totalSmall = filteredDates.reduce((sum, d) => sum + (dateSmallTotals[d.uid||d.date]||0), 0);
   const totalPrivate = filteredDates.reduce((sum, d) => sum + (datePrivateTotals[d.uid||d.date]||0), 0);
-  const showTeamRow = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+private';
-  const showSmallRow = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private';
+  const showTeamRow = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+  const showSmallRow = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
   const showPrivateRow = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
   if (showTeamRow) {
     tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#3aab6e;">團課人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
@@ -2377,7 +2381,7 @@ function batchUpdateTopup(input) {
   const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
     : (tabs.team && tabs.private) ? 'team+private'
     : (tabs.small && tabs.private) ? 'small+private'
-    : (tabs.team && tabs.small) ? 'all'
+    : (tabs.team && tabs.small) ? 'team+small'
     : tabs.private ? 'private'
     : tabs.small ? 'small'
     : 'team';
@@ -2558,7 +2562,7 @@ function _exportMultiMonthPDF(months) {
   const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
     : (tabs.team && tabs.private) ? 'team+private'
     : (tabs.small && tabs.private) ? 'small+private'
-    : (tabs.team && tabs.small) ? 'all'
+    : (tabs.team && tabs.small) ? 'team+small'
     : tabs.private ? 'private'
     : tabs.small ? 'small'
     : 'team';
@@ -2626,7 +2630,7 @@ function _exportMultiMonthPDF(months) {
         const endBal = calcEndBalance(s);
         const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
         const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-        const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private') && scActual > 0;
+        const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private') && scActual > 0;
         const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
         const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
         tbodyHtml += '<tr>';
@@ -2732,7 +2736,7 @@ function exportBatchPDF() {
   const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
     : (tabs.team && tabs.private) ? 'team+private'
     : (tabs.small && tabs.private) ? 'small+private'
-    : (tabs.team && tabs.small) ? 'all'
+    : (tabs.team && tabs.small) ? 'team+small'
     : tabs.private ? 'private'
     : tabs.small ? 'small'
     : 'team';
@@ -2741,6 +2745,7 @@ function exportBatchPDF() {
   const allDates = data.dates;
   let filteredDates = allDates.filter(d => {
     if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
+    if (courseFilter === 'team+small') return d.isTeam || d.isSmall;
     if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
     if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
     if (courseFilter === 'team') return d.isTeam === true;
@@ -2801,7 +2806,7 @@ function exportBatchPDF() {
       const endBal = calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
       const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-      const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'small+private') && scActual > 0;
+      const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private') && scActual > 0;
       const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
       const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
 
@@ -2870,12 +2875,12 @@ function exportBatchPDF() {
     (s.privateDates||[]).forEach(a => { if(datePrivateTotals2[a]!==undefined) datePrivateTotals2[a]++; });
   });
   const extraCols = simpleMode ? 1 : 3;
-  if (courseFilter !== 'small' && courseFilter !== 'private' && courseFilter !== 'small+private') {
+  if (courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">團課人數</td>';
     filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateTotals[k]||0) + '</td>'; });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
-  if (courseFilter !== 'team' && courseFilter !== 'private' && courseFilter !== 'team+private') {
+  if (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">小班人數</td>';
     filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateSmallTotals2[k]||0) + '</td>'; });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
