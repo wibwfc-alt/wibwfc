@@ -2388,6 +2388,9 @@ function renderBatch() {
   tbody += '</tbody>';
 
   document.getElementById('batchTable').innerHTML = thead + tbody;
+  if (!students.length) {
+    document.getElementById('batchTable').innerHTML = '<tr><td style="color:orange;padding:20px;">學員數：' + (getCurrentMonthData().students||[]).length + '，篩選後：0，courseFilter：' + courseFilter + '</td></tr>';
+  }
   } catch(e) {
     console.error('renderBatch error:', e);
     document.getElementById('batchTable').innerHTML = '<tr><td style="color:red;padding:20px;">錯誤：' + e.message + '</td></tr>';
