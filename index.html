@@ -2143,7 +2143,9 @@ function renderBatch() {
   const _lbl = document.getElementById('batchMonthLabel'); if (_lbl) _lbl.textContent = monthLabel;
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
   const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
+  const noneSelected = !tabs.team && !tabs.small && !tabs.private;
+  const courseFilter = noneSelected ? 'all'
+    : (tabs.team && tabs.small && tabs.private) ? 'all'
     : (tabs.team && tabs.private) ? 'team+private'
     : (tabs.small && tabs.private) ? 'small+private'
     : (tabs.team && tabs.small) ? 'team+small'
@@ -2400,7 +2402,9 @@ function batchUpdateTopup(input) {
   renderSidebar();
   // 即時更新該列的剩餘欄，不重繪整個表格
   const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
+  const noneSelected = !tabs.team && !tabs.small && !tabs.private;
+  const courseFilter = noneSelected ? 'all'
+    : (tabs.team && tabs.small && tabs.private) ? 'all'
     : (tabs.team && tabs.private) ? 'team+private'
     : (tabs.small && tabs.private) ? 'small+private'
     : (tabs.team && tabs.small) ? 'team+small'
@@ -2600,7 +2604,9 @@ function exportDualMonthPDF() {
 
 function _exportMultiMonthPDF(months) {
   const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
+  const noneSelected = !tabs.team && !tabs.small && !tabs.private;
+  const courseFilter = noneSelected ? 'all'
+    : (tabs.team && tabs.small && tabs.private) ? 'all'
     : (tabs.team && tabs.private) ? 'team+private'
     : (tabs.small && tabs.private) ? 'small+private'
     : (tabs.team && tabs.small) ? 'team+small'
@@ -2774,7 +2780,9 @@ function exportBatchPDF() {
   const monthLabel = state.currentMonth.replace('-', '年') + '月';
   const selectedGroups = getSelectedGroups ? getSelectedGroups() : null;
   const tabs = state._batchTabs || { team: true, small: false, private: false };
-  const courseFilter = (tabs.team && tabs.small && tabs.private) ? 'all'
+  const noneSelected = !tabs.team && !tabs.small && !tabs.private;
+  const courseFilter = noneSelected ? 'all'
+    : (tabs.team && tabs.small && tabs.private) ? 'all'
     : (tabs.team && tabs.private) ? 'team+private'
     : (tabs.small && tabs.private) ? 'small+private'
     : (tabs.team && tabs.small) ? 'team+small'
