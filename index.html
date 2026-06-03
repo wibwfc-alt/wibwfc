@@ -220,6 +220,7 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
   padding: 24px 16px; overflow-y: auto;
 }
 .modal-overlay.show { display: flex; }
+#batchModal { justify-content: flex-start; padding: 0; overflow-y: auto; }
 .modal {
   background: #111; border: 1px solid var(--border);
   border-radius: 8px; padding: 24px; width: 360px; max-width: 90vw;
@@ -612,7 +613,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
 </div>
 
 <!-- BATCH ATTENDANCE MODAL -->
-<div class="modal-overlay" id="batchModal" style="align-items:flex-start;padding:0;overflow:auto;display:none;">
+<div class="modal-overlay" id="batchModal" style="align-items:flex-start;padding:0;overflow:auto;display:none;justify-content:flex-start;align-items:flex-start;">
   <div style="background:#0d0d0d;width:100%;min-height:100vh;">
     <!-- 第一排：標題 + 月份 + 搜尋 + 年齡組 -->
     <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 8px;flex-wrap:wrap;background:#0d0d0d;border-bottom:1px solid rgba(255,255,255,0.06);">
