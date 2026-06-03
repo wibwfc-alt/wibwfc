@@ -765,12 +765,15 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <button class="btn btn-outline batchGroupBtn" data-group="國中" onclick="toggleGroupFilter('國中')" style="font-size:0.75rem;padding:4px 8px;">國中</button>
           <button class="btn btn-outline batchGroupBtn" data-group="爸媽組" onclick="toggleGroupFilter('爸媽組')" style="font-size:0.75rem;padding:4px 8px;">爸媽</button>
         </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 16px 8px;border-top:1px solid rgba(255,255,255,0.06);">
         <button id="batchTabTeam" onclick="toggleBatchTab('team')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(36,110,88,0.5);border-radius:4px;cursor:pointer;background:rgba(36,110,88,0.35);color:#3aab6e;">● 團課</button>
         <button id="batchTabSmall" onclick="toggleBatchTab('small')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">◆ 小班課</button>
         <button id="batchTabPrivate" onclick="toggleBatchTab('private')" style="padding:6px 14px;font-size:0.8rem;font-family:'Noto Sans TC',sans-serif;font-weight:700;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;background:none;color:var(--gray);">★ 私課</button>
+        <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
         <button class="btn btn-outline" id="batchAttendedBtn" onclick="toggleBatchAttended()" style="font-size:0.8rem;">有上課</button>
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
-        
+        <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
         <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.8rem;">📅 本月課日</button>
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
@@ -2553,15 +2556,34 @@ ${card.outerHTML}
 }
 
 function exportDualMonthPDF() {
-  // Ask which second month to include
   const availableMonths = Object.keys(state.months).sort();
   if (availableMonths.length < 2) { alert('資料中只有一個月份，無法雙月匯出'); return; }
   const otherMonths = availableMonths.filter(m => m !== state.currentMonth);
-  const secondMonth = prompt('請輸入第二個月份（格式：YYYY-MM）\n可用月份：' + otherMonths.join('、'), otherMonths[otherMonths.length - 1]);
-  if (!secondMonth || !state.months[secondMonth]) { if (secondMonth) alert('找不到該月份資料'); return; }
 
-  const months = [state.currentMonth, secondMonth].sort();
-  _exportMultiMonthPDF(months);
+  // Show a small inline picker instead of prompt
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:24px;width:280px;">
+      <div style="font-size:0.9rem;font-weight:700;margin-bottom:12px;">📄 雙月 PDF</div>
+      <div style="font-size:0.78rem;color:var(--gray);margin-bottom:6px;">目前月份：${state.currentMonth.replace('-','年')}月</div>
+      <div style="font-size:0.78rem;color:var(--gray);margin-bottom:6px;">選擇第二個月份</div>
+      <select id="_dualMonthSel" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);color:var(--white);padding:8px;border-radius:4px;font-size:0.85rem;margin-bottom:16px;">
+        ${otherMonths.map(m => `<option value="${m}"${m===otherMonths[otherMonths.length-1]?' selected':''}>${m.replace('-','年')}月</option>`).join('')}
+      </select>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#aaa;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:0.8rem;">取消</button>
+        <button onclick="
+          const sel = document.getElementById('_dualMonthSel');
+          const second = sel.value;
+          this.closest('[style*=fixed]').remove();
+          const months = ['${state.currentMonth}', second].sort();
+          _exportMultiMonthPDF(months);
+        " style="background:#246e58;color:white;border:none;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:700;">匯出</button>
+      </div>
+    </div>`;
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
 }
 
 function _exportMultiMonthPDF(months) {
