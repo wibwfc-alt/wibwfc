@@ -411,7 +411,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
 <div class="topbar">
   <div class="topbar-logo">🐺 黑狼出席管理</div>
   <div id="lockStatus" style="font-size:0.78rem;cursor:pointer;" onclick="toggleEdit()"></div>
-  <button id="syncBtn" class="btn btn-green" onclick="syncToGist()" style="font-size:0.78rem;display:none;">☁ 同步給教練</button>
+  <button id="syncBtn" class="btn btn-green" onclick="syncToGist()" style="font-size:0.78rem;display:none;">☁ 同步</button>
 
   <button class="btn btn-outline" onclick="showBatch()" style="font-size:0.8rem;" id="batchBtn">📋 本月總覽</button>
   <button class="btn btn-outline edit-only" onclick="showOverview()" style="font-size:0.8rem;">📊 月結總覽</button>
@@ -778,6 +778,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
         <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.8rem;">📅 本月課日</button>
+        <button class="btn btn-green" onclick="syncToGist()" style="font-size:0.8rem;">☁ 同步</button>
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
