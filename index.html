@@ -1039,9 +1039,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
       </div>
     </div>
     <div class="form-group" id="editSmallVenueGroup" style="display:none;">
-      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <label style="color:#fcc929;">◆ 小班場地</label>
       <select id="editSmallVenue" style="width:100%;">
-        <option value="">同團課場地</option>
+        <option value="">不指定</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1057,9 +1057,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地</label>
       <select id="editPrivateVenue" style="width:100%;margin-top:4px;">
-        <option value="">同團課場地</option>
+        <option value="">不指定</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1165,9 +1165,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
       </div>
     </div>
     <div class="form-group" id="newSmallVenueGroup" style="display:none;">
-      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <label style="color:#fcc929;">◆ 小班場地</label>
       <select id="newSmallVenue" style="width:100%;">
-        <option value="">同團課場地</option>
+        <option value="">不指定</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1180,9 +1180,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地</label>
       <select id="newPrivateVenue" style="width:100%;margin-top:4px;">
-        <option value="">同團課場地</option>
+        <option value="">不指定</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -2233,12 +2233,12 @@ function renderBatch() {
       if (tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
     }
     if (showSmallCoach) {
-      const sv = d.smallVenue || (showTeamCoach ? '' : d.venue) || '';
+      const sv = d.smallVenue || '';
       if (sv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + sv + '</span>';
       if (sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
     }
     if (showPrivateCoach) {
-      const pv = d.privateVenue || (showTeamCoach ? '' : d.venue) || '';
+      const pv = d.privateVenue || '';
       if (pv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + pv + '</span>';
       if (d.privateCoach) coachHtml += '<br><span style="color:#a78bfa;font-size:0.6rem;">★ ' + d.privateCoach + '</span>';
     }
