@@ -3875,7 +3875,7 @@ function closeModal() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
   // 如果批量點名開著，重新 render
   const batchModal = document.getElementById('batchModal');
-  if (batchModal && batchModal.style.display === 'flex') {
+  if (batchModal && batchModal.style.display !== 'none') {
     renderBatch();
   }
 }
@@ -4061,7 +4061,7 @@ function saveEditDate() {
   renderSidebar();
   // 批量點名開著的話也要更新
   const batchModal = document.getElementById('batchModal');
-  if (batchModal && batchModal.style.display === 'flex') renderBatch();
+  if (batchModal && batchModal.style.display !== 'none') renderBatch();
 }
 
 function deleteDateFromEdit() {
