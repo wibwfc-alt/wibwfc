@@ -275,19 +275,20 @@ body { background: var(--black); color: var(--white); font-family: 'Noto Sans TC
 .batch-th {
   background:#0a0a0a; padding:8px 10px;
   color:var(--gray); font-size:0.65rem; letter-spacing:1px;
-  border:1px solid rgba(255,255,255,0.05); text-align:center;
+  border:1px solid #1a1a1a; text-align:center;
   position:sticky; top:0; z-index:2;
 }
 .batch-th.date-col { min-width:60px; }
 .batch-name-th {
   background:#0a0a0a; padding:8px 12px;
   color:var(--white); font-size:0.78rem; font-weight:700;
-  border:1px solid rgba(255,255,255,0.05);
+  border:1px solid #1a1a1a;
   position:sticky; left:0; z-index:3; white-space:nowrap;
 }
 .batch-td {
-  padding:4px; border:1px solid rgba(255,255,255,0.04);
+  padding:4px; border:1px solid #1a1a1a;
   text-align:center; vertical-align:middle;
+  background:#0d0d0d;
 }
 .batch-name-td {
   padding:6px 12px; border:1px solid rgba(255,255,255,0.05);
@@ -615,7 +616,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
 </div>
 
 <!-- BATCH ATTENDANCE MODAL -->
-<div class="modal-overlay" id="batchModal" style="padding:0;overflow:auto;display:none;background:#0d0d0d;">
+<div class="modal-overlay" id="batchModal" style="padding:0;overflow:auto;display:none;background:#0d0d0d;position:fixed;inset:0;z-index:100;">
   <div style="background:#0d0d0d;width:100%;display:flex;flex-direction:column;">
     <!-- 第一排：標題 + 月份 + 搜尋 + 年齡組 -->
     <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 8px;flex-wrap:wrap;background:#0d0d0d;border-bottom:1px solid rgba(255,255,255,0.06);">
@@ -784,8 +785,8 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
       </div>
     </div>
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;" id="batchTableWrap"><div style="max-height:calc(100vh - 120px);overflow-y:auto;">
-      <table id="batchTable" style="border-collapse:collapse;font-size:0.78rem;white-space:nowrap;"></table>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:#0d0d0d;" id="batchTableWrap"><div style="max-height:calc(100vh - 120px);overflow-y:auto;background:#0d0d0d;">
+      <table id="batchTable" style="border-collapse:collapse;font-size:0.78rem;white-space:nowrap;background:#0d0d0d;"></table>
     </div>
   </div>
 </div>
@@ -2632,81 +2633,118 @@ function _exportMultiMonthPDF(months) {
     const monthLabel = month.replace('-', '年') + '月';
 
     let filteredDates = (data.dates||[]).filter(d => {
-      if (courseFilter === 'team') return d.isTeam === true;
-      if (courseFilter === 'small') return d.isSmall === true;
-      return true;
+      if (courseFilter === 'all') return d.isTeam || d.isSmall || d.isPrivate;
+      if (courseFilter === 'team+small') return d.isTeam || d.isSmall;
+      if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
+      if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
+      if (courseFilter === 'team') return !!d.isTeam;
+      if (courseFilter === 'small') return !!d.isSmall;
+      if (courseFilter === 'private') return !!d.isPrivate;
+      return d.isTeam || d.isSmall;
     });
+
+    const dmShowTeam = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+    const dmShowSmall = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
+    const dmShowPrivate = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
 
     let students = (data.students||[]).filter(s => s.group !== '已離隊' && !s.isTrial);
     if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
-    // 僅上課：只顯示該月有出席的學員
     if (attendedOnly) {
       students = students.filter(s => {
         const tc = (s.attended||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
         const sc = (s.scDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
+        const pv = (s.privateDates||[]).filter(a => filteredDates.find(d => (d.uid||d.date) === a)).length;
         if (courseFilter === 'team') return tc > 0;
         if (courseFilter === 'small') return sc > 0;
-        return tc > 0 || sc > 0;
+        if (courseFilter === 'private') return pv > 0;
+        if (courseFilter === 'team+small') return tc > 0 || sc > 0;
+        if (courseFilter === 'team+private') return tc > 0 || pv > 0;
+        if (courseFilter === 'small+private') return sc > 0 || pv > 0;
+        return tc > 0 || sc > 0 || pv > 0;
       });
     }
 
     const groups = {};
     students.forEach(s => { if (!groups[s.group]) groups[s.group] = []; groups[s.group].push(s); });
 
-    // Filter dates with 0 attendance
+    // 過濾掉沒人出席的課日
     const _ac = {};
     filteredDates.forEach(d => { _ac[d.uid||d.date] = 0; });
     students.forEach(s => {
-      (s.attended||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
-      (s.scDates||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
+      if (dmShowTeam) (s.attended||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
+      if (dmShowSmall) (s.scDates||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
+      if (dmShowPrivate) (s.privateDates||[]).forEach(a => { if (_ac[a] !== undefined) _ac[a]++; });
     });
     filteredDates = filteredDates.filter(d => _ac[d.uid||d.date] > 0);
 
     const groupTitle = selectedGroups ? selectedGroups.join('、') : '全部';
 
     let theadHtml = '<tr><th>學員</th>';
-    if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">團/小/私</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">團/小/私</span></th>';
+    if (!simpleMode) theadHtml += '<th>上月結餘</th><th>月中儲值</th>';
     filteredDates.forEach(d => {
       const dt = new Date(d.date + 'T00:00:00');
-      const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
-      const _vDisplay = (!_hasTeam && d.smallVenue) ? d.smallVenue : (d.venue||'');
-      theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + _vDisplay + '</span></th>';
+      theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + (d.venue||'') + '</span></th>';
     });
-    if (!simpleMode) theadHtml += '<th>月底儲值<br><span style="color:#888;font-weight:400;">團/小</span></th>';
+    if (!simpleMode) theadHtml += '<th>月底儲值</th>';
     theadHtml += '<th>合計</th></tr>';
 
     let tbodyHtml = '';
     Object.entries(groups).forEach(([g, list]) => {
-      tbodyHtml += '<tr class="group-row"><td colspan="' + (filteredDates.length + (simpleMode ? 2 : 5)) + '">' + g + '</td></tr>';
+      tbodyHtml += '<tr class="group-row"><td colspan="' + (filteredDates.length + (simpleMode ? 2 : 4)) + '">' + g + '</td></tr>';
       list.forEach(s => {
         const endBal = calcEndBalance(s);
         const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
         const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-        const hasSmall = (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private') && scActual > 0;
+        const privActual = (s.privateDates||[]).length;
+        const privBal = calcPrivateBalance(s);
+        const hasSmall = dmShowSmall && scActual > 0;
+        const hasPrivate = dmShowPrivate && (privActual > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0);
         const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
         const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
+        const privBalStyle = privBal < 0 ? 'color:#cc3300;font-weight:700;' : privBal > 0 ? 'color:#a78bfa;' : '';
         tbodyHtml += '<tr>';
         tbodyHtml += '<td class="name-cell">' + s.name + (s.bib ? ' <span style="color:#888;font-size:9px;">#'+s.bib+'</span>' : '') + '</td>';
         if (!simpleMode) {
-          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') + '</td>';
-          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scMidTopup||0) + '</div>' : '') + '</td>';
+          tbodyHtml += '<td style="text-align:center;">' +
+            (dmShowTeam ? '<div style="color:#1a7a50;font-weight:700;font-size:9px;">團' + (s.prevBalance>=0?'+':'') + (s.prevBalance||0) + '</div>' : '') +
+            (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scPrevBal>=0?'+':'') + (s.scPrevBal||0) + '</div>' : '') +
+            (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privatePrevBal>=0?'+':'') + (s.privatePrevBal||0) + '</div>' : '') +
+            '</td>';
+          tbodyHtml += '<td style="text-align:center;">' +
+            (dmShowTeam ? '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.midTopup||0) + '</div>' : '') +
+            (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scMidTopup||0) + '</div>' : '') +
+            (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateMidTopup||0) + '</div>' : '') +
+            '</td>';
         }
         filteredDates.forEach(d => {
           const dKey = d.uid||d.date;
-          const isTeam = (s.attended||[]).includes(dKey);
-          const isSmall = (s.scDates||[]).includes(dKey);
+          const isTeam = dmShowTeam && (s.attended||[]).includes(dKey);
+          const isSmall = dmShowSmall && (s.scDates||[]).includes(dKey);
+          const isPrivate = dmShowPrivate && (s.privateDates||[]).includes(dKey);
           let cell = '';
-          if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆小</div>';
+          if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆</div>';
+          else if (isTeam && isPrivate) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#a78bfa;font-size:9px;">★</div>';
+          else if (isSmall && isPrivate) cell = '<div style="color:#c8a000;">◆</div><div style="color:#a78bfa;font-size:9px;">★</div>';
           else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
           else if (isSmall) cell = '<span style="color:#c8a000;">◆</span>';
+          else if (isPrivate) cell = '<span style="color:#a78bfa;">★</span>';
           tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
         });
         if (!simpleMode) {
-          tbodyHtml += '<td style="text-align:center;"><div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' + (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') + (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateTopup||0) + '</div>' : '') + '</td>';
+          tbodyHtml += '<td style="text-align:center;">' +
+            (dmShowTeam ? '<div style="color:#1a7a50;font-size:9px;font-weight:700;">團' + (s.endTopup||0) + '</div>' : '') +
+            (hasSmall ? '<div style="color:#c8a000;font-size:9px;font-weight:700;">小' + (s.scTopup||0) + '</div>' : '') +
+            (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateTopup||0) + '</div>' : '') +
+            '</td>';
         }
         const teamCount = (s.attended||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
         const scCount = (s.scDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
-        tbodyHtml += '<td style="text-align:right;"><div style="font-size:11px;">團' + teamCount + '</div>' + (hasSmall ? '<div style="font-size:10px;color:#888;">小' + scCount + '</div>' : '') + '</td>';
+        const pvCount = (s.privateDates||[]).filter(a => filteredDates.find(d=>(d.uid||d.date)===a)).length;
+        tbodyHtml += '<td style="text-align:right;">' +
+          (dmShowTeam ? '<div style="font-size:11px;color:#1a7a50;">團' + teamCount + '</div>' : '') +
+          (hasSmall ? '<div style="font-size:10px;color:#c8a000;">小' + scCount + '</div>' : '') +
+          (hasPrivate && pvCount > 0 ? '<div style="font-size:10px;color:#a78bfa;">私' + pvCount + '</div>' : '') +
+          '</td>';
         tbodyHtml += '</tr>';
       });
     });
@@ -2714,16 +2752,19 @@ function _exportMultiMonthPDF(months) {
     // 全月合計（移出 groups 迴圈）
     const totalRow = Array(filteredDates.length).fill(0);
     const scTotalRow = Array(filteredDates.length).fill(0);
+    const pvTotalRow = Array(filteredDates.length).fill(0);
     students.forEach(s => {
       filteredDates.forEach((d,i) => {
         if ((s.attended||[]).includes(d.uid||d.date)) totalRow[i]++;
         if ((s.scDates||[]).includes(d.uid||d.date)) scTotalRow[i]++;
+        if ((s.privateDates||[]).includes(d.uid||d.date)) pvTotalRow[i]++;
       });
     });
     const colSpan = simpleMode ? 1 : 3;
     const extraCol = simpleMode ? '' : '<td></td>';
-    if (courseFilter !== 'small') tbodyHtml += '<tr class="total-row"><td colspan="' + colSpan + '">團課人數</td>' + totalRow.map(n=>'<td>'+(n||'')+'</td>').join('') + extraCol + '<td></td></tr>';
-    if (courseFilter !== 'team') tbodyHtml += '<tr class="total-row"><td colspan="' + colSpan + '">小班人數</td>' + scTotalRow.map(n=>'<td>'+(n||'')+'</td>').join('') + extraCol + '<td></td></tr>';
+    if (dmShowTeam) tbodyHtml += '<tr class="total-row"><td colspan="' + colSpan + '">團課人數</td>' + totalRow.map(n=>'<td>'+n+'</td>').join('') + extraCol + '<td></td></tr>';
+    if (dmShowSmall) tbodyHtml += '<tr class="total-row"><td colspan="' + colSpan + '">小班人數</td>' + scTotalRow.map(n=>'<td>'+n+'</td>').join('') + extraCol + '<td></td></tr>';
+    if (dmShowPrivate) tbodyHtml += '<tr class="total-row"><td colspan="' + colSpan + '">私課人數</td>' + pvTotalRow.map(n=>'<td>'+n+'</td>').join('') + extraCol + '<td></td></tr>';
 
     const pageBreak = mIdx > 0 ? 'style="page-break-before:always;"' : '';
     allSections += `<div ${pageBreak}>
