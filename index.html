@@ -2200,17 +2200,19 @@ function renderBatch() {
     (s.privateDates||[]).forEach(a => { if (datePrivateTotals[a] !== undefined) datePrivateTotals[a]++; });
   });
 
-  // 只顯示選定學員中有人出席的課日
-  const showTeamF = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
-  const showSmallF = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
-  const showPrivateF = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
-  filteredDates = filteredDates.filter(d => {
-    const k = d.uid||d.date;
-    if (showTeamF && dateTotals[k] > 0) return true;
-    if (showSmallF && dateSmallTotals[k] > 0) return true;
-    if (showPrivateF && datePrivateTotals[k] > 0) return true;
-    return false;
-  });
+  // 只在「有上課」模式下，過濾掉選定學員中沒人出席的課日
+  if (attendedOnly) {
+    const showTeamF = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+    const showSmallF = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
+    const showPrivateF = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
+    filteredDates = filteredDates.filter(d => {
+      const k = d.uid||d.date;
+      if (showTeamF && dateTotals[k] > 0) return true;
+      if (showSmallF && dateSmallTotals[k] > 0) return true;
+      if (showPrivateF && datePrivateTotals[k] > 0) return true;
+      return false;
+    });
+  }
 
   let thead = '<thead><tr>';
   thead += '<th class="batch-name-th" style="min-width:120px;">學員</th>';
