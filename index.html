@@ -2151,9 +2151,9 @@ function renderBatch() {
     if (courseFilter === 'team+small') return d.isTeam || d.isSmall;
     if (courseFilter === 'team+private') return d.isTeam || d.isPrivate;
     if (courseFilter === 'small+private') return d.isSmall || d.isPrivate;
-    if (courseFilter === 'team') return d.isTeam === true;
-    if (courseFilter === 'small') return d.isSmall === true;
-    if (courseFilter === 'private') return d.isPrivate === true;
+    if (courseFilter === 'team') return !!d.isTeam;
+    if (courseFilter === 'small') return !!d.isSmall;
+    if (courseFilter === 'private') return !!d.isPrivate;
     return d.isTeam || d.isSmall;
   });
   const batchSearchEl = document.getElementById('batchSearch');
