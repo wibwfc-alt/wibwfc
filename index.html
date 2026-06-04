@@ -779,7 +779,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
         <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.8rem;">📅 本月課日</button>
-        <button class="btn btn-green edit-only" onclick="syncToGist()" style="font-size:0.8rem;">☁ 同步</button>
+        <button class="btn btn-green edit-only" id="batchSyncBtn" onclick="syncToGist(this)" style="font-size:0.8rem;">☁ 同步</button>
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
@@ -3098,16 +3098,21 @@ function updateLockUI() {
 const GIST_ID = 'adc626cbf7b7f74310f70df17f24c276';
 const GITHUB_TOKEN = localStorage.getItem('bw_gh_token') || '';
 
-function syncToGist() {
+function syncToGist(callerBtn) {
   let token = localStorage.getItem('bw_gh_token');
   if (!token) {
     token = prompt('請輸入 GitHub Token（只需輸入一次）：');
     if (!token) return;
     localStorage.setItem('bw_gh_token', token);
   }
-  const btn = document.getElementById('syncBtn');
-  btn.textContent = '☁ 同步中...';
-  btn.disabled = true;
+  // 同時更新主頁和批量點名兩顆按鈕
+  const allBtns = [
+    callerBtn || null,
+    document.getElementById('syncBtn'),
+    document.getElementById('batchSyncBtn')
+  ].filter((b, i, arr) => b && arr.indexOf(b) === i);
+  allBtns.forEach(b => { b.textContent = '☁ 同步中...'; b.disabled = true; });
+  const btn = allBtns[0] || document.getElementById('syncBtn');
   const syncState = { ...state, selectedStudent: null };
   const data = JSON.stringify(syncState);
   fetch('https://api.github.com/gists/' + GIST_ID, {
@@ -3123,20 +3128,18 @@ function syncToGist() {
     return r.json();
   })
   .then(() => {
-    btn.textContent = '✓ 已同步';
+    allBtns.forEach(b => { b.textContent = '✓ 已同步'; });
     const now = new Date();
     const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
     const syncTimeEl = document.getElementById('syncTime');
     if (syncTimeEl) syncTimeEl.textContent = '上次同步 ' + timeStr;
     setTimeout(() => {
-      btn.textContent = '☁ 同步';
-      btn.disabled = false;
+      allBtns.forEach(b => { b.textContent = '☁ 同步'; b.disabled = false; });
     }, 2000);
   })
   .catch(e => {
     alert('同步失敗：' + e.message + '\n\n請確認 GitHub Token 是否正確。');
-    btn.textContent = '☁ 同步';
-    btn.disabled = false;
+    allBtns.forEach(b => { b.textContent = '☁ 同步'; b.disabled = false; });
   });
 }
 
