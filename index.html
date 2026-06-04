@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🐺 黑狼出席管理</title>
+<meta property="og:title" content="🐺 黑狼出席管理">
+<meta property="og:description" content="灣島黑狼 FC 出席與堂費管理系統">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://wibwfc-alt.github.io/wibwfc/">
+<meta name="description" content="灣島黑狼 FC 出席與堂費管理系統">
 
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -779,7 +784,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
         <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.8rem;">📅 本月課日</button>
-        <button class="btn btn-green edit-only" id="batchSyncBtn" onclick="syncToGist(this)" style="font-size:0.8rem;">☁ 同步</button>
+        <button class="btn btn-green edit-only" onclick="syncToGist()" style="font-size:0.8rem;">☁ 同步</button>
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
@@ -1039,9 +1044,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
       </div>
     </div>
     <div class="form-group" id="editSmallVenueGroup" style="display:none;">
-      <label style="color:#fcc929;">◆ 小班場地</label>
+      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
       <select id="editSmallVenue" style="width:100%;">
-        <option value="">不指定</option>
+        <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1057,9 +1062,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地</label>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
       <select id="editPrivateVenue" style="width:100%;margin-top:4px;">
-        <option value="">不指定</option>
+        <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1165,9 +1170,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
       </div>
     </div>
     <div class="form-group" id="newSmallVenueGroup" style="display:none;">
-      <label style="color:#fcc929;">◆ 小班場地</label>
+      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
       <select id="newSmallVenue" style="width:100%;">
-        <option value="">不指定</option>
+        <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1180,9 +1185,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地</label>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
       <select id="newPrivateVenue" style="width:100%;margin-top:4px;">
-        <option value="">不指定</option>
+        <option value="">同團課場地</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -2233,12 +2238,12 @@ function renderBatch() {
       if (tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
     }
     if (showSmallCoach) {
-      const sv = d.smallVenue || '';
+      const sv = d.smallVenue || (showTeamCoach ? '' : d.venue) || '';
       if (sv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + sv + '</span>';
       if (sc) coachHtml += '<br><span style="color:#fcc929;font-size:0.6rem;">◆ ' + sc + '</span>';
     }
     if (showPrivateCoach) {
-      const pv = d.privateVenue || '';
+      const pv = d.privateVenue || (showTeamCoach ? '' : d.venue) || '';
       if (pv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + pv + '</span>';
       if (d.privateCoach) coachHtml += '<br><span style="color:#a78bfa;font-size:0.6rem;">★ ' + d.privateCoach + '</span>';
     }
@@ -3098,21 +3103,16 @@ function updateLockUI() {
 const GIST_ID = 'adc626cbf7b7f74310f70df17f24c276';
 const GITHUB_TOKEN = localStorage.getItem('bw_gh_token') || '';
 
-function syncToGist(callerBtn) {
+function syncToGist() {
   let token = localStorage.getItem('bw_gh_token');
   if (!token) {
     token = prompt('請輸入 GitHub Token（只需輸入一次）：');
     if (!token) return;
     localStorage.setItem('bw_gh_token', token);
   }
-  // 同時更新主頁和批量點名兩顆按鈕
-  const allBtns = [
-    callerBtn || null,
-    document.getElementById('syncBtn'),
-    document.getElementById('batchSyncBtn')
-  ].filter((b, i, arr) => b && arr.indexOf(b) === i);
-  allBtns.forEach(b => { b.textContent = '☁ 同步中...'; b.disabled = true; });
-  const btn = allBtns[0] || document.getElementById('syncBtn');
+  const btn = document.getElementById('syncBtn');
+  btn.textContent = '☁ 同步中...';
+  btn.disabled = true;
   const syncState = { ...state, selectedStudent: null };
   const data = JSON.stringify(syncState);
   fetch('https://api.github.com/gists/' + GIST_ID, {
@@ -3128,18 +3128,20 @@ function syncToGist(callerBtn) {
     return r.json();
   })
   .then(() => {
-    allBtns.forEach(b => { b.textContent = '✓ 已同步'; });
+    btn.textContent = '✓ 已同步';
     const now = new Date();
     const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
     const syncTimeEl = document.getElementById('syncTime');
     if (syncTimeEl) syncTimeEl.textContent = '上次同步 ' + timeStr;
     setTimeout(() => {
-      allBtns.forEach(b => { b.textContent = '☁ 同步'; b.disabled = false; });
+      btn.textContent = '☁ 同步';
+      btn.disabled = false;
     }, 2000);
   })
   .catch(e => {
     alert('同步失敗：' + e.message + '\n\n請確認 GitHub Token 是否正確。');
-    allBtns.forEach(b => { b.textContent = '☁ 同步'; b.disabled = false; });
+    btn.textContent = '☁ 同步';
+    btn.disabled = false;
   });
 }
 
