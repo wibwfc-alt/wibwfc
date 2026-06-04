@@ -619,7 +619,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
   <div style="background:#0d0d0d;width:100%;display:flex;flex-direction:column;">
     <!-- 第一排：標題 + 月份 + 搜尋 + 年齡組 -->
     <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 8px;flex-wrap:wrap;background:#0d0d0d;border-bottom:1px solid rgba(255,255,255,0.06);">
-      <div style="font-size:1rem;font-weight:900;color:var(--yellow);">✓ 批量點名</div>
+      <div id="batchTitle" style="font-size:1rem;font-weight:900;color:var(--yellow);">✓ 批量點名</div>
       <select id="batchMonthSelect" onchange="changeBatchMonth(this.value)" style="background:#fcc929;border:none;color:#010101;padding:6px 10px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;font-weight:900;font-size:0.8rem;cursor:pointer;">
           <option value="2026-01">2026年 1月</option>
           <option value="2026-02">2026年 2月</option>
@@ -778,7 +778,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
         <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.8rem;">📅 本月課日</button>
-        <button class="btn btn-green" onclick="syncToGist()" style="font-size:0.8rem;">☁ 同步</button>
+        <button class="btn btn-green edit-only" onclick="syncToGist()" style="font-size:0.8rem;">☁ 同步</button>
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
@@ -3039,6 +3039,7 @@ function updateLockUI() {
     if (navLabel) navLabel.textContent = '唯讀';
     document.body.classList.remove('edit-mode');
     const bb = document.getElementById('batchBtn'); if (bb) bb.textContent = '📋 本月總覽';
+    const bt = document.getElementById('batchTitle'); if (bt) bt.textContent = '📋 本月總覽';
     const tm = document.querySelector('.topbar-month'); if (tm) { tm.style.width = 'auto'; tm.style.marginLeft = '0'; }
   } else {
     el.innerHTML = '🔓 <span style="color:#3aab6e;">編輯</span>';
@@ -3047,6 +3048,7 @@ function updateLockUI() {
     if (navLabel) navLabel.textContent = '編輯';
     document.body.classList.add('edit-mode');
     const bb2 = document.getElementById('batchBtn'); if (bb2) bb2.textContent = '✓ 批量點名';
+    const bt2 = document.getElementById('batchTitle'); if (bt2) bt2.textContent = '✓ 批量點名';
     const tm = document.querySelector('.topbar-month'); if (tm) { tm.style.width = '100%'; tm.style.marginLeft = ''; }
   }
 }
