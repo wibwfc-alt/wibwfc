@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🐺 黑狼出席管理</title>
+<meta property="og:title" content="🐺 黑狼出席管理">
+<meta property="og:description" content="灣島黑狼 FC 出席與堂費管理系統">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://wibwfc-alt.github.io/wibwfc/">
+<meta name="description" content="灣島黑狼 FC 出席與堂費管理系統">
 
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -779,7 +784,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button class="btn btn-outline" id="batchSimpleBtn" onclick="toggleBatchSimple()" style="font-size:0.8rem;">僅課程</button>
         <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);margin:0 2px;"></div>
         <button class="btn btn-outline edit-only" onclick="showDateManager()" style="font-size:0.8rem;">📅 本月課日</button>
-        <button class="btn btn-green edit-only" onclick="syncToGist()" style="font-size:0.8rem;">☁ 同步</button>
+        <button class="btn btn-green edit-only" id="batchSyncBtn" onclick="syncToGist(this)" style="font-size:0.8rem;">☁ 同步</button>
         <button class="btn btn-green" onclick="exportBatchPDF()" style="font-size:0.8rem;">📄 匯出 PDF</button>
         <button class="btn btn-outline" onclick="exportDualMonthPDF()" style="font-size:0.8rem;">📄 雙月 PDF</button>
         <button class="btn btn-outline" onclick="closeBatch()" style="font-size:0.8rem;">關閉</button>
@@ -1039,9 +1044,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
       </div>
     </div>
     <div class="form-group" id="editSmallVenueGroup" style="display:none;">
-      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <label style="color:#fcc929;">◆ 小班場地</label>
       <select id="editSmallVenue" style="width:100%;">
-        <option value="">同團課場地</option>
+        <option value="">不指定</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1057,9 +1062,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="editNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('editNewPrivateCoachInput','editPrivateCoachList','editPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地</label>
       <select id="editPrivateVenue" style="width:100%;margin-top:4px;">
-        <option value="">同團課場地</option>
+        <option value="">不指定</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1080,13 +1085,30 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>課程類型</label>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsTeam"> <span style="color:#3aab6e;">● 團課</span>
+          <input type="checkbox" id="newIsTeam" onchange="
+            var tg=document.getElementById('newTeamCoachGroup');
+            var vg=document.getElementById('newVenueGroup');
+            if(tg)tg.style.display=this.checked?'':'none';
+            if(vg)vg.style.display=(this.checked||document.getElementById('newIsSmall').checked||document.getElementById('newIsPrivate').checked)?'':'none';
+          "> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsSmall" onchange="var g=document.getElementById('newSmallVenueGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
+          <input type="checkbox" id="newIsSmall" onchange="
+            var sg=document.getElementById('newSmallCoachGroup');
+            var svgEl=document.getElementById('newSmallVenueGroup');
+            var vg=document.getElementById('newVenueGroup');
+            if(sg)sg.style.display=this.checked?'':'none';
+            if(svgEl)svgEl.style.display=this.checked?'':'none';
+            if(vg)vg.style.display=(this.checked||document.getElementById('newIsTeam').checked||document.getElementById('newIsPrivate').checked)?'':'none';
+          "> <span style="color:#fcc929;">◆ 小班課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="newIsPrivate" onchange="var g=document.getElementById('newPrivateGroup');if(g)g.style.display=this.checked?'':'none';"> <span style="color:#a78bfa;">★ 私課</span>
+          <input type="checkbox" id="newIsPrivate" onchange="
+            var pg=document.getElementById('newPrivateGroup');
+            var vg=document.getElementById('newVenueGroup');
+            if(pg)pg.style.display=this.checked?'':'none';
+            if(vg)vg.style.display=(this.checked||document.getElementById('newIsTeam').checked||document.getElementById('newIsSmall').checked)?'':'none';
+          "> <span style="color:#a78bfa;">★ 私課</span>
         </label>
       </div>
     </div>
@@ -1135,7 +1157,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         </select>
       </div>
     </div>
-    <div class="form-group"><label>場地</label>
+    <div class="form-group" id="newVenueGroup" style="display:none;"><label>場地</label>
       <select id="newVenue">
         <option value="">選擇場地</option>
         <option value="黎光">黎光</option>
@@ -1148,7 +1170,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button type="button" onclick="deleteVenueFromSelect('newVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
       </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="newTeamCoachGroup" style="display:none;">
       <label style="color:#3aab6e;">● 團課教練（可多選）</label>
       <div id="newTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       <div style="display:flex;gap:6px;margin-top:6px;">
@@ -1156,7 +1178,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button type="button" onclick="addNewCoachToList('newNewTeamCoachInput','newTeamCoachList','newTeamCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="newSmallCoachGroup" style="display:none;">
       <label style="color:#fcc929;">◆ 小班教練（可多選）</label>
       <div id="newSmallCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       <div style="display:flex;gap:6px;margin-top:6px;">
@@ -1165,9 +1187,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
       </div>
     </div>
     <div class="form-group" id="newSmallVenueGroup" style="display:none;">
-      <label style="color:#fcc929;">◆ 小班場地（留空同團課）</label>
+      <label style="color:#fcc929;">◆ 小班場地</label>
       <select id="newSmallVenue" style="width:100%;">
-        <option value="">同團課場地</option>
+        <option value="">不指定</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1180,9 +1202,9 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="newNewPrivateCoachInput" placeholder="新增教練" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewCoachToList('newNewPrivateCoachInput','newPrivateCoachList','newPrivateCoach')" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋</button>
       </div>
-      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地（留空同團課）</label>
+      <label style="color:#a78bfa;margin-top:10px;display:block;">★ 私課場地</label>
       <select id="newPrivateVenue" style="width:100%;margin-top:4px;">
-        <option value="">同團課場地</option>
+        <option value="">不指定</option>
         <option value="黎光">黎光</option>
         <option value="朝馬">朝馬</option>
         <option value="台體大">台體大</option>
@@ -1841,6 +1863,7 @@ function overviewUpdateTopup(name, type, val) {
   else if (type === 'privatePrevBal') s.privatePrevBal = n;
   else if (type === 'privateMid') s.privateMidTopup = n;
   else if (type === 'privateTopup') s.privateTopup = n;
+  else if (type === 'privateGift') s.privateGiftTopup = n;
   saveState();
   renderSidebar();
 }
@@ -2408,6 +2431,7 @@ function batchUpdateTopup(input) {
   else if (type === 'scTopup') s.scTopup = val;
   else if (type === 'privateMid') s.privateMidTopup = val;
   else if (type === 'privateTopup') s.privateTopup = val;
+  else if (type === 'privateGift') s.privateGiftTopup = val;
   saveState();
   renderSidebar();
   // 即時更新該列的剩餘欄，不重繪整個表格
@@ -2585,86 +2609,30 @@ function exportCalendar() {
   const [year, month] = state.currentMonth.split('-').map(Number);
   const monthLabel = year + '年' + month + '月';
   const weekDays = ['日','一','二','三','四','五','六'];
-
-  // 建立 dayMap
   const dayMap = {};
   data.dates.forEach(d => {
     const dateStr = (d.date||'').substring(0,10);
     if (!dateStr.startsWith(state.currentMonth)) return;
     const day = parseInt(dateStr.split('-')[2]);
     if (!dayMap[day]) dayMap[day] = [];
-    if (d.isTeam) {
-      const coaches = d.teamCoach || d.coach || '';
-      const venue = d.venue || '';
-      dayMap[day].push({ type:'team', label:'● 團課', coaches, venue });
-    }
-    if (d.isSmall) {
-      const coaches = d.smallCoach || '';
-      const venue = d.smallVenue || '';
-      dayMap[day].push({ type:'small', label:'◆ 小班', coaches, venue });
-    }
-    if (d.isPrivate) {
-      const coaches = d.privateCoach || '';
-      const venue = d.privateVenue || '';
-      dayMap[day].push({ type:'private', label:'★ 私課', coaches, venue });
-    }
+    if (d.isTeam) { const coaches = d.teamCoach || d.coach || ''; const venue = d.venue || ''; dayMap[day].push({ type:'team', label:'● 團課', coaches, venue }); }
+    if (d.isSmall) { const coaches = d.smallCoach || ''; const venue = d.smallVenue || ''; dayMap[day].push({ type:'small', label:'◆ 小班', coaches, venue }); }
+    if (d.isPrivate) { const coaches = d.privateCoach || ''; const venue = d.privateVenue || ''; dayMap[day].push({ type:'private', label:'★ 私課', coaches, venue }); }
   });
-
-  // 計算起始偏移（週一=0）
   const firstDow = new Date(year, month-1, 1).getDay();
   const offset = firstDow === 0 ? 6 : firstDow - 1;
   const daysInMonth = new Date(year, month, 0).getDate();
-
-  // 產生格子
   let cells = '';
   for (let i = 0; i < offset; i++) cells += '<div class="day empty"></div>';
   for (let d = 1; d <= daysInMonth; d++) {
     const dow = new Date(year, month-1, d).getDay();
-    const isSat = dow === 6;
-    const isSun = dow === 0;
+    const isSat = dow === 6; const isSun = dow === 0;
     const sessions = dayMap[d] || [];
-    let sessHtml = sessions.map(s =>
-      '<div class="session ' + s.type + '">' +
-      '<div class="slabel">' + s.label + (s.venue ? ' <span class="sv">' + s.venue + '</span>' : '') + '</div>' +
-      (s.coaches ? '<div class="sc">' + s.coaches + '</div>' : '') +
-      '</div>'
-    ).join('');
-    cells += '<div class="day' + (isSat?' sat':'') + (isSun?' sun':'') + (sessions.length?' has':'')+'">' +
-      '<div class="dn">' + month + '/' + d + '</div>' +
-      sessHtml + '</div>';
+    let sessHtml = sessions.map(s => '<div class="session ' + s.type + '"><div class="slabel">' + s.label + (s.venue ? ' <span class="sv">' + s.venue + '</span>' : '') + '</div>' + (s.coaches ? '<div class="sc">' + s.coaches + '</div>' : '') + '</div>').join('');
+    cells += '<div class="day' + (isSat?' sat':'') + (isSun?' sun':'') + '">' + '<div class="dn">' + month + '/' + d + '</div>' + sessHtml + '</div>';
   }
-
-  const css = `
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#010101;color:#f5f5f0;font-family:sans-serif;padding:20px 12px 40px}
-h1{text-align:center;font-size:1.3rem;font-weight:900;color:#fcc929;letter-spacing:2px;margin-bottom:4px}
-.sub{text-align:center;font-size:0.7rem;color:#555;margin-bottom:16px}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:1000px;margin:0 auto}
-.wh{text-align:center;font-size:0.65rem;font-weight:700;color:#555;padding:5px 0}
-.wh.sat{color:#5b8cf5}.wh.sun{color:#e05c2a}
-.day{background:#0d0d0d;border:1px solid rgba(255,255,255,0.05);border-radius:6px;min-height:80px;padding:6px 5px 8px}
-.day.empty{background:transparent;border-color:transparent;min-height:0}
-.day.sat{border-color:rgba(91,140,245,0.15)}
-.day.sun{border-color:rgba(224,92,42,0.15)}
-.dn{font-size:0.65rem;font-weight:700;color:#f5f5f0;margin-bottom:4px}
-.session{margin-bottom:4px;padding:3px 5px;border-radius:4px;font-size:0.6rem;line-height:1.4}
-.session.team{background:rgba(36,110,88,0.2);border-left:2px solid #3aab6e}
-.session.small{background:rgba(252,201,41,0.1);border-left:2px solid #fcc929}
-.session.private{background:rgba(167,139,250,0.1);border-left:2px solid #a78bfa}
-.slabel{font-weight:700;font-size:0.58rem}
-.session.team .slabel{color:#3aab6e}
-.session.small .slabel{color:#fcc929}
-.session.private .slabel{color:#a78bfa}
-.sv{font-weight:400;color:#666;margin-left:3px}
-.sc{color:#ddd;font-weight:700;font-size:0.62rem;margin-top:1px}
-@media print{body{padding:4px}}`;
-
-  const html = '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>' + monthLabel + ' 課表</title><style>' + css + '</style></head><body>' +
-    '<h1>🐺 ' + monthLabel + ' 課表</h1><div class="sub">灣島黑狼 FC</div>' +
-    '<div class="cal">' +
-    '<div class="wh">一</div><div class="wh">二</div><div class="wh">三</div><div class="wh">四</div><div class="wh">五</div><div class="wh sat">六</div><div class="wh sun">日</div>' +
-    cells + '</div></body></html>';
-
+  const css = '*{box-sizing:border-box;margin:0;padding:0}body{background:#010101;color:#f5f5f0;font-family:sans-serif;padding:20px 12px 40px}h1{text-align:center;font-size:1.3rem;font-weight:900;color:#fcc929;letter-spacing:2px;margin-bottom:4px}.sub{text-align:center;font-size:0.7rem;color:#555;margin-bottom:16px}.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:1000px;margin:0 auto}.wh{text-align:center;font-size:0.65rem;font-weight:700;color:#555;padding:5px 0}.wh.sat{color:#5b8cf5}.wh.sun{color:#e05c2a}.day{background:#0d0d0d;border:1px solid rgba(255,255,255,0.05);border-radius:6px;min-height:80px;padding:6px 5px 8px}.day.empty{background:transparent;border-color:transparent;min-height:0}.day.sat{border-color:rgba(91,140,245,0.15)}.day.sun{border-color:rgba(224,92,42,0.15)}.dn{font-size:0.65rem;font-weight:700;color:#f5f5f0;margin-bottom:4px}.session{margin-bottom:4px;padding:3px 5px;border-radius:4px;font-size:0.6rem;line-height:1.4}.session.team{background:rgba(36,110,88,0.2);border-left:2px solid #3aab6e}.session.small{background:rgba(252,201,41,0.1);border-left:2px solid #fcc929}.session.private{background:rgba(167,139,250,0.1);border-left:2px solid #a78bfa}.slabel{font-weight:700;font-size:0.58rem}.session.team .slabel{color:#3aab6e}.session.small .slabel{color:#fcc929}.session.private .slabel{color:#a78bfa}.sv{font-weight:400;color:#666;margin-left:3px}.sc{color:#ddd;font-weight:700;font-size:0.62rem;margin-top:1px}';
+  const html = '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>' + monthLabel + ' 課表</title><style>' + css + '</style></head><body><h1>🐺 ' + monthLabel + ' 課表</h1><div class="sub">灣島黑狼 FC</div><div class="cal"><div class="wh">一</div><div class="wh">二</div><div class="wh">三</div><div class="wh">四</div><div class="wh">五</div><div class="wh sat">六</div><div class="wh sun">日</div>' + cells + '</div></body></html>';
   const win = window.open('', '_blank');
   win.document.write(html);
   win.document.close();
@@ -3189,16 +3157,20 @@ function updateLockUI() {
 const GIST_ID = 'adc626cbf7b7f74310f70df17f24c276';
 const GITHUB_TOKEN = localStorage.getItem('bw_gh_token') || '';
 
-function syncToGist() {
+function syncToGist(callerBtn) {
   let token = localStorage.getItem('bw_gh_token');
   if (!token) {
     token = prompt('請輸入 GitHub Token（只需輸入一次）：');
     if (!token) return;
     localStorage.setItem('bw_gh_token', token);
   }
-  const btn = document.getElementById('syncBtn');
-  btn.textContent = '☁ 同步中...';
-  btn.disabled = true;
+  const allBtns = [
+    callerBtn || null,
+    document.getElementById('syncBtn'),
+    document.getElementById('batchSyncBtn')
+  ].filter((b, i, arr) => b && arr.indexOf(b) === i);
+  allBtns.forEach(b => { b.textContent = '☁ 同步中...'; b.disabled = true; });
+  const btn = allBtns[0] || document.getElementById('syncBtn');
   const syncState = { ...state, selectedStudent: null };
   const data = JSON.stringify(syncState);
   fetch('https://api.github.com/gists/' + GIST_ID, {
@@ -3214,20 +3186,18 @@ function syncToGist() {
     return r.json();
   })
   .then(() => {
-    btn.textContent = '✓ 已同步';
+    allBtns.forEach(b => { b.textContent = '✓ 已同步'; });
     const now = new Date();
     const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
     const syncTimeEl = document.getElementById('syncTime');
     if (syncTimeEl) syncTimeEl.textContent = '上次同步 ' + timeStr;
     setTimeout(() => {
-      btn.textContent = '☁ 同步';
-      btn.disabled = false;
+      allBtns.forEach(b => { b.textContent = '☁ 同步'; b.disabled = false; });
     }, 2000);
   })
   .catch(e => {
     alert('同步失敗：' + e.message + '\n\n請確認 GitHub Token 是否正確。');
-    btn.textContent = '☁ 同步';
-    btn.disabled = false;
+    allBtns.forEach(b => { b.textContent = '☁ 同步'; b.disabled = false; });
   });
 }
 
@@ -3428,7 +3398,7 @@ function getCurrentMonthData() {
 
 function calcPrivateBalance(s) {
   const actual = (s.privateDates||[]).length;
-  return (s.privatePrevBal||0) + (s.privateMidTopup||0) + (s.privateTopup||0) - actual;
+  return (s.privatePrevBal||0) + (s.privateMidTopup||0) + (s.privateTopup||0) + (s.privateGiftTopup||0) - actual;
 }
 
 function calcEndBalance(s) {
@@ -3597,13 +3567,21 @@ function renderPanel() {
   // Preview card dates
   const sortedAttended = [...s.attended].sort();
   const sortedScDates = [...(s.scDates||[])].sort();
+  const sortedPrivateDates = [...(s.privateDates||[])].sort();
 
   let previewDates = '';
-  // Merge team and small dates, sorted
+  // Merge team, small and private dates, sorted
   const allPreviewDates = [];
   sortedAttended.forEach(d => allPreviewDates.push({date:d, type:'team'}));
   sortedScDates.forEach(d => allPreviewDates.push({date:d, type:'small'}));
-  allPreviewDates.sort((a,b) => a.date.localeCompare(b.date));
+  sortedPrivateDates.forEach(d => allPreviewDates.push({date:d, type:'private'}));
+  allPreviewDates.sort((a,b) => {
+    const aDate = data.dates.find(x => (x.uid||x.date) === a.date || x.date === a.date);
+    const bDate = data.dates.find(x => (x.uid||x.date) === b.date || x.date === b.date);
+    const aStr = aDate ? aDate.date : a.date.substring(0,10);
+    const bStr = bDate ? bDate.date : b.date.substring(0,10);
+    return aStr.localeCompare(bStr);
+  });
 
   allPreviewDates.forEach(({date:dKey, type}) => {
     const found = data.dates.find(x => (x.uid||x.date) === dKey || x.date === dKey);
@@ -3614,7 +3592,9 @@ function renderPanel() {
     const dayName = days[dt.getDay()];
     const icon = type === 'team'
       ? '<span class="preview-check" style="color:#3aab6e;">✓</span>'
-      : '<span class="preview-check" style="color:#fcc929;">◆</span>';
+      : type === 'small'
+      ? '<span class="preview-check" style="color:#fcc929;">◆</span>'
+      : '<span class="preview-check" style="color:#a78bfa;">★</span>';
     previewDates += `<div class="preview-date-item">
       ${icon}
       <span>${dateStr.slice(5).replace('-','/')} (週${dayName})</span>
@@ -3714,6 +3694,42 @@ function renderPanel() {
       </div>
     </div>
 
+    <div style="font-size:0.68rem;font-weight:700;color:#a78bfa;letter-spacing:2px;text-transform:uppercase;margin:16px 0 8px;">私課</div>
+    <div class="balance-row">
+      <div class="balance-box">
+        <div class="balance-box-label">上月結餘</div>
+        <div class="balance-box-val" style="color:#a78bfa;">${(s.privatePrevBal||0) >= 0 ? '+' : ''}${s.privatePrevBal || 0}</div>
+      </div>
+      <div class="balance-box">
+        <div class="balance-box-label">月中儲值</div>
+        <div class="balance-box-val" style="color:#a78bfa;">+${s.privateMidTopup || 0}</div>
+        <div class="balance-box-input edit-only">
+          <input type="number" value="${s.privateMidTopup || 0}" min="0" onchange="updateTopup('${s.name}','privateMid',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
+          <span style="font-size:0.72rem;color:var(--gray);">堂</span>
+        </div>
+      </div>
+      <div class="balance-box">
+        <div class="balance-box-label">月底儲值</div>
+        <div class="balance-box-val" style="color:#a78bfa;">+${s.privateTopup || 0}</div>
+        <div class="balance-box-input edit-only">
+          <input type="number" value="${s.privateTopup || 0}" min="0" onchange="updateTopup('${s.name}','privateTopup',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
+          <span style="font-size:0.72rem;color:var(--gray);">堂</span>
+        </div>
+      </div>
+      <div class="balance-box" style="border-color:rgba(167,139,250,0.2);">
+        <div class="balance-box-label" style="color:#a78bfa;">🎁 贈送</div>
+        <div class="balance-box-val" style="color:#a78bfa;">+${s.privateGiftTopup || 0}</div>
+        <div class="balance-box-input edit-only">
+          <input type="number" value="${s.privateGiftTopup || 0}" min="0" onchange="updateTopup('${s.name}','privateGift',this.value)" ${state.isReadOnly ? 'disabled' : ''}>
+          <span style="font-size:0.72rem;color:var(--gray);">堂</span>
+        </div>
+      </div>
+      <div class="balance-box">
+        <div class="balance-box-label">月底剩餘</div>
+        <div class="balance-box-val ${calcPrivateBalance(s) < 0 ? 'val-red' : calcPrivateBalance(s) > 0 ? 'val-green' : 'val-white'}">${calcPrivateBalance(s) >= 0 ? '+' : ''}${calcPrivateBalance(s)}</div>
+      </div>
+    </div>
+
     </div>
 
     <div class="tabs edit-only">
@@ -3767,11 +3783,11 @@ function renderPanel() {
         ${(() => {
           const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
           const scBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
-          if ((s.scTopup||0) === 0 && (s.scAttended||0) === 0 && (s.scPrevBal||0) === 0) return '';
+          if ((s.scTopup||0) === 0 && scActual === 0 && (s.scPrevBal||0) === 0) return '';
           return '<div style=\"font-size:0.68rem;color:#fcc929;letter-spacing:2px;margin:12px 0 6px;\">小班課</div>' +
             '<div class=\"preview-stats\">' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">' + ((s.scPrevBal||0)>=0?'+':'') + (s.scPrevBal||0) + '</div><div class=\"preview-stat-label\">上月結餘</div></div>' +
-              '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">' + (s.scAttended||0) + '</div><div class=\"preview-stat-label\">本月上課</div></div>' +
+              '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">' + scActual + '</div><div class=\"preview-stat-label\">本月上課</div></div>' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val val-yellow\">+' + ((s.scMidTopup||0)+(s.scTopup||0)) + ((s.scGiftTopup||0) > 0 ? '+' + (s.scGiftTopup||0) : '') + '</div><div class=\"preview-stat-label\">本月儲值</div></div>' +
               '<div class=\"preview-stat\"><div class=\"preview-stat-val ' + (scBal<0?'val-red':'val-green') + '\">' + (scBal>=0?'+':'') + scBal + '</div><div class=\"preview-stat-label\">月底剩餘</div></div>' +
             '</div>';
@@ -3780,7 +3796,7 @@ function renderPanel() {
           const privActual = (s.privateDates||[]).length;
           const privBal = calcPrivateBalance(s);
           if (privActual === 0 && (s.privateTopup||0) === 0 && (s.privatePrevBal||0) === 0) return '';
-          return '<div style="font-size:0.68rem;color:#a78bfa;letter-spacing:2px;margin:12px 0 6px;">私課課</div>' +
+          return '<div style="font-size:0.68rem;color:#a78bfa;letter-spacing:2px;margin:12px 0 6px;">私課</div>' +
             '<div class="preview-stats">' +
               '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">' + ((s.privatePrevBal||0)>=0?'+':'') + (s.privatePrevBal||0) + '</div><div class="preview-stat-label">上月結餘</div></div>' +
               '<div class="preview-stat"><div class="preview-stat-val" style="color:#a78bfa;">' + privActual + '</div><div class="preview-stat-label">本月上課</div></div>' +
@@ -3960,6 +3976,10 @@ function showAddDate() {
   document.getElementById('newDateD').value = '01';
   document.getElementById('newIsTeam').checked = false;
   document.getElementById('newIsSmall').checked = false;
+  if (document.getElementById('newIsPrivate')) document.getElementById('newIsPrivate').checked = false;
+  ['newVenueGroup','newTeamCoachGroup','newSmallCoachGroup','newSmallVenueGroup','newPrivateGroup'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
   const _maddDateModal = document.getElementById('addDateModal'); document.body.appendChild(_maddDateModal); _maddDateModal.classList.add('show');
 }
 function closeModal() {
