@@ -4344,6 +4344,12 @@ function removeStudent(name) {
     if (!confirm('確定要將 ' + name + ' 移回在籍？')) return;
     s.group = s.prevGroup || '幼兒';
     delete s.prevGroup;
+    // 同步更新之後所有月份
+    const futureMonths = Object.keys(state.months).sort().filter(m => m > state.currentMonth);
+    futureMonths.forEach(ym => {
+      const fs = (state.months[ym].students||[]).find(x => x.name === name);
+      if (fs && fs.group === '已離隊') { fs.group = fs.prevGroup || s.group; delete fs.prevGroup; }
+    });
   } else {
     if (!confirm('確定將 ' + name + ' 移至已離隊？資料會保留。')) return;
     s.prevGroup = s.group;
