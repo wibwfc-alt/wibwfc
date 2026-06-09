@@ -4053,8 +4053,13 @@ function promoteTrial(name) {
   futureMonths.forEach(ym => {
     const mData = state.months[ym];
     if (!mData || !mData.students) return;
-    const exists = mData.students.find(x => x.name === name);
-    if (!exists) {
+    const existing = mData.students.find(x => x.name === name);
+    if (existing) {
+      // 已存在但可能是試上狀態，強制改正
+      existing.isTrial = false;
+      existing.trialMonth = null;
+      existing.group = group;
+    } else {
       mData.students.push({
         name: s.name,
         group: group,
@@ -4343,6 +4348,12 @@ function removeStudent(name) {
     if (!confirm('確定將 ' + name + ' 移至已離隊？資料會保留。')) return;
     s.prevGroup = s.group;
     s.group = '已離隊';
+    // 同步更新之後所有月份
+    const futureMonths = Object.keys(state.months).sort().filter(m => m > state.currentMonth);
+    futureMonths.forEach(ym => {
+      const fs = (state.months[ym].students||[]).find(x => x.name === name);
+      if (fs) { fs.prevGroup = fs.group; fs.group = '已離隊'; }
+    });
   }
   saveState();
   renderSidebar();
