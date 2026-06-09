@@ -4047,6 +4047,39 @@ function promoteTrial(name) {
   s.isTrial = false;
   s.trialMonth = undefined;
   s.group = group;
+
+  // 把升級後的學員加到之後所有月份
+  const futureMonths = Object.keys(state.months).sort().filter(m => m > state.currentMonth);
+  futureMonths.forEach(ym => {
+    const mData = state.months[ym];
+    if (!mData || !mData.students) return;
+    const exists = mData.students.find(x => x.name === name);
+    if (!exists) {
+      mData.students.push({
+        name: s.name,
+        group: group,
+        bib: s.bib || '',
+        prevBalance: 0,
+        attended: [],
+        midTopup: 0,
+        endTopup: 0,
+        giftTopup: 0,
+        scGiftTopup: 0,
+        scMidTopup: 0,
+        scPrevBal: 0,
+        scTopup: 0,
+        scAttended: 0,
+        scDates: [],
+        privateDates: [],
+        privatePrevBal: 0,
+        privateMidTopup: 0,
+        privateTopup: 0,
+        privateGiftTopup: 0,
+        note: ''
+      });
+    }
+  });
+
   saveState();
   renderSidebar();
   renderPanel();
