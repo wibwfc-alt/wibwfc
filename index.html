@@ -3366,27 +3366,32 @@ function getCurrentMonthData() {
   } else {
     const existingNames = new Set(state.months[state.currentMonth].students.map(s => s.name));
     const allMonths = Object.keys(state.months).sort();
+    // 建立每個學員最新狀態的map
+    const latestStudentMap = {};
     allMonths.forEach(ym => {
       if (ym === state.currentMonth) return;
       (state.months[ym].students || []).forEach(s => {
-        if (!existingNames.has(s.name) && s.group !== '已離隊') {
-          existingNames.add(s.name);
-          state.months[state.currentMonth].students.push({
-            ...s,
-            prevBalance: 0,
-            attended: [],
-            midTopup: 0,
-            endTopup: 0,
-            giftTopup: 0,
-            scGiftTopup: 0,
-            scMidTopup: 0,
-            scPrevBal: 0,
-            scTopup: 0,
-            scAttended: 0,
-            scDates: []
-          });
-        }
+        latestStudentMap[s.name] = s; // 後面的月份蓋前面的，取最新狀態
       });
+    });
+    Object.values(latestStudentMap).forEach(s => {
+      if (!existingNames.has(s.name) && s.group !== '已離隊' && !s.isTrial) {
+        existingNames.add(s.name);
+        state.months[state.currentMonth].students.push({
+          ...s,
+          prevBalance: 0,
+          attended: [],
+          midTopup: 0,
+          endTopup: 0,
+          giftTopup: 0,
+          scGiftTopup: 0,
+          scMidTopup: 0,
+          scPrevBal: 0,
+          scTopup: 0,
+          scAttended: 0,
+          scDates: []
+        });
+      }
     });
     if (!state.months[state.currentMonth].dates) {
       state.months[state.currentMonth].dates = [];
