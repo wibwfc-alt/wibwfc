@@ -3868,6 +3868,9 @@ function updateTopup(name, type, val) {
   else if (type === 'scMid') s.scMidTopup = n;
   else if (type === 'scTopup') s.scTopup = n;
   else if (type === 'scAttended') s.scAttended = n;
+  else if (type === 'privateMid') s.privateMidTopup = n;
+  else if (type === 'privateTopup') s.privateTopup = n;
+  else if (type === 'privateGift') s.privateGiftTopup = n;
   saveState();
   renderSidebar();
   renderPanel();
