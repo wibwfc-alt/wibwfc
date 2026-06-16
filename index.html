@@ -2881,11 +2881,9 @@ function _exportMultiMonthPDF(months) {
   var pageW = (297-10)*3.78;
   var pageH = (210-10)*3.78;
   document.querySelectorAll('.month-page').forEach(function(div){
-    div.style.transformOrigin = 'top left';
     var w = div.scrollWidth, h = div.scrollHeight;
     var scale = Math.min(pageW/w, pageH/h, 1);
-    div.style.transform = 'scale(' + scale + ')';
-    div.style.width = (100/scale) + '%';
+    div.style.zoom = scale;
   });
   setTimeout(function(){window.print();},800);
 })()">
