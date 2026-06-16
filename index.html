@@ -2880,11 +2880,18 @@ function _exportMultiMonthPDF(months) {
 <body onload="(function(){
   var pageW = (297-10)*3.78;
   var pageH = (210-10)*3.78;
-  document.querySelectorAll('.month-page').forEach(function(div){
-    var w = div.scrollWidth, h = div.scrollHeight;
-    var scale = Math.min(pageW/w, pageH/h, 1);
-    div.style.zoom = scale;
-  });
+  function applyScale(){
+    document.querySelectorAll('.month-page').forEach(function(div){
+      div.style.zoom = 1;
+    });
+    document.querySelectorAll('.month-page').forEach(function(div){
+      var w = div.scrollWidth, h = div.scrollHeight;
+      var scale = Math.min(pageW/w, pageH/h, 1);
+      div.style.zoom = scale;
+    });
+  }
+  applyScale();
+  window.addEventListener('beforeprint', applyScale);
   setTimeout(function(){window.print();},800);
 })()">
 ${allSections}
@@ -3108,7 +3115,14 @@ function exportBatchPDF() {
   }
 </style>
 </head>
-<body onload="(function(){ var b=document.body; var pw=(297-16)*3.78; var sw=b.scrollWidth; if(sw>pw){ var z=pw/sw; b.style.zoom=z; } setTimeout(function(){window.print();},800); })()">
+<body onload="(function(){
+  var b=document.body;
+  var pw=(297-16)*3.78, ph=(210-16)*3.78;
+  var sw=b.scrollWidth, sh=b.scrollHeight;
+  var z = Math.min(pw/sw, ph/sh, 1);
+  b.style.zoom = z;
+  setTimeout(function(){window.print();},800);
+})()">
 <div class="header">
   <div>
     <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
