@@ -2826,7 +2826,7 @@ function _exportMultiMonthPDF(months) {
     if (dmShowPrivate) tbodyHtml += '<tr class="total-row"><td colspan="' + colSpan + '">私課人數</td>' + pvTotalRow.map(n=>'<td>'+n+'</td>').join('') + extraCol + '<td></td></tr>';
 
     const pageBreak = mIdx > 0 ? 'style="page-break-before:always;"' : '';
-    allSections += `<div class="month-page" ${pageBreak}>
+    allSections += `<div ${pageBreak}>
 <div class="header">
   <div>
     <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
@@ -2864,36 +2864,17 @@ function _exportMultiMonthPDF(months) {
   .attendance-table { width: 100%; border-collapse: collapse; font-size: 10px; }
   .attendance-table th { background: #f5f5f5; border: 1px solid #ddd; padding: 4px 3px; text-align: center; font-weight: 700; font-size: 9px; line-height: 1.3; }
   .attendance-table td { border: 1px solid #eee; padding: 3px; text-align: center; line-height: 1.4; }
-  .attendance-table tr { page-break-inside: avoid; }
-  .attendance-table thead { display: table-header-group; }
   .name-cell { white-space: nowrap; font-weight: 700; min-width: 60px; text-align: left !important; }
-  .group-row td { background: #fcc929; color: #111; font-weight: 900; font-size: 11px; letter-spacing: 2px; padding: 5px 8px; page-break-after: avoid; }
+  .group-row td { background: #fcc929; color: #111; font-weight: 900; font-size: 11px; letter-spacing: 2px; padding: 5px 8px; }
   .total-row td { background: #f0f0f0; color: #333; font-weight: 700; text-align: center; }
   .legend { margin-top: 16px; display: flex; gap: 20px; font-size: 10px; color: #666; }
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0; }
     @page { margin: 5mm; size: landscape; }
-    .attendance-table tr { page-break-inside: avoid; }
   }
 </style>
 </head>
-<body onload="(function(){
-  var pageW = (297-10)*3.78;
-  var pageH = (210-10)*3.78;
-  function applyScale(){
-    document.querySelectorAll('.month-page').forEach(function(div){
-      div.style.zoom = 1;
-    });
-    document.querySelectorAll('.month-page').forEach(function(div){
-      var w = div.scrollWidth, h = div.scrollHeight;
-      var scale = Math.min(pageW/w, pageH/h, 1);
-      div.style.zoom = scale;
-    });
-  }
-  applyScale();
-  window.addEventListener('beforeprint', applyScale);
-  setTimeout(function(){window.print();},800);
-})()">
+<body onload="(function(){ var b=document.body; var pw=(297-10)*3.78; var sw=b.scrollWidth; if(sw>pw){ b.style.zoom=pw/sw; } setTimeout(function(){window.print();},800); })()">
 ${allSections}
 </body></html>`);
   singleWin.document.close();
@@ -3115,14 +3096,7 @@ function exportBatchPDF() {
   }
 </style>
 </head>
-<body onload="(function(){
-  var b=document.body;
-  var pw=(297-16)*3.78, ph=(210-16)*3.78;
-  var sw=b.scrollWidth, sh=b.scrollHeight;
-  var z = Math.min(pw/sw, ph/sh, 1);
-  b.style.zoom = z;
-  setTimeout(function(){window.print();},800);
-})()">
+<body onload="(function(){ var b=document.body; var pw=(297-16)*3.78; var sw=b.scrollWidth; if(sw>pw){ var z=pw/sw; b.style.zoom=z; } setTimeout(function(){window.print();},800); })()">
 <div class="header">
   <div>
     <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
