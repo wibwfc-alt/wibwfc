@@ -1879,6 +1879,7 @@ function recalcPrevBalance() {
   if (!prevData || !curData) return;
 
   let updated = 0;
+  const updatedNames = [];
   curData.students.forEach(s => {
     const prev = prevData.students.find(x => x.name === s.name);
     if (!prev) return;
@@ -1890,12 +1891,14 @@ function recalcPrevBalance() {
       s.scPrevBal = newScBal;
       s.privatePrevBal = newPrivBal;
       updated++;
+      updatedNames.push(s.name);
     }
   });
 
   saveState();
   renderSidebar();
-  alert('✓ 已重算完成！共更新 ' + updated + ' 位學員的上月結餘。\n（依據 ' + prevMonth.replace('-','年') + '月 的資料）');
+  const nameList = updatedNames.length > 0 ? '\n\n更新名單：\n' + updatedNames.join('、') : '';
+  alert('✓ 已重算完成！共更新 ' + updated + ' 位學員的上月結餘。\n（依據 ' + prevMonth.replace('-','年') + '月 的資料）' + nameList);
 }
 
 function showOverview() {
