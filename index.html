@@ -2741,18 +2741,30 @@ function _exportMultiMonthPDF(months) {
 
     const groupTitle = selectedGroups ? selectedGroups.join('、') : '全部';
 
+    // 同一天課日合併成一欄
+    const dmDateGroups = [];
+    const dmSeenDate = {};
+    filteredDates.forEach(d => {
+      if (!dmSeenDate[d.date]) {
+        dmSeenDate[d.date] = { date: d.date, entries: [] };
+        dmDateGroups.push(dmSeenDate[d.date]);
+      }
+      dmSeenDate[d.date].entries.push(d);
+    });
+
     let theadHtml = '<tr><th>學員</th>';
     if (!simpleMode) theadHtml += '<th>上月結餘</th><th>月中儲值</th>';
-    filteredDates.forEach(d => {
-      const dt = new Date(d.date + 'T00:00:00');
-      theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + (d.venue||'') + '</span></th>';
+    dmDateGroups.forEach(grp => {
+      const dt = new Date(grp.date + 'T00:00:00');
+      const venue = grp.entries.map(d => d.venue||d.smallVenue||'').find(v=>v) || '';
+      theadHtml += '<th>' + grp.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + venue + '</span></th>';
     });
     if (!simpleMode) theadHtml += '<th>月底儲值</th>';
     theadHtml += '<th>合計</th></tr>';
 
     let tbodyHtml = '';
     Object.entries(groups).forEach(([g, list]) => {
-      tbodyHtml += '<tr class="group-row"><td colspan="' + (filteredDates.length + (simpleMode ? 2 : 4)) + '">' + g + '</td></tr>';
+      tbodyHtml += '<tr class="group-row"><td colspan="' + (dmDateGroups.length + (simpleMode ? 2 : 4)) + '">' + g + '</td></tr>';
       list.forEach(s => {
         const endBal = calcEndBalance(s);
         const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
@@ -2778,18 +2790,19 @@ function _exportMultiMonthPDF(months) {
             (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateMidTopup||0) + '</div>' : '') +
             '</td>';
         }
-        filteredDates.forEach(d => {
-          const dKey = d.uid||d.date;
-          const isTeam = dmShowTeam && (s.attended||[]).includes(dKey);
-          const isSmall = dmShowSmall && (s.scDates||[]).includes(dKey);
-          const isPrivate = dmShowPrivate && (s.privateDates||[]).includes(dKey);
+        dmDateGroups.forEach(grp => {
+          let isTeam = false, isSmallCount = 0, isPrivate = false;
+          grp.entries.forEach(d => {
+            const dKey = d.uid||d.date;
+            if (dmShowTeam && (s.attended||[]).includes(dKey)) isTeam = true;
+            if (dmShowSmall && (s.scDates||[]).includes(dKey)) isSmallCount++;
+            if (dmShowPrivate && (s.privateDates||[]).includes(dKey)) isPrivate = true;
+          });
+          const isSmall = isSmallCount > 0;
           let cell = '';
-          if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆</div>';
-          else if (isTeam && isPrivate) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#a78bfa;font-size:9px;">★</div>';
-          else if (isSmall && isPrivate) cell = '<div style="color:#c8a000;">◆</div><div style="color:#a78bfa;font-size:9px;">★</div>';
-          else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
-          else if (isSmall) cell = '<span style="color:#c8a000;">◆</span>';
-          else if (isPrivate) cell = '<span style="color:#a78bfa;">★</span>';
+          if (isTeam) cell += '<div style="color:#1a7a50;font-weight:700;">●</div>';
+          if (isSmall) cell += '<div style="color:#c8a000;font-weight:700;">' + (isSmallCount > 1 ? '◆◆' : '◆') + '</div>';
+          if (isPrivate) cell += '<div style="color:#a78bfa;">★</div>';
           tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
         });
         if (!simpleMode) {
@@ -2812,14 +2825,16 @@ function _exportMultiMonthPDF(months) {
     });
 
     // 全月合計（移出 groups 迴圈）
-    const totalRow = Array(filteredDates.length).fill(0);
-    const scTotalRow = Array(filteredDates.length).fill(0);
-    const pvTotalRow = Array(filteredDates.length).fill(0);
+    const totalRow = Array(dmDateGroups.length).fill(0);
+    const scTotalRow = Array(dmDateGroups.length).fill(0);
+    const pvTotalRow = Array(dmDateGroups.length).fill(0);
     students.forEach(s => {
-      filteredDates.forEach((d,i) => {
-        if ((s.attended||[]).includes(d.uid||d.date)) totalRow[i]++;
-        if ((s.scDates||[]).includes(d.uid||d.date)) scTotalRow[i]++;
-        if ((s.privateDates||[]).includes(d.uid||d.date)) pvTotalRow[i]++;
+      dmDateGroups.forEach((grp,i) => {
+        grp.entries.forEach(d => {
+          if ((s.attended||[]).includes(d.uid||d.date)) totalRow[i]++;
+          if ((s.scDates||[]).includes(d.uid||d.date)) scTotalRow[i]++;
+          if ((s.privateDates||[]).includes(d.uid||d.date)) pvTotalRow[i]++;
+        });
       });
     });
     const colSpan = simpleMode ? 1 : 3;
@@ -2833,7 +2848,7 @@ function _exportMultiMonthPDF(months) {
 <div class="header">
   <div>
     <div class="header-title">🐺 灣島黑狼 FC · <span>${monthLabel} 出席紀錄</span></div>
-    <div class="header-sub">${groupTitle} · 共 ${students.length} 人 · ${filteredDates.length} 個課日</div>
+    <div class="header-sub">${groupTitle} · 共 ${students.length} 人 · ${dmDateGroups.length} 個課日</div>
   </div>
   <div class="header-right">列印日期：${new Date().toLocaleDateString('zh-TW')}</div>
 </div>
@@ -2954,11 +2969,21 @@ function exportBatchPDF() {
 
   let theadHtml = '<tr><th>學員</th>';
   if (!simpleMode) theadHtml += '<th>上月結餘<br><span style="color:#888;font-weight:400;">' + (pdfShowTeam?'團':'') + (pdfShowSmall?'/小':'') + (pdfShowPrivate?'/私':'') + '</span></th><th>月中儲值<br><span style="color:#888;font-weight:400;">' + (pdfShowTeam?'團':'') + (pdfShowSmall?'/小':'') + (pdfShowPrivate?'/私':'') + '</span></th>';
+  // 把同一天的課合併成一欄
+  const pdfDateGroups = [];
+  const pdfSeenDate = {};
   filteredDates.forEach(d => {
-    const dt = new Date(d.date + 'T00:00:00');
-    const _hasTeam = students.some(s => (s.attended||[]).includes(d.uid||d.date));
-    const _vDisplay = (pdfShowSmall && !_hasTeam && d.smallVenue) ? d.smallVenue : (d.venue||'');
-    theadHtml += '<th>' + d.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + _vDisplay + '</span></th>';
+    if (!pdfSeenDate[d.date]) {
+      pdfSeenDate[d.date] = { date: d.date, entries: [] };
+      pdfDateGroups.push(pdfSeenDate[d.date]);
+    }
+    pdfSeenDate[d.date].entries.push(d);
+  });
+
+  pdfDateGroups.forEach(grp => {
+    const dt = new Date(grp.date + 'T00:00:00');
+    const venue = grp.entries.map(d => d.venue||d.smallVenue||'').find(v=>v) || '';
+    theadHtml += '<th>' + grp.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + venue + '</span></th>';
   });
   theadHtml += '<th>合計</th>';
   if (!simpleMode) theadHtml += '<th>月底儲值</th><th>月底剩餘</th>';
@@ -2966,7 +2991,7 @@ function exportBatchPDF() {
 
   let tbodyHtml = '';
   Object.entries(groups).forEach(([g, list]) => {
-    tbodyHtml += '<tr class="group-row"><td colspan="' + (filteredDates.length + (simpleMode ? 2 : 6)) + '">' + g + '</td></tr>';
+    tbodyHtml += '<tr class="group-row"><td colspan="' + (pdfDateGroups.length + (simpleMode ? 2 : 6)) + '">' + g + '</td></tr>';
     list.forEach(s => {
       const endBal = calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
@@ -2998,19 +3023,20 @@ function exportBatchPDF() {
         (hasPrivate ? '<div style="color:#a78bfa;font-size:9px;font-weight:700;">私' + (s.privateMidTopup||0) + '</div>' : '') +
         '</td>';
       }
-      // 課日
-      filteredDates.forEach(d => {
-        const dKey = d.uid || d.date;
-        const isTeam = pdfShowTeam && (s.attended||[]).includes(dKey);
-        const isSmall = pdfShowSmall && (s.scDates||[]).includes(dKey);
-        const isPrivate = pdfShowPrivate && (s.privateDates||[]).includes(dKey);
+      // 課日（同一天合併成一格）
+      pdfDateGroups.forEach(grp => {
+        let isTeam = false, isSmallCount = 0, isPrivate = false;
+        grp.entries.forEach(d => {
+          const dKey = d.uid || d.date;
+          if (pdfShowTeam && (s.attended||[]).includes(dKey)) isTeam = true;
+          if (pdfShowSmall && (s.scDates||[]).includes(dKey)) isSmallCount++;
+          if (pdfShowPrivate && (s.privateDates||[]).includes(dKey)) isPrivate = true;
+        });
+        const isSmall = isSmallCount > 0;
         let cell = '';
-        if (isTeam && isSmall) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#c8a000;font-size:9px;font-weight:700;">◆</div>';
-        else if (isTeam && isPrivate) cell = '<div style="color:#1a7a50;font-weight:700;">●</div><div style="color:#a78bfa;font-size:9px;">★</div>';
-        else if (isSmall && isPrivate) cell = '<div style="color:#c8a000;">◆</div><div style="color:#a78bfa;font-size:9px;">★</div>';
-        else if (isTeam) cell = '<span style="color:#1a7a50;font-weight:700;">●</span>';
-        else if (isSmall) cell = '<span style="color:#c8a000;">◆</span>';
-        else if (isPrivate) cell = '<span style="color:#a78bfa;">★</span>';
+        if (isTeam) cell += '<div style="color:#1a7a50;font-weight:700;">●</div>';
+        if (isSmall) cell += '<div style="color:#c8a000;font-weight:700;">' + (isSmallCount > 1 ? '◆◆' : '◆') + '</div>';
+        if (isPrivate) cell += '<div style="color:#a78bfa;">★</div>';
         tbodyHtml += '<td style="text-align:center;">' + cell + '</td>';
       });
       // 合計
