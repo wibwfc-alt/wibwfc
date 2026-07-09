@@ -2412,8 +2412,14 @@ function renderBatch() {
   tbody += '<td style="color:#f97316;font-weight:900;">' + (totalTrial||'') + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   if (showTeamRow) {
     tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#3aab6e;">團課人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
-    filteredDates.forEach(d => { const k=d.uid||d.date; tbody += '<td style="color:#3aab6e;">' + (dateTotals[k]||0) + '</td>'; });
-    tbody += '<td style="color:#3aab6e;font-weight:900;">' + totalTeam + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
+    filteredDates.forEach(d => {
+      const k=d.uid||d.date;
+      const t = dateTotals[k]||0;
+      const tr = trialCounts[k]||0;
+      tbody += '<td style="color:#3aab6e;">' + t + (tr ? '<span style="color:#f97316;font-size:0.7em;">+'+tr+'</span>' : '') + '</td>';
+    });
+    const totalTrialForTeam = filteredDates.reduce((sum,d)=>sum+(trialCounts[d.uid||d.date]||0),0);
+    tbody += '<td style="color:#3aab6e;font-weight:900;">' + totalTeam + (totalTrialForTeam ? '<span style="color:#f97316;font-size:0.85em;">+'+totalTrialForTeam+'</span>' : '') + '</td>' + (simpleMode ? '' : '<td></td><td></td>') + '</tr>';
   }
   if (showSmallRow) {
     tbody += '<tr class="batch-total-row"><td style="text-align:left;padding-left:12px;color:#fcc929;">小班人數</td>' + (simpleMode ? '' : '<td></td><td></td>');
