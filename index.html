@@ -2436,6 +2436,18 @@ function renderBatch() {
   document.getElementById('batchTable').innerHTML = thead + tbody;
 }
 
+function saveTrialCount(input) {
+  if (state.isReadOnly) return;
+  const uid = input.dataset.uid;
+  const val = parseInt(input.value) || 0;
+  const data = getCurrentMonthData();
+  if (!data.trialCounts) data.trialCounts = {};
+  if (val > 0) data.trialCounts[uid] = val;
+  else delete data.trialCounts[uid];
+  saveState();
+  renderBatch();
+}
+
 function batchUpdateTopup(input) {
   if (state.isReadOnly) return;
   const name = input.dataset.name;
