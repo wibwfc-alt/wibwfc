@@ -418,6 +418,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
   <div class="topbar-logo">🐺 黑狼出席管理</div>
   <div id="lockStatus" style="font-size:0.78rem;cursor:pointer;" onclick="toggleEdit()"></div>
   <button id="syncBtn" class="btn btn-green" onclick="syncToGist()" style="font-size:0.78rem;display:none;">☁ 同步</button>
+  <button class="btn btn-outline" onclick="resetGithubToken()" style="font-size:0.78rem;display:none;" id="resetTokenBtn">🔑 Token</button>
 
   <button class="btn btn-outline" onclick="showBatch()" style="font-size:0.8rem;" id="batchBtn">📋 本月總覽</button>
   <button class="btn btn-outline edit-only" onclick="showOverview()" style="font-size:0.8rem;">📊 月結總覽</button>
@@ -3192,6 +3193,7 @@ function updateLockUI() {
   if (state.isReadOnly) {
     el.innerHTML = '🔒 <span style="color:#666;">唯讀</span>';
     if (syncBtn) syncBtn.style.display = 'none';
+    const rtb = document.getElementById('resetTokenBtn'); if (rtb) rtb.style.display = 'none';
     if (navIcon) navIcon.textContent = '🔒';
     if (navLabel) navLabel.textContent = '唯讀';
     document.body.classList.remove('edit-mode');
@@ -3201,6 +3203,7 @@ function updateLockUI() {
   } else {
     el.innerHTML = '🔓 <span style="color:#3aab6e;">編輯</span>';
     if (syncBtn) syncBtn.style.display = 'inline-block';
+    const rtb2 = document.getElementById('resetTokenBtn'); if (rtb2) rtb2.style.display = 'inline-block';
     if (navIcon) navIcon.textContent = '🔓';
     if (navLabel) navLabel.textContent = '編輯';
     document.body.classList.add('edit-mode');
@@ -3212,14 +3215,24 @@ function updateLockUI() {
 
 
 const GIST_ID = 'adc626cbf7b7f74310f70df17f24c276';
-const GITHUB_TOKEN = localStorage.getItem('bw_gh_token') || '';
+function getGithubToken() {
+  return localStorage.getItem('bw_gh_token') || '';
+}
+
+function resetGithubToken() {
+  const t = prompt('請輸入新的 GitHub Token：');
+  if (!t) return;
+  localStorage.setItem('bw_gh_token', t.trim());
+  alert('Token 已更新！');
+}
 
 function syncToGist(callerBtn) {
   let token = localStorage.getItem('bw_gh_token');
   if (!token) {
     token = prompt('請輸入 GitHub Token（只需輸入一次）：');
     if (!token) return;
-    localStorage.setItem('bw_gh_token', token);
+    localStorage.setItem('bw_gh_token', token.trim());
+    token = token.trim();
   }
   const allBtns = [
     callerBtn || null,
@@ -3233,7 +3246,7 @@ function syncToGist(callerBtn) {
   fetch('https://api.github.com/gists/' + GIST_ID, {
     method: 'PATCH',
     headers: {
-      'Authorization': 'token ' + GITHUB_TOKEN,
+      'Authorization': 'token ' + getGithubToken(),
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ files: { 'bwfc.json': { content: data } } })
