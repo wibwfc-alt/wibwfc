@@ -3010,8 +3010,9 @@ function exportBatchPDF() {
 
   pdfDateGroups.forEach(grp => {
     const dt = new Date(grp.date + 'T00:00:00');
-    const venue = grp.entries.map(d => d.venue||d.smallVenue||'').find(v=>v) || '';
-    theadHtml += '<th>' + grp.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + venue + '</span></th>';
+    const venues = [...new Set(grp.entries.flatMap(d => [d.venue, d.smallVenue, d.privateVenue].filter(v=>v)))];
+    const venueStr = venues.join('・');
+    theadHtml += '<th>' + grp.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + venueStr + '</span></th>';
   });
   theadHtml += '<th>合計</th>';
   if (!simpleMode) theadHtml += '<th>月底儲值</th><th>月底剩餘</th>';
@@ -3056,9 +3057,9 @@ function exportBatchPDF() {
         let isTeam = false, isSmallCount = 0, isPrivate = false;
         grp.entries.forEach(d => {
           const dKey = d.uid || d.date;
-          if (pdfShowTeam && (s.attended||[]).includes(dKey)) isTeam = true;
-          if (pdfShowSmall && (s.scDates||[]).includes(dKey)) isSmallCount++;
-          if (pdfShowPrivate && (s.privateDates||[]).includes(dKey)) isPrivate = true;
+          if (pdfShowTeam && d.isTeam && (s.attended||[]).includes(dKey)) isTeam = true;
+          if (pdfShowSmall && d.isSmall && (s.scDates||[]).includes(dKey)) isSmallCount++;
+          if (pdfShowPrivate && d.isPrivate && (s.privateDates||[]).includes(dKey)) isPrivate = true;
         });
         const isSmall = isSmallCount > 0;
         let cell = '';
@@ -3096,30 +3097,33 @@ function exportBatchPDF() {
     });
   });
 
-  // 出席人數列
-  const dateTotals = {};
-  const dateSmallTotals2 = {};
-  const datePrivateTotals2 = {};
-  filteredDates.forEach(d => { const k=d.uid||d.date; dateTotals[k]=0; dateSmallTotals2[k]=0; datePrivateTotals2[k]=0; });
-  students.forEach(s => {
-    (s.attended||[]).forEach(a => { if(dateTotals[a]!==undefined) dateTotals[a]++; });
-    (s.scDates||[]).forEach(a => { if(dateSmallTotals2[a]!==undefined) dateSmallTotals2[a]++; });
-    (s.privateDates||[]).forEach(a => { if(datePrivateTotals2[a]!==undefined) datePrivateTotals2[a]++; });
-  });
+  // 出席人數列（按 pdfDateGroups 加總，同一天多堂各自計算）
   const extraCols = simpleMode ? 1 : 3;
   if (courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">團課人數</td>';
-    filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateTotals[k]||0) + '</td>'; });
+    pdfDateGroups.forEach(grp => {
+      let cnt = 0;
+      grp.entries.filter(d=>d.isTeam).forEach(d => { students.forEach(s => { if((s.attended||[]).includes(d.uid||d.date)) cnt++; }); });
+      tbodyHtml += '<td>' + cnt + '</td>';
+    });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
   if (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">小班人數</td>';
-    filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (dateSmallTotals2[k]||0) + '</td>'; });
+    pdfDateGroups.forEach(grp => {
+      let cnt = 0;
+      grp.entries.filter(d=>d.isSmall).forEach(d => { students.forEach(s => { if((s.scDates||[]).includes(d.uid||d.date)) cnt++; }); });
+      tbodyHtml += '<td>' + cnt + '</td>';
+    });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
   if (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all') {
     tbodyHtml += '<tr class="total-row"><td colspan="' + (simpleMode?1:3) + '">私課人數</td>';
-    filteredDates.forEach(d => { const k=d.uid||d.date; tbodyHtml += '<td>' + (datePrivateTotals2[k]||0) + '</td>'; });
+    pdfDateGroups.forEach(grp => {
+      let cnt = 0;
+      grp.entries.filter(d=>d.isPrivate).forEach(d => { students.forEach(s => { if((s.privateDates||[]).includes(d.uid||d.date)) cnt++; }); });
+      tbodyHtml += '<td>' + cnt + '</td>';
+    });
     tbodyHtml += '<td colspan="' + extraCols + '"></td></tr>';
   }
 
