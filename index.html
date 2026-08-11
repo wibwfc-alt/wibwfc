@@ -2784,8 +2784,16 @@ function _exportMultiMonthPDF(months) {
     if (!simpleMode) theadHtml += '<th>上月結餘</th><th>月中儲值</th>';
     dmDateGroups.forEach(grp => {
       const dt = new Date(grp.date + 'T00:00:00');
-      const venue = grp.entries.map(d => d.venue||d.smallVenue||'').find(v=>v) || '';
-      theadHtml += '<th>' + grp.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + venue + '</span></th>';
+      const venueSet = new Set();
+      grp.entries.forEach(d => {
+        if (dmShowTeam && d.isTeam && d.venue) venueSet.add(d.venue);
+        if (dmShowSmall && d.isSmall && d.smallVenue) venueSet.add(d.smallVenue);
+        if (dmShowSmall && d.isSmall && !d.smallVenue && d.venue) venueSet.add(d.venue);
+        if (dmShowPrivate && d.isPrivate && d.privateVenue) venueSet.add(d.privateVenue);
+        if (dmShowPrivate && d.isPrivate && !d.privateVenue && d.venue) venueSet.add(d.venue);
+      });
+      const venueStr = [...venueSet].join('・');
+      theadHtml += '<th>' + grp.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + venueStr + '</span></th>';
     });
     if (!simpleMode) theadHtml += '<th>月底儲值</th>';
     theadHtml += '<th>合計</th></tr>';
@@ -3009,8 +3017,18 @@ function exportBatchPDF() {
 
   pdfDateGroups.forEach(grp => {
     const dt = new Date(grp.date + 'T00:00:00');
-    const venues = [...new Set(grp.entries.flatMap(d => [d.venue, d.smallVenue, d.privateVenue].filter(v=>v)))];
-    const venueStr = venues.join('・');
+    const showT = courseFilter === 'team' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'team+private';
+    const showS = courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private';
+    const showP = courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all';
+    const venueSet = new Set();
+    grp.entries.forEach(d => {
+      if (showT && d.isTeam && d.venue) venueSet.add(d.venue);
+      if (showS && d.isSmall && d.smallVenue) venueSet.add(d.smallVenue);
+      if (showS && d.isSmall && !d.smallVenue && d.venue) venueSet.add(d.venue);
+      if (showP && d.isPrivate && d.privateVenue) venueSet.add(d.privateVenue);
+      if (showP && d.isPrivate && !d.privateVenue && d.venue) venueSet.add(d.venue);
+    });
+    const venueStr = [...venueSet].join('・');
     theadHtml += '<th>' + grp.date.slice(5).replace('-','/') + '<br>週' + days[dt.getDay()] + '<br><span style="font-size:9px;color:#888;">' + venueStr + '</span></th>';
   });
   theadHtml += '<th>合計</th>';
