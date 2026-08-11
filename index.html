@@ -2866,9 +2866,9 @@ function _exportMultiMonthPDF(months) {
     students.forEach(s => {
       dmDateGroups.forEach((grp,i) => {
         grp.entries.forEach(d => {
-          if ((s.attended||[]).includes(d.uid||d.date)) totalRow[i]++;
-          if ((s.scDates||[]).includes(d.uid||d.date)) scTotalRow[i]++;
-          if ((s.privateDates||[]).includes(d.uid||d.date)) pvTotalRow[i]++;
+          if (d.isTeam && (s.attended||[]).includes(d.uid||d.date)) totalRow[i]++;
+          if (d.isSmall && (s.scDates||[]).includes(d.uid||d.date)) scTotalRow[i]++;
+          if (d.isPrivate && (s.privateDates||[]).includes(d.uid||d.date)) pvTotalRow[i]++;
         });
       });
     });
@@ -2963,7 +2963,7 @@ function exportBatchPDF() {
   const batchSearchEl = document.getElementById('batchSearch');
   const searchVal = batchSearchEl ? batchSearchEl.value.toLowerCase() : '';
   const debtOnly = document.getElementById('batchDebtBtn') && document.getElementById('batchDebtBtn').classList.contains('active');
-  let students = data.students.filter(s => s.group !== '已離隊');
+  let students = data.students.filter(s => s.group !== '已離隊' && !s.isTrial);
   if (selectedGroups) students = students.filter(s => selectedGroups.includes(s.group));
   if (searchVal) students = students.filter(s => [...searchVal].every(c => s.name.includes(c)) || (s.bib||'').includes(searchVal));
   if (debtOnly) students = students.filter(s => calcEndBalance(s) < 0);
@@ -4415,16 +4415,19 @@ function saveEditStudent() {
   const data = getCurrentMonthData();
   const s = data.students.find(x => x.name === orig);
   if (!s) return;
-  // If name changed, update all months
+  // If name changed, check duplicate
   if (orig !== newName) {
     if (data.students.find(x => x.name === newName)) { alert('此姓名已存在'); return; }
-    // 同步所有月份改名
-    Object.values(state.months).forEach(monthData => {
-      const ms = (monthData.students||[]).find(x => x.name === orig);
-      if (ms) ms.name = newName;
-      // 更新 attended / scDates / privateDates 裡的名字key（這些是用name索引的地方不用改，存的是日期）
-    });
   }
+  // 同步所有月份改名、改年級、改背號
+  Object.values(state.months).forEach(monthData => {
+    const ms = (monthData.students||[]).find(x => x.name === orig);
+    if (ms) {
+      if (orig !== newName) ms.name = newName;
+      ms.group = group;
+      ms.bib = bib;
+    }
+  });
   s.name = newName;
   s.group = group;
   s.bib = bib;
