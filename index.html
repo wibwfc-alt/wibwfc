@@ -2927,7 +2927,7 @@ function _exportMultiMonthPDF(months) {
   }
 </style>
 </head>
-<body onload="(function(){ var b=document.body; var pw=(297-10)*3.78; var sw=b.scrollWidth; if(sw>pw){ b.style.zoom=pw/sw; } setTimeout(function(){window.print();},800); })()">
+<body onload="(function(){ var pw=(297-10)*3.78; var tables=document.querySelectorAll('.attendance-table'); var maxW=0; tables.forEach(function(t){if(t.scrollWidth>maxW)maxW=t.scrollWidth;}); var sw=maxW||document.body.scrollWidth; if(sw>pw){ document.body.style.zoom=pw/sw; } setTimeout(function(){window.print();},800); })()">
 ${allSections}
 </body></html>`);
   singleWin.document.close();
