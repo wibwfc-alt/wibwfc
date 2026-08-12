@@ -2807,9 +2807,9 @@ function _exportMultiMonthPDF(months) {
       list.forEach(s => {
         const endBal = s.ignoreBalance ? 0 : calcEndBalance(s);
         const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
-        const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
+        const scEndBal = s.ignoreBalance ? 0 : (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
         const privActual = (s.privateDates||[]).length;
-        const privBal = calcPrivateBalance(s);
+        const privBal = s.ignoreBalance ? 0 : calcPrivateBalance(s);
         const hasSmall = dmShowSmall && scActual > 0;
         const hasPrivate = dmShowPrivate && (privActual > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0);
         const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
@@ -3051,9 +3051,9 @@ function exportBatchPDF() {
     list.forEach(s => {
       const endBal = s.ignoreBalance ? 0 : calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
-      const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
+      const scEndBal = s.ignoreBalance ? 0 : (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
       const privActual = (s.privateDates||[]).length;
-      const privBal = calcPrivateBalance(s);
+      const privBal = s.ignoreBalance ? 0 : calcPrivateBalance(s);
       const hasSmall = pdfShowSmall && scActual > 0;
       const hasPrivate = pdfShowPrivate && (privActual > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0);
       const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
