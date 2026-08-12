@@ -881,6 +881,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>上月結餘（團課）</label><input type="number" id="editPrevBalance"></div>
     <div class="form-group"><label>上月結餘（小班課）</label><input type="number" id="editScPrevBal"></div>
     <div class="form-group"><label>備註</label><input type="text" id="editNote" placeholder="例：長期請假、體驗中、待確認費用…"></div>
+    <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="editIgnoreBalance"> 不計算結餘（月底剩餘永遠顯示 0）</label></div>
     <div class="modal-actions">
       <button class="btn btn-red" onclick="deleteStudentFromEdit()">永久刪除</button>
       <button class="btn btn-outline" onclick="mergeStudentFromEdit()" style="border-color:#a78bfa;color:#a78bfa;font-size:0.78rem;">合併至其他學員</button>
@@ -2282,13 +2283,13 @@ function renderBatch() {
   Object.entries(groups).forEach(([g, list]) => {
     tbody += '<tr class="batch-group-row"><td colspan="' + totalCols + '">' + g + '</td></tr>';
     list.forEach(s => {
-      const endBal = calcEndBalance(s);
+      const endBal = s.ignoreBalance ? 0 : calcEndBalance(s);
       const balColor = endBal < 0 ? 'color:var(--red);font-weight:700;' : endBal > 0 ? 'color:#3aab6e;' : 'color:var(--gray);';
       const nameBalColor = endBal < 0 ? 'color:var(--red)' : 'color:#3aab6e';
       tbody += '<tr>';
       // 學員
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
-      const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
+      const scEndBal = s.ignoreBalance ? 0 : (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
       const scBalColor = scEndBal < 0 ? 'color:var(--red)' : 'color:#3aab6e';
       tbody += '<td class="batch-name-td" data-name-bal="' + s.name + '">';
       tbody += '<div class="bn">' + s.name + (s.bib ? ' <span style="color:var(--gray);font-size:0.65rem;">#' + s.bib + '</span>' : '') + '</div>';
@@ -2474,9 +2475,9 @@ function batchUpdateTopup(input) {
     : tabs.private ? 'private'
     : tabs.small ? 'small'
     : 'team';
-  const endBal = calcEndBalance(s);
+  const endBal = s.ignoreBalance ? 0 : calcEndBalance(s);
   const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
-  const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
+  const scEndBal = s.ignoreBalance ? 0 : (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
   const balColor = endBal < 0 ? 'color:var(--red);font-weight:700;' : endBal > 0 ? 'color:#3aab6e;' : 'color:var(--gray);';
   const scBalColor = scEndBal < 0 ? 'color:var(--red);' : 'color:#3aab6e;';
   const hasSmallData = scActual > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
@@ -2802,7 +2803,7 @@ function _exportMultiMonthPDF(months) {
     Object.entries(groups).forEach(([g, list]) => {
       tbodyHtml += '<tr class="group-row"><td colspan="' + (dmDateGroups.length + (simpleMode ? 2 : 4)) + '">' + g + '</td></tr>';
       list.forEach(s => {
-        const endBal = calcEndBalance(s);
+        const endBal = s.ignoreBalance ? 0 : calcEndBalance(s);
         const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
         const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
         const privActual = (s.privateDates||[]).length;
@@ -3039,7 +3040,7 @@ function exportBatchPDF() {
   Object.entries(groups).forEach(([g, list]) => {
     tbodyHtml += '<tr class="group-row"><td colspan="' + (pdfDateGroups.length + (simpleMode ? 2 : 6)) + '">' + g + '</td></tr>';
     list.forEach(s => {
-      const endBal = calcEndBalance(s);
+      const endBal = s.ignoreBalance ? 0 : calcEndBalance(s);
       const scActual = s.scDates ? s.scDates.length : (s.scAttended||0);
       const scEndBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
       const privActual = (s.privateDates||[]).length;
@@ -3520,10 +3521,10 @@ function renderSidebar() {
   Object.entries(groups).forEach(([g, list]) => {
     html += `<div class="group-header">${g}</div>`;
     list.forEach(s => {
-      const bal = calcEndBalance(s);
+      const bal = s.ignoreBalance ? 0 : calcEndBalance(s);
       const balClass = bal > 0 ? 'balance-pos' : bal < 0 ? 'balance-neg' : 'balance-zero';
       const scActualSB = s.scDates ? s.scDates.length : (s.scAttended||0);
-      const scBal = (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActualSB;
+      const scBal = s.ignoreBalance ? 0 : (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActualSB;
       const scBalClass = scBal > 0 ? 'balance-pos' : scBal < 0 ? 'balance-neg' : 'balance-zero';
       const hasSmallClass = scActualSB > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
       const active = state.selectedStudent === s.name ? 'active' : '';
@@ -4351,6 +4352,7 @@ function openEditStudent(name) {
   document.getElementById('editPrevBalance').value = s.prevBalance || 0;
   document.getElementById('editScPrevBal').value = s.scPrevBal || 0;
   document.getElementById('editNote').value = s.note || '';
+  const ib = document.getElementById('editIgnoreBalance'); if (ib) ib.checked = !!s.ignoreBalance;
   const modal = document.getElementById('editStudentModal');
   document.body.appendChild(modal);
   modal.classList.add('show');
@@ -4434,6 +4436,12 @@ function saveEditStudent() {
   s.prevBalance = prevBalance;
   s.scPrevBal = scPrevBal;
   s.note = document.getElementById('editNote').value.trim();
+  s.ignoreBalance = !!(document.getElementById('editIgnoreBalance') && document.getElementById('editIgnoreBalance').checked);
+  // 同步 ignoreBalance 到所有月份
+  Object.values(state.months).forEach(monthData => {
+    const ms = (monthData.students||[]).find(x => x.name === s.name);
+    if (ms) ms.ignoreBalance = s.ignoreBalance;
+  });
   if (state.selectedStudent === orig) state.selectedStudent = newName;
   saveState();
   closeModal();
