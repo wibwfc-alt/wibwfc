@@ -2437,6 +2437,57 @@ function renderBatch() {
   document.getElementById('batchTable').innerHTML = thead + tbody;
 }
 
+let _sbDragName = null;
+let _sbDragOver = null;
+
+function sbDragStart(e) {
+  _sbDragName = e.currentTarget.dataset.name;
+  e.currentTarget.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function sbDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const el = e.currentTarget;
+  if (el.dataset.name !== _sbDragName) {
+    if (_sbDragOver && _sbDragOver !== el) _sbDragOver.style.borderTop = '';
+    el.style.borderTop = '2px solid #fcc929';
+    _sbDragOver = el;
+  }
+}
+
+function sbDrop(e) {
+  e.preventDefault();
+  const targetName = e.currentTarget.dataset.name;
+  if (!_sbDragName || _sbDragName === targetName) return;
+  const data = getCurrentMonthData();
+  const students = data.students;
+  const fromIdx = students.findIndex(s => s.name === _sbDragName);
+  const toIdx = students.findIndex(s => s.name === targetName);
+  if (fromIdx === -1 || toIdx === -1) return;
+  const [moved] = students.splice(fromIdx, 1);
+  students.splice(toIdx, 0, moved);
+  // 同步所有月份順序
+  Object.values(state.months).forEach(m => {
+    if (m === data) return;
+    const fi = (m.students||[]).findIndex(s => s.name === _sbDragName);
+    const ti = (m.students||[]).findIndex(s => s.name === targetName);
+    if (fi !== -1 && ti !== -1) {
+      const [mv] = m.students.splice(fi, 1);
+      m.students.splice(ti, 0, mv);
+    }
+  });
+  saveState();
+  renderSidebar();
+}
+
+function sbDragEnd(e) {
+  e.currentTarget.style.opacity = '';
+  if (_sbDragOver) { _sbDragOver.style.borderTop = ''; _sbDragOver = null; }
+  _sbDragName = null;
+}
+
 function saveTrialCount(input) {
   if (state.isReadOnly) return;
   const uid = input.dataset.uid;
@@ -3537,10 +3588,14 @@ function renderSidebar() {
       const scBalClass = scBal > 0 ? 'balance-pos' : scBal < 0 ? 'balance-neg' : 'balance-zero';
       const hasSmallClass = scActualSB > 0 || (s.scTopup||0) > 0 || (s.scPrevBal||0) !== 0 || (s.scMidTopup||0) > 0;
       const active = state.selectedStudent === s.name ? 'active' : '';
-      html += `<div class="student-item ${active}" onclick="selectStudent('${s.name}')">
-        <div>
+      const dragAttr = state.isReadOnly ? '' : 'draggable="true" ondragstart="sbDragStart(event)" ondragover="sbDragOver(event)" ondrop="sbDrop(event)" ondragend="sbDragEnd(event)"';
+      html += `<div class="student-item ${active}" data-name="${s.name}" ${dragAttr} onclick="selectStudent('${s.name}')" style="cursor:${state.isReadOnly?'pointer':'grab'};">
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${state.isReadOnly ? '' : '<span style="color:#555;font-size:0.8rem;cursor:grab;user-select:none;">⠿</span>'}
+          <div>
           <div class="student-name">${s.name}</div>
           <div class="student-meta">${s.group}${s.bib ? ' · #' + s.bib : ''} · 團${s.attended.length}堂${scActualSB > 0 ? ' 小' + scActualSB + '堂' : ''}${(s.privateDates||[]).length > 0 ? ' ★' + s.privateDates.length + '堂' : ''}${s.note ? ' · ' + s.note : ''}</div>
+          </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
           <div class="balance-badge ${balClass}">${bal > 0 ? '+' : ''}${bal}</div>
@@ -4369,26 +4424,31 @@ function openEditStudent(name) {
 
 function mergeStudentFromEdit() {
   const orig = document.getElementById('editStudentOrig').value;
-  // Get all student names across all months
   const allNames = new Set();
   Object.values(state.months).forEach(m => (m.students||[]).forEach(s => { if (s.name !== orig) allNames.add(s.name); }));
   const target = prompt('將「' + orig + '」的所有出席紀錄合併到哪個學員？\n\n請輸入目標學員姓名：\n（可用：' + [...allNames].slice(0,10).join('、') + (allNames.size > 10 ? '...' : '') + '）');
   if (!target || !allNames.has(target)) { if (target) alert('找不到學員「' + target + '」'); return; }
-  if (!confirm('確定將「' + orig + '」的所有出席紀錄合併到「' + target + '」？\n合併後「' + orig + '」將被永久刪除。')) return;
+  if (!confirm('確定將「' + orig + '」的所有資料合併到「' + target + '」？\n合併後「' + orig + '」將被永久刪除。')) return;
 
-  // Merge attended, scDates, privateDates from orig to target in each month
   Object.values(state.months).forEach(m => {
     const from = (m.students||[]).find(s => s.name === orig);
     const to = (m.students||[]).find(s => s.name === target);
     if (from && to) {
-      // Merge attended
-      (from.attended||[]).forEach(d => { if (!(to.attended||[]).includes(d)) { if (!to.attended) to.attended=[]; to.attended.push(d); } });
-      // Merge scDates
-      (from.scDates||[]).forEach(d => { if (!(to.scDates||[]).includes(d)) { if (!to.scDates) to.scDates=[]; to.scDates.push(d); } });
-      // Merge privateDates
-      (from.privateDates||[]).forEach(d => { if (!(to.privateDates||[]).includes(d)) { if (!to.privateDates) to.privateDates=[]; to.privateDates.push(d); } });
+      // 出席紀錄合併（去重）
+      ['attended','scDates','privateDates'].forEach(key => {
+        (from[key]||[]).forEach(d => { if (!(to[key]||[]).includes(d)) { if (!to[key]) to[key]=[]; to[key].push(d); } });
+      });
+      // 儲值相加
+      ['midTopup','endTopup','giftTopup','scTopup','scMidTopup','scGiftTopup','privateTopup','privateMidTopup'].forEach(key => {
+        if (from[key]) to[key] = (to[key]||0) + from[key];
+      });
+      // 上月結餘相加
+      ['prevBalance','scPrevBal','privatePrevBal'].forEach(key => {
+        if (from[key]) to[key] = (to[key]||0) + from[key];
+      });
+      // scAttended 同步
+      if (to.scDates) to.scAttended = to.scDates.length;
     }
-    // Delete orig from this month
     if (m.students) m.students = m.students.filter(s => s.name !== orig);
   });
 
