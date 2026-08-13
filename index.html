@@ -939,7 +939,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
     <div class="form-group"><label>課程類型</label>
       <div style="display:flex;gap:16px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
-          <input type="checkbox" id="editIsTeam" onchange="var t=document.getElementById('editTeamCoachGroup');var v=document.getElementById('editVenueGroup');var y=document.getElementById('editTeamTypeGroup');if(t)t.style.display=this.checked?'':'none';if(y)y.style.display=this.checked?'':'none';if(v)v.style.display=(this.checked||document.getElementById('editIsSmall').checked||document.getElementById('editIsPrivate').checked)?'':'none';"> <span style="color:#3aab6e;">● 團課</span>
+          <input type="checkbox" id="editIsTeam" onchange="var t=document.getElementById('editTeamCoachGroup');var v=document.getElementById('editVenueGroup');if(t)t.style.display=this.checked?'':'none';if(v)v.style.display=(this.checked||document.getElementById('editIsSmall').checked||document.getElementById('editIsPrivate').checked)?'':'none';"> <span style="color:#3aab6e;">● 團課</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;">
           <input type="checkbox" id="editIsSmall" onchange="var s=document.getElementById('editSmallCoachGroup');var sv=document.getElementById('editSmallVenueGroup');var v=document.getElementById('editVenueGroup');if(s)s.style.display=this.checked?'':'none';if(sv)sv.style.display=this.checked?'':'none';if(v)v.style.display=(this.checked||document.getElementById('editIsTeam').checked||document.getElementById('editIsPrivate').checked)?'':'none';"> <span style="color:#fcc929;">◆ 小班課</span>
@@ -1028,13 +1028,6 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <button type="button" onclick="deleteVenueFromSelect('editVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
       </div>
     </div>
-    <div class="form-group" id="editTeamTypeGroup" style="display:none;">
-      <label style="color:#3aab6e;">● 課程類型</label>
-      <div style="display:flex;gap:12px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="editTeamType" value="normal" checked> 一般</label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#5b9bd5;"><input type="radio" name="editTeamType" value="young"> 幼幼</label>
-      </div>
-    </div>
     <div class="form-group" id="editTeamCoachGroup" style="display:none;">
       <label style="color:#3aab6e;">● 團課教練（可多選）</label>
       <div id="editTeamCoachList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
@@ -1096,9 +1089,7 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <input type="checkbox" id="newIsTeam" onchange="
             var tg=document.getElementById('newTeamCoachGroup');
             var vg=document.getElementById('newVenueGroup');
-            var yg=document.getElementById('newTeamTypeGroup');
             if(tg)tg.style.display=this.checked?'':'none';
-            if(yg)yg.style.display=this.checked?'':'none';
             if(vg)vg.style.display=(this.checked||document.getElementById('newIsSmall').checked||document.getElementById('newIsPrivate').checked)?'':'none';
           "> <span style="color:#3aab6e;">● 團課</span>
         </label>
@@ -1178,13 +1169,6 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <input type="text" id="newVenueInput" placeholder="新增場地名稱" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:4px;font-size:0.82rem;">
         <button type="button" onclick="addNewVenue()" class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px;">＋ 新增</button>
         <button type="button" onclick="deleteVenueFromSelect('newVenue')" class="btn btn-red" style="font-size:0.78rem;padding:6px 10px;">✕</button>
-      </div>
-    </div>
-    <div class="form-group" id="newTeamTypeGroup" style="display:none;">
-      <label style="color:#3aab6e;">● 課程類型</label>
-      <div style="display:flex;gap:12px;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#f5f5f0;"><input type="radio" name="newTeamType" value="normal" checked> 一般</label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;color:#5b9bd5;"><input type="radio" name="newTeamType" value="young"> 幼幼</label>
       </div>
     </div>
     <div class="form-group" id="newTeamCoachGroup" style="display:none;">
@@ -2273,9 +2257,7 @@ function renderBatch() {
     let coachHtml = '';
     if (showTeamCoach) {
       if (d.venue) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + d.venue + '</span>';
-      const isYoung = grp ? grp.d?.teamType === 'young' : d.teamType === 'young';
-    const teamColor = isYoung ? '#5b9bd5' : '#3aab6e';
-    if (tc) coachHtml += '<br><span style="color:' + teamColor + ';font-size:0.6rem;">● ' + tc + '</span>';
+      if (tc) coachHtml += '<br><span style="color:#3aab6e;font-size:0.6rem;">● ' + tc + '</span>';
     }
     if (showSmallCoach) {
       const sv = d.smallVenue || (showTeamCoach ? '' : d.venue) || '';
@@ -2287,8 +2269,7 @@ function renderBatch() {
       if (pv) coachHtml += '<br><span style="color:#555;font-size:0.6rem;">' + pv + '</span>';
       if (d.privateCoach) coachHtml += '<br><span style="color:#a78bfa;font-size:0.6rem;">★ ' + d.privateCoach + '</span>';
     }
-    const youngLabel = (d.isTeam && d.teamType === 'young') ? '<br><span style="color:#5b9bd5;font-size:0.6rem;">幼幼</span>' : '';
-    thead += '<th class="batch-th date-col" style="' + (d.isTeam && d.teamType==='young' ? 'border-bottom:2px solid #5b9bd5;' : '') + '">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span>' + youngLabel + coachHtml + '</th>';
+    thead += '<th class="batch-th date-col">' + d.date.slice(5).replace('-','/') + '<br><span style="color:#555;">週' + days[dt.getDay()] + '</span>' + coachHtml + '</th>';
   });
   thead += '<th class="batch-th" style="min-width:50px;">合計</th>';
   if (!simpleMode) thead += '<th class="batch-th" style="min-width:64px;color:#3aab6e;">月底儲值</th>';
@@ -2350,13 +2331,7 @@ function renderBatch() {
         const dateIsSmall = d.isSmall === true && (courseFilter === 'small' || courseFilter === 'all' || courseFilter === 'team+small' || courseFilter === 'small+private');
         const dateIsPrivate = d.isPrivate === true && (courseFilter === 'private' || courseFilter === 'team+private' || courseFilter === 'small+private' || courseFilter === 'all');
         let cell = '<td class="batch-td" style="padding:2px;min-width:36px;">';
-        if (dateIsTeam) {
-          const isYoungTeam = d.teamType === 'young';
-          const tBorder = isYoungTeam ? 'rgba(91,155,213,0.5)' : 'rgba(58,171,110,0.4)';
-          const tBg = isYoungTeam ? 'rgba(91,155,213,0.25)' : 'rgba(36,110,88,0.3)';
-          const tColor = isYoungTeam ? '#5b9bd5' : '#3aab6e';
-          cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;border-color:' + tBorder + ';' + (isTeam?'background:'+tBg+';color:'+tColor+';':'') + '" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
-        }
+        if (dateIsTeam) cell += '<div class="batch-check ' + (isTeam?'checked':'') + '" style="font-size:0.65rem;margin-bottom:2px;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="team" onclick="toggleBatchCell(this)">' + (isTeam?'✓':'') + '</div>';
         if (dateIsSmall) cell += '<div class="batch-check ' + (isSmall?'checked batch-small':'batch-small-empty') + '" style="font-size:0.65rem;" data-name="' + s.name + '" data-date="' + dKey + '" data-type="small" onclick="toggleBatchCell(this)">' + (isSmall?'◆':'') + '</div>';
         if (dateIsPrivate) cell += '<div class="batch-check ' + (isPrivate?'checked':'') + '" style="font-size:0.65rem;border-color:rgba(167,139,250,0.4);' + (isPrivate?'background:rgba(167,139,250,0.25);color:#a78bfa;':'color:#a78bfa;') + '" data-name="' + s.name + '" data-date="' + dKey + '" data-type="private" onclick="toggleBatchCell(this)">' + (isPrivate?'★':'') + '</div>';
         if (!dateIsTeam && !dateIsSmall && !dateIsPrivate) cell += '<div style="color:var(--gray);font-size:0.65rem;text-align:center;">—</div>';
@@ -2723,7 +2698,7 @@ function exportCalendar() {
     if (!dateStr.startsWith(state.currentMonth)) return;
     const day = parseInt(dateStr.split('-')[2]);
     if (!dayMap[day]) dayMap[day] = [];
-    if (d.isTeam) { const coaches = d.teamCoach || d.coach || ''; const venue = d.venue || ''; const isYoung = d.teamType === 'young'; dayMap[day].push({ type: isYoung ? 'young' : 'team', label: (isYoung ? '● 幼幼' : '● 團課'), coaches, venue }); }
+    if (d.isTeam) { const coaches = d.teamCoach || d.coach || ''; const venue = d.venue || ''; dayMap[day].push({ type:'team', label:'● 團課', coaches, venue }); }
     if (d.isSmall) { const coaches = d.smallCoach || ''; const venue = d.smallVenue || ''; dayMap[day].push({ type:'small', label:'◆ 小班', coaches, venue }); }
     if (d.isPrivate) { const coaches = d.privateCoach || ''; const venue = d.privateVenue || ''; dayMap[day].push({ type:'private', label:'★ 私課', coaches, venue }); }
   });
@@ -2739,7 +2714,7 @@ function exportCalendar() {
     let sessHtml = sessions.map(s => '<div class="session ' + s.type + '"><div class="slabel">' + s.label + (s.venue ? ' <span class="sv">' + s.venue + '</span>' : '') + '</div>' + (s.coaches ? '<div class="sc">' + s.coaches + '</div>' : '') + '</div>').join('');
     cells += '<div class="day' + (isSat?' sat':'') + (isSun?' sun':'') + '">' + '<div class="dn">' + month + '/' + d + '</div>' + sessHtml + '</div>';
   }
-  const css = '*{box-sizing:border-box;margin:0;padding:0}body{background:#010101;color:#f5f5f0;font-family:sans-serif;padding:20px 12px 40px}h1{text-align:center;font-size:1.3rem;font-weight:900;color:#fcc929;letter-spacing:2px;margin-bottom:4px}.sub{text-align:center;font-size:0.7rem;color:#555;margin-bottom:16px}.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:1000px;margin:0 auto}.wh{text-align:center;font-size:0.65rem;font-weight:700;color:#555;padding:5px 0}.wh.sat{color:#5b8cf5}.wh.sun{color:#e05c2a}.day{background:#0d0d0d;border:1px solid rgba(255,255,255,0.05);border-radius:6px;min-height:80px;padding:6px 5px 8px}.day.empty{background:transparent;border-color:transparent;min-height:0}.day.sat{border-color:rgba(91,140,245,0.15)}.day.sun{border-color:rgba(224,92,42,0.15)}.dn{font-size:0.65rem;font-weight:700;color:#f5f5f0;margin-bottom:4px}.session{margin-bottom:4px;padding:3px 5px;border-radius:4px;font-size:0.6rem;line-height:1.4}.session.team{background:rgba(36,110,88,0.2);border-left:2px solid #3aab6e}.session.young{background:rgba(91,155,213,0.15);border-left:2px solid #5b9bd5}.session.small{background:rgba(252,201,41,0.1);border-left:2px solid #fcc929}.session.private{background:rgba(167,139,250,0.1);border-left:2px solid #a78bfa}.slabel{font-weight:700;font-size:0.58rem}.session.team .slabel{color:#3aab6e}.session.young .slabel{color:#5b9bd5}.session.small .slabel{color:#fcc929}.session.private .slabel{color:#a78bfa}.sv{font-weight:400;color:#666;margin-left:3px}.sc{color:#ddd;font-weight:700;font-size:0.62rem;margin-top:1px}';
+  const css = '*{box-sizing:border-box;margin:0;padding:0}body{background:#010101;color:#f5f5f0;font-family:sans-serif;padding:20px 12px 40px}h1{text-align:center;font-size:1.3rem;font-weight:900;color:#fcc929;letter-spacing:2px;margin-bottom:4px}.sub{text-align:center;font-size:0.7rem;color:#555;margin-bottom:16px}.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:1000px;margin:0 auto}.wh{text-align:center;font-size:0.65rem;font-weight:700;color:#555;padding:5px 0}.wh.sat{color:#5b8cf5}.wh.sun{color:#e05c2a}.day{background:#0d0d0d;border:1px solid rgba(255,255,255,0.05);border-radius:6px;min-height:80px;padding:6px 5px 8px}.day.empty{background:transparent;border-color:transparent;min-height:0}.day.sat{border-color:rgba(91,140,245,0.15)}.day.sun{border-color:rgba(224,92,42,0.15)}.dn{font-size:0.65rem;font-weight:700;color:#f5f5f0;margin-bottom:4px}.session{margin-bottom:4px;padding:3px 5px;border-radius:4px;font-size:0.6rem;line-height:1.4}.session.team{background:rgba(36,110,88,0.2);border-left:2px solid #3aab6e}.session.small{background:rgba(252,201,41,0.1);border-left:2px solid #fcc929}.session.private{background:rgba(167,139,250,0.1);border-left:2px solid #a78bfa}.slabel{font-weight:700;font-size:0.58rem}.session.team .slabel{color:#3aab6e}.session.small .slabel{color:#fcc929}.session.private .slabel{color:#a78bfa}.sv{font-weight:400;color:#666;margin-left:3px}.sc{color:#ddd;font-weight:700;font-size:0.62rem;margin-top:1px}';
   const html = '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>' + monthLabel + ' 課表</title><style>' + css + '</style></head><body><h1>🐺 ' + monthLabel + ' 課表</h1><div class="sub">灣島黑狼 FC</div><div class="cal"><div class="wh">一</div><div class="wh">二</div><div class="wh">三</div><div class="wh">四</div><div class="wh">五</div><div class="wh sat">六</div><div class="wh sun">日</div>' + cells + '</div></body></html>';
   const win = window.open('', '_blank');
   win.document.write(html);
@@ -4106,7 +4081,7 @@ function showDateManager() {
       const dateParts = d.date.split('-');
       const dateDisplay = dateParts[1] + '/' + dateParts[2];
       const tags = [];
-      if (d.isTeam) tags.push('<span style="background:' + (d.teamType==='young'?'#1a4a6e':'var(--green)') + ';color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">' + (d.teamType==='young'?'幼幼':'') + '團課</span>');
+      if (d.isTeam) tags.push('<span style="background:var(--green);color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">團課</span>');
       if (d.isSmall) tags.push('<span style="background:#b07c0b;color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:99px;">小班</span>');
       if (d.isPrivate) tags.push('<span style="background:rgba(167,139,250,0.25);color:#a78bfa;font-size:0.7rem;padding:2px 7px;border-radius:99px;">私課</span>');
       const tc = d.teamCoach || d.coach || '';
@@ -4289,7 +4264,6 @@ function addDate() {
   const privateCoach = Array.from(document.querySelectorAll('input[name=newPrivateCoach]:checked')).map(x=>x.value).join('、');
   const privateVenue = (document.getElementById('newPrivateVenue') && document.getElementById('newIsPrivate').checked) ? document.getElementById('newPrivateVenue').value : '';
   const teamCoach = Array.from(document.querySelectorAll('input[name=newTeamCoach]:checked')).map(x=>x.value).join('、');
-  const teamType = isTeam2 ? (document.querySelector('input[name=newTeamType]:checked')?.value || 'normal') : 'normal';
   const smallCoach = Array.from(document.querySelectorAll('input[name=newSmallCoach]:checked')).map(x=>x.value).join('、');
   const data = getCurrentMonthData();
   if (!data) return;
@@ -4302,7 +4276,7 @@ function addDate() {
   const isSmall2 = isSmallEl ? isSmallEl.checked : false;
   const isPrivate2 = isPrivateEl2 ? isPrivateEl2.checked : false;
   const uid = date + '_' + Date.now();
-  data.dates.push({ date, venue, smallVenue, privateVenue, teamCoach, smallCoach, privateCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, isPrivate: isPrivate2, teamType, uid });
+  data.dates.push({ date, venue, smallVenue, privateVenue, teamCoach, smallCoach, privateCoach, note: noteVal2, isTeam: isTeam2, isSmall: isSmall2, isPrivate: isPrivate2, uid });
   data.dates.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
   closeModal();
@@ -4331,7 +4305,6 @@ function openEditDate(dateOrUid, fromManager) {
   document.getElementById('editVenue').value = d.venue || '';
   document.getElementById('editDateNote').value = d.note || '';
   document.getElementById('editIsTeam').checked = !!d.isTeam;
-  document.querySelectorAll('input[name=editTeamType]').forEach(r => { r.checked = (r.value === (d.teamType || 'normal')); });
   document.getElementById('editIsSmall').checked = !!d.isSmall;
 
   // Show/hide groups based on checkboxes
@@ -4373,7 +4346,6 @@ function saveEditDate() {
   const smallCoach = Array.from(document.querySelectorAll('input[name=editSmallCoach]:checked')).map(x=>x.value).join('、');
   const note = (document.getElementById('editDateNote').value || '').trim();
   const isTeam = document.getElementById('editIsTeam').checked;
-  const teamType = isTeam ? (document.querySelector('input[name=editTeamType]:checked')?.value || 'normal') : 'normal';
   const isSmall = document.getElementById('editIsSmall').checked;
   const isPrivate = document.getElementById('editIsPrivate') ? document.getElementById('editIsPrivate').checked : false;
   const data = getCurrentMonthData();
