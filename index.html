@@ -1754,9 +1754,49 @@ function makeCoachLabel(name, inputName, checked) {
   del.onmouseenter = () => del.style.opacity = '1';
   del.onmouseleave = () => del.style.opacity = '0.7';
   del.onclick = () => deleteCoach(name);
+  const ren = document.createElement('button');
+  ren.type = 'button';
+  ren.textContent = '✎';
+  ren.title = '改名';
+  ren.style.cssText = 'background:none;border:none;color:#fcc929;cursor:pointer;font-size:0.68rem;padding:0 2px;line-height:1;opacity:0.7;';
+  ren.onmouseenter = () => ren.style.opacity = '1';
+  ren.onmouseleave = () => ren.style.opacity = '0.7';
+  ren.onclick = () => renameCoach(name);
   wrap.appendChild(lbl);
+  wrap.appendChild(ren);
   wrap.appendChild(del);
   return wrap;
+}
+
+function renameCoach(oldName) {
+  const newName = prompt('將教練「' + oldName + '」改名為：', oldName);
+  if (!newName || newName.trim() === oldName) return;
+  const trimmed = newName.trim();
+  if (!confirm('將所有課日的「' + oldName + '」改為「' + trimmed + '」？')) return;
+  Object.values(state.months).forEach(m => {
+    (m.dates||[]).forEach(d => {
+      ['teamCoach','smallCoach','privateCoach','coach'].forEach(field => {
+        if (d[field]) {
+          const coaches = d[field].split('、');
+          const idx = coaches.indexOf(oldName);
+          if (idx !== -1) { coaches[idx] = trimmed; d[field] = coaches.join('、'); }
+        }
+      });
+    });
+  });
+  const defaultCoaches = ['馬哥','松育','芃宜','子豪','紹詠'];
+  const deletedCoaches = JSON.parse(localStorage.getItem('bw_deleted_coaches') || '[]');
+  const customCoaches = JSON.parse(localStorage.getItem('bw_coaches') || '[]');
+  if (defaultCoaches.includes(oldName)) {
+    if (!deletedCoaches.includes(oldName)) { deletedCoaches.push(oldName); localStorage.setItem('bw_deleted_coaches', JSON.stringify(deletedCoaches)); }
+    if (!customCoaches.includes(trimmed)) { customCoaches.push(trimmed); localStorage.setItem('bw_coaches', JSON.stringify(customCoaches)); }
+  } else {
+    const idx = customCoaches.indexOf(oldName);
+    if (idx !== -1) { customCoaches[idx] = trimmed; localStorage.setItem('bw_coaches', JSON.stringify(customCoaches)); }
+  }
+  saveState();
+  loadCustomCoachesVenues();
+  alert('✓ 已將「' + oldName + '」改為「' + trimmed + '」');
 }
 
 function deleteCoach(name) {
@@ -3105,7 +3145,8 @@ function exportBatchPDF() {
       const scEndBal = s.ignoreBalance ? 0 : (s.scPrevBal||0)+(s.scMidTopup||0)+(s.scTopup||0)+(s.scGiftTopup||0)-scActual;
       const privActual = (s.privateDates||[]).length;
       const privBal = s.ignoreBalance ? 0 : calcPrivateBalance(s);
-      const hasSmall = pdfShowSmall && scActual > 0;
+      const scHasData = scActual > 0 || (s.scPrevBal||0) !== 0 || (s.scTopup||0) > 0 || (s.scMidTopup||0) > 0 || (s.scGiftTopup||0) > 0;
+      const hasSmall = pdfShowSmall && scHasData;
       const hasPrivate = pdfShowPrivate && (privActual > 0 || (s.privateTopup||0) > 0 || (s.privatePrevBal||0) !== 0);
       const balStyle = endBal < 0 ? 'color:#cc3300;font-weight:700;' : endBal > 0 ? 'color:#1a7a50;' : '';
       const scBalStyle = scEndBal < 0 ? 'color:#cc3300;font-weight:700;' : scEndBal > 0 ? 'color:#1a7a50;' : 'color:#999;';
