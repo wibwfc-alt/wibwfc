@@ -3613,13 +3613,19 @@ function renderSidebar() {
   if (state.debtFilter) students = students.filter(s => calcEndBalance(s) < 0 && s.group !== '已離隊');
 
   const groups = {};
+  const _groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國中','爸媽組'];
   students.forEach(s => {
     if (!groups[s.group]) groups[s.group] = [];
     groups[s.group].push(s);
   });
 
   let html = '';
-  Object.entries(groups).forEach(([g, list]) => {
+  const _sortedGroups = Object.keys(groups).sort((a, b) => {
+    const ai = _groupOrder.indexOf(a); const bi = _groupOrder.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+  _sortedGroups.forEach(g => {
+    const list = groups[g];
     html += `<div class="group-header">${g}</div>`;
     list.forEach(s => {
       const bal = s.ignoreBalance ? 0 : calcEndBalance(s);
