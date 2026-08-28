@@ -584,7 +584,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('小四')">小四</button>
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('小五')">小五</button>
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('小六')">小六</button>
-      <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('國中')">國中</button>
+      <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('國一')">國一</button>
+      <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('國二')">國二</button>
+      <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('國三')">國三</button>
+      <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('高中')">高中</button>
       <button class="btn btn-outline" style="font-size:0.72rem;padding:4px 10px;" onclick="filterGroup('爸媽組')">爸媽</button>
       <button class="btn btn-outline edit-only" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="filterGroup('已離隊')">離隊</button>
       <button class="btn btn-outline edit-only" id="debtFilterBtn" style="font-size:0.72rem;padding:4px 10px;border-color:rgba(224,92,42,0.35);color:var(--red);" onclick="toggleDebtFilter()">欠費</button>
@@ -770,7 +773,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
           <button class="btn btn-outline batchGroupBtn" data-group="小四" onclick="toggleGroupFilter('小四')" style="font-size:0.75rem;padding:4px 8px;">小四</button>
           <button class="btn btn-outline batchGroupBtn" data-group="小五" onclick="toggleGroupFilter('小五')" style="font-size:0.75rem;padding:4px 8px;">小五</button>
           <button class="btn btn-outline batchGroupBtn" data-group="小六" onclick="toggleGroupFilter('小六')" style="font-size:0.75rem;padding:4px 8px;">小六</button>
-          <button class="btn btn-outline batchGroupBtn" data-group="國中" onclick="toggleGroupFilter('國中')" style="font-size:0.75rem;padding:4px 8px;">國中</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="國一" onclick="toggleGroupFilter('國一')" style="font-size:0.75rem;padding:4px 8px;">國一</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="國二" onclick="toggleGroupFilter('國二')" style="font-size:0.75rem;padding:4px 8px;">國二</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="國三" onclick="toggleGroupFilter('國三')" style="font-size:0.75rem;padding:4px 8px;">國三</button>
+          <button class="btn btn-outline batchGroupBtn" data-group="高中" onclick="toggleGroupFilter('高中')" style="font-size:0.75rem;padding:4px 8px;">高中</button>
           <button class="btn btn-outline batchGroupBtn" data-group="爸媽組" onclick="toggleGroupFilter('爸媽組')" style="font-size:0.75rem;padding:4px 8px;">爸媽</button>
         </div>
       </div>
@@ -872,7 +878,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <option value="小四">小四</option>
         <option value="小五">小五</option>
         <option value="小六">小六</option>
-        <option value="國中">國中</option>
+        <option value="國一">國一</option>
+        <option value="國二">國二</option>
+        <option value="國三">國三</option>
+        <option value="高中">高中</option>
         <option value="爸媽組">爸媽</option>
         <option value="已離隊">離隊</option>
       </select>
@@ -913,7 +922,10 @@ body.edit-mode .edit-only { display: inline-block !important; }
         <option value="小四">小四</option>
         <option value="小五">小五</option>
         <option value="小六">小六</option>
-        <option value="國中">國中</option>
+        <option value="國一">國一</option>
+        <option value="國二">國二</option>
+        <option value="國三">國三</option>
+        <option value="高中">高中</option>
         <option value="爸媽組">爸媽</option>
       </select>
     </div>
@@ -1316,21 +1328,21 @@ const initialStudents = [
   {name:"許睿宸",group:"小六",bib:"16",prevBalance:8,attended:[],midTopup:0,endTopup:0,scPrevBal:1,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
   {name:"詹昕祁",group:"小六",bib:"80/6",prevBalance:-5,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
   {name:"全紹捷",group:"小六",bib:"78",prevBalance:0,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"陳采樂",group:"國中",bib:"17",prevBalance:7,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"陳泯佑",group:"國中",bib:"29",prevBalance:0,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"張凱威",group:"國中",bib:"11",prevBalance:5,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"李悠",group:"國中",bib:"6",prevBalance:-2,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"沈莃梦(Semon)",group:"國中",bib:"5",prevBalance:0,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"郭承翰(Yarik)",group:"國中",bib:"10",prevBalance:-4,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"陳居滸",group:"國中",bib:"23",prevBalance:-2,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"李能唯",group:"國中",bib:"4",prevBalance:-1,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"黃浩恩",group:"國中",bib:"19",prevBalance:5,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"謝昀呈",group:"國中",bib:"9",prevBalance:8,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"陳宇威",group:"國中",bib:"7",prevBalance:7,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"許鈞皓(許恩)",group:"國中",bib:"21",prevBalance:1,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"奕塘",group:"國中",bib:"",prevBalance:0,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"張宸榮",group:"國中",bib:"",prevBalance:8,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
-  {name:"詹昕洧",group:"國中",bib:"",prevBalance:-1,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""}
+  {name:"陳采樂",group:"國一",bib:"17",prevBalance:7,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"陳泯佑",group:"國一",bib:"29",prevBalance:0,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"張凱威",group:"國一",bib:"11",prevBalance:5,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"李悠",group:"國一",bib:"6",prevBalance:-2,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"沈莃梦(Semon)",group:"國一",bib:"5",prevBalance:0,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"郭承翰(Yarik)",group:"國一",bib:"10",prevBalance:-4,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"陳居滸",group:"國一",bib:"23",prevBalance:-2,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"李能唯",group:"國一",bib:"4",prevBalance:-1,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"黃浩恩",group:"國一",bib:"19",prevBalance:5,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"謝昀呈",group:"國一",bib:"9",prevBalance:8,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"陳宇威",group:"國一",bib:"7",prevBalance:7,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"許鈞皓(許恩)",group:"國一",bib:"21",prevBalance:1,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"奕塘",group:"國一",bib:"",prevBalance:0,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"張宸榮",group:"國一",bib:"",prevBalance:8,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""},
+  {name:"詹昕洧",group:"國一",bib:"",prevBalance:-1,attended:[],midTopup:0,endTopup:0,scPrevBal:0,scMidTopup:0,scTopup:0,scAttended:0,scDates:[],giftTopup:0,scGiftTopup:0,note:""}
 ];
 
 const initialDates = {};
@@ -2023,7 +2035,7 @@ function copyDebtList() {
   const showTeam = document.getElementById('debtFilterTeam') ? document.getElementById('debtFilterTeam').checked : true;
   const showSmall = document.getElementById('debtFilterSmall') ? document.getElementById('debtFilterSmall').checked : true;
   const showPrivate = document.getElementById('debtFilterPrivate') ? document.getElementById('debtFilterPrivate').checked : true;
-  const groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國中','爸媽組'];
+  const groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國一','國二','國三','高中','爸媽組'];
 
   const debtStudents = data.students
     .filter(s => {
@@ -3613,7 +3625,7 @@ function renderSidebar() {
   if (state.debtFilter) students = students.filter(s => calcEndBalance(s) < 0 && s.group !== '已離隊');
 
   const groups = {};
-  const _groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國中','爸媽組'];
+  const _groupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國一','國二','國三','高中','爸媽組'];
   students.forEach(s => {
     if (!groups[s.group]) groups[s.group] = [];
     groups[s.group].push(s);
