@@ -2331,8 +2331,14 @@ function renderBatch() {
 
   const totalCols = filteredDates.length + 5; // name + 上月 + 月中 + dates + 合計 + 月底 + 月底剩餘
 
+  const _batchGroupOrder = ['幼兒','小一','小二','小三','小四','小五','小六','國一','國二','國三','高中','爸媽組'];
   let tbody = '<tbody>';
-  Object.entries(groups).forEach(([g, list]) => {
+  const _batchSortedGroups = Object.keys(groups).sort((a,b) => {
+    const ai = _batchGroupOrder.indexOf(a); const bi = _batchGroupOrder.indexOf(b);
+    return (ai===-1?99:ai) - (bi===-1?99:bi);
+  });
+  _batchSortedGroups.forEach(g => {
+    const list = groups[g];
     tbody += '<tr class="batch-group-row"><td colspan="' + totalCols + '">' + g + '</td></tr>';
     list.forEach(s => {
       const endBal = s.ignoreBalance ? 0 : calcEndBalance(s);
