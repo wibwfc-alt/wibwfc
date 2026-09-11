@@ -1515,7 +1515,10 @@ function showPaymentHistory() {
 
 function _renderPaymentHistory() {
   const isRO = state.isReadOnly;
-  const history = (state.paymentHistory || []).slice().reverse();
+  const searchEl = document.getElementById('phSearch');
+  const searchVal = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  let history = (state.paymentHistory || []).slice().reverse();
+  if (searchVal) history = history.filter(p => p.name && p.name.toLowerCase().includes(searchVal));
   const months = [...new Set(history.map(p => p.month))].sort().reverse();
   const _days = ['日','一','二','三','四','五','六'];
 
