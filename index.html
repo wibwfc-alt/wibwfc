@@ -1579,6 +1579,11 @@ function _renderPaymentHistory() {
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
     document.body.appendChild(overlay);
   }
+  const existingList = document.getElementById('phList');
+  if (existingList) {
+    existingList.outerHTML = html;
+    return;
+  }
   overlay.innerHTML = '<div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;width:min(92vw,600px);">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
     + '<h3 style="margin:0;font-size:1rem;">💳 匯款紀錄</h3>'
