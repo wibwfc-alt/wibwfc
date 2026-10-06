@@ -3561,7 +3561,14 @@ function getCurrentMonthData() {
     if (latestPrev) {
       (state.months[latestPrev].students || []).forEach(s => { latestStudentMap[s.name] = s; });
     }
-    const students = Object.values(masterMap).filter(s => !s.isTrial && s.group !== '已離隊').map(s => {
+    // 依照最近月份的學員順序排列，沒出現在最近月份的排到最後
+    const latestOrder = latestPrev ? (state.months[latestPrev].students||[]).map(s => s.name) : [];
+    const masterList = Object.values(masterMap).filter(s => !s.isTrial && s.group !== '已離隊');
+    masterList.sort((a, b) => {
+      const ai = latestOrder.indexOf(a.name); const bi = latestOrder.indexOf(b.name);
+      return (ai === -1 ? 9999 : ai) - (bi === -1 ? 9999 : bi);
+    });
+    const students = masterList.map(s => {
       const prev = latestStudentMap[s.name] || s;
       return {
         ...s,
